@@ -1,0 +1,19 @@
+prompt_schema_version: "1.0"
+variables:
+  file_path: "String: A specific file path referenced in the user prompt."
+  test_command: "String: The standard test execution command for the repository."
+  repo_root: "String: The absolute path to the root of the repository."
+  requested_features: "List: Explicit features requested by the user."
+  deliverable: "String: The specific outcome or artifact the user requested."
+
+conditions:
+  is_informational: "Boolean: True if the prompt only asks for research/info."
+  is_ambiguous: "Boolean: True if the prompt intent is unclear or could be interpreted multiple ways."
+  explicit_edit_requested: "Boolean: True if the user explicitly asked for code changes."
+  explicit_docs_requested: "Boolean: True if the user explicitly asked for documentation."
+  contains_sensitive_data: "Boolean: True if the prompt contains API keys or passwords."
+  is_large_refactor: "Boolean: True if the prompt requests a multi-file or architectural change."
+  explicit_feature_requested: "Boolean: True if specific new features are requested."
+  references_file_path: "Boolean: True if the prompt references a specific file or path."
+  involves_claude_code_features: "Boolean: True if the task involves Claude Code features (hooks, skills, subagents, MCP servers)."
+  involves_codebase_search: "Boolean: True if the task requires searching or exploring the codebase."

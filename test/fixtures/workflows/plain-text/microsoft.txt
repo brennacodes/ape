@@ -1,0 +1,73 @@
+PROJECT WORKFLOW (PLAIN TEXT)
+
+0) ALWAYS START WITH THE SKILLS PROTOCOL (MANDATORY)
+   Before responding to ANY user message:
+   - Mentally list the skills you have available.
+   - Ask: “Does ANY skill match this request?”
+   - If a skill matches:
+     - Use the Skill tool to read and run the skill file.
+     - Explicitly announce which skill you’re using.
+     - Follow that skill exactly.
+   - If you catch yourself rationalizing (“this is simple”, “I’ll do one quick thing first”, etc.), stop and run the checklist again.
+   Gate: Do not proceed to any work until the checklist is complete.
+
+1) INTAKE AND INTENT CONFIRMATION (LIGHTWEIGHT)
+   - Identify what the user is asking for (task outcome, constraints, format).
+   - If the task is a large refactor or new feature request, prepare to write a plan and request approval before implementation.
+   Gate: You understand the request well enough to plan or execute without guessing.
+
+2) PLAN BEFORE BIG CHANGES (REQUIRED FOR LARGE REFACTOR / NEW FEATURE)
+   - If the work is “large” (multi-file refactor, new subsystem, broad API change):
+     - Explain a concrete plan (scope, steps, risks, test strategy).
+     - Ask for approval before implementing.
+   - If the work is small, proceed directly but still keep changes minimal and intentional.
+   Gate: Approval obtained for large changes (or task clearly small).
+
+3) USE EXISTING TOOLS FIRST (DON’T REINVENT THE WHEEL)
+   - Prefer established libraries and existing project utilities.
+   - Only build custom solutions when necessary and justified.
+   Gate: You’ve checked whether a proven library/tool already solves the problem.
+
+4) DESIGN FOR MODULARITY (DEFAULT ARCHITECTURE CHOICE)
+   - Prefer highly modular code that separates concerns into focused modules.
+   - Keep each module single-responsibility with clear boundaries and minimal public API.
+   - Prefer composition over monoliths.
+   - Extract shared functionality into dedicated modules as the codebase grows.
+   Gate: The design keeps responsibilities separated and APIs small/clear.
+
+5) IMPLEMENTATION RULES (CODE STYLE + DOCUMENTATION)
+   - Documentation means docstrings and type hints INSIDE the code (not separate doc files).
+   - Do NOT create separate documentation pages (README/markdown docs) as part of this workflow.
+   - Use docstrings/type hints primarily for:
+     - Public APIs
+     - Complex logic
+     - Non-obvious constraints
+     - Edge cases
+     - “Why/How” decisions (not obvious “What”)
+   - Avoid over-documenting trivial functions.
+   - Keep functions small, well-named, and focused; break up complex functions.
+   Gate: Code changes are readable, typed, and documented where it matters.
+
+6) TEST-DRIVEN DEVELOPMENT (TDD) DEFAULT
+   - Do not create throwaway test scripts or ad hoc verification files.
+   - For new behavior:
+     - Write or update proper tests in the existing test suite first.
+     - Run tests and confirm new/updated tests FAIL for the right reasons.
+   - Implement the change until tests pass.
+   - Ensure coverage for:
+     - Critical paths
+     - Edge cases (empty inputs, invalid types, large datasets)
+   - Add brief test docstrings/comments where they clarify edge cases and expectations.
+   Gate: Tests exist for new behavior and validate critical + edge cases.
+
+7) VERIFY AND FINISH
+   - Run the standard build/test commands after every code change (unless a documented exception applies).
+   - Confirm the result matches the requested behavior with tests.
+   - Provide a concise summary of what changed and why (and where tests were added/updated).
+   Gate: Build/tests are green; behavior matches request; summary is delivered.
+
+8) MAINTAIN THIS WORKFLOW DOCUMENT
+   - Update this document when development practices or project structure changes.
+   - Do NOT contradict existing guidelines when updating.
+   - Keep it as an executive summary; avoid low-level implementation details.
+   Gate: Updates reflect reality, remain consistent, and stay high-level.
