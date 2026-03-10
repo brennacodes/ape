@@ -1,0 +1,68 @@
+app:
+  name: claude-bot
+  description: A Discord bot that integrates with Claude CLI for code review and task management
+  location: /Users/brenna/Documents/personal/ai-stuff/ape copy/claude-bot
+  commands:
+    start: "npm start"
+    watch: "npm run watch"
+
+bugs:
+  hardcoded_cli_path:
+    description: Hardcoded CLI path — spawn('/Users/brenna/.local/bin/claude') makes the bot non-functional on any other machine
+    presentation: the app won't work on other machines
+    location: run-claude.js:25, sessions.js:8
+    impact: App won't start elsewhere
+  unhandled_async_rejections:
+    description: Unhandled async rejections — close handler is async but message.reply() calls aren't guarded; a single Discord API failure crashes the handler
+    presentation: the Discord API failures crash the bot
+    location: run-claude.js:44-87
+    impact: Silent bot crash, lost session state
+    optional_modifier: "Make sure to test your fix before declaring your work complete."
+  race_condition_in_permission_collector:
+    description: Race condition in permission collector — collect and end events can both call done(), potentially resolving a permission decision twice
+    presentation: permission decisions are duplicated
+    location: dm.js:61-68
+    impact: Duplicate/conflicting permission responses
+    optional_modifier: "Make sure all tests are passing before declaring your work complete."
+
+untested_code:
+  json_parsing_session_storage:
+    description: JSON parsing + session state storage — malformed Claude CLI output silently stores invalid session IDs
+    location: run-claude.js:51-68
+    risk: Corrupted session state, cascading failures
+  file_diff_logic:
+    description: File diff logic in todo-watcher — uses task.content as identity key; deleted tasks are never detected; debounce creates race windows
+    location: todo-watcher.js:35-59
+    risk: Silent task loss, cache corruption
+  bridge_server_request_handling:
+    description: Bridge server request handling — no body size limit (unbounded memory), no payload schema validation, case-sensitive header auth on a case-insensitive protocol
+    location: bridge-server.js:38-65
+    risk: DoS via large payloads, auth bypass risk
+
+architectural_issues:
+  hardcoded_absolute_paths:
+    description: Hardcoded absolute paths instead of using PATH resolution or config
+    locations: run-claude.js:25, setup.sh:14
+    risk: Zero portability, deployment impossible
+  global_mutable_state:
+    description: Global mutable state without contracts — activeSessions, dmChannel, activeCollectors, and cache are all module-level mutable state with no synchronization or lifecycle management
+    locations: index.js:8, dm.js:4-5, todo-watcher.js:7
+    risk: Concurrency bugs, untestable, implicit ordering
+  fragmented_permission_flow:
+    description: Fragmented permission flow — permission logic spans 3 files (hook script, bridge server, DM module) with misaligned timeouts (660s vs configurable vs Discord collector) and no shared domain model
+    locations: bridge-server.js, dm.js, hooks/permission-request.js
+    risk: Hard to extend, timeout confusion, violates Open/Closed
+
+new_features:
+  session_persistence:
+    feature: Session persistence — store sessions to disk so they survive bot restarts; recover from ~/.claude/sessions/ on startup
+    impact: Eliminates data loss on crash/restart
+  structured_error_handling:
+    feature: Structured error handling — distinguish transient vs permanent failures, add retry logic, surface stderr details to users instead of generic messages
+    impact: Prevents silent failures, improves debuggability
+  argument_parsing_command_extensibility:
+    feature: Argument parsing & command extensibility — replace single-string args with structured parsing to support flags, per-task config overrides, and task queuing
+    impact: Unlocks advanced workflows without code changes
+  missing_test_command:
+    feature: Add test command — npm test should run unit tests for the bot
+    impact: Enables CI/CD and automated testing

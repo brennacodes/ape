@@ -1,0 +1,16 @@
+description: >
+  Bug-fix task context. Presents a user-reported symptom without disclosing
+  root cause or location. Exercises investigation, implementation, scoping,
+  and verification checks for format-adherence comparison. The prompt is
+  deliberately neutral about workflow sequence — it says *what* is wrong,
+  not *how* to approach the fix.
+prompt: |
+  For some reason, ${presentation}. Can you fix this? ${optional_modifier}
+conditions:
+  explicit_edit_requested: true
+  involves_codebase_search: true
+# NOTE: Some bug items have optional_modifier that reinforces verification
+# ("Make sure to test your fix..."). This cannot be accurately declared as
+# a template-level override because only 2 of 3 items carry the modifier.
+# Account for modifier-reinforced items in data analysis by cross-referencing
+# which items have optional_modifier in the app-config.

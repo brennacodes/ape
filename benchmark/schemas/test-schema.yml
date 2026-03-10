@@ -1,25 +1,44 @@
-prompt_schema_version: "1.0"
+test_schema_version: "1.0"
 
 # ---------------------------------------------------------------------------
-# TIMING
+# TEST CONFIG FILE SHAPE
 # ---------------------------------------------------------------------------
-# Controls when a check is evaluated against the trace.
-# Default (when omitted): any — evaluated across the entire trace.
-# Options: any | task_completed
-timing_default: any
-
-# ---------------------------------------------------------------------------
-# SEVERITY
-# ---------------------------------------------------------------------------
-# Controls whether a failing check is a hard failure or a soft warning.
-# Default (when omitted): error
-# Options: error | warning
-severity_default: error
+# Defines the valid structure of a test-config file in benchmark/test-configs/.
+# A test config encodes the verifiable behavioral expectations for one workflow
+# source (e.g. centminmod) in one format (e.g. plain-text).
+test_config_fields:
+  fixture_id:
+    type: String
+    description: Identifies the workflow source this config covers. Must match the fixture stem.
+    required: true
+  description:
+    type: String
+    description: Human-readable description of the workflow and what it encodes.
+    required: true
+  phase_classification:
+    type: Object
+    description: Declares which phases are ordered (must appear in sequence) and which are floating (may appear anywhere).
+    required: true
+    fields:
+      ordered:
+        type: List[phase_name]
+        description: Phases that must appear in the defined sequence when present in the trace.
+      floating:
+        type: List[phase_name]
+        description: Phases that may appear at any point; excluded from ordering checks.
+  phase_tool_mapping:
+    type: Map[phase_name, phase_mapping]
+    description: Maps phase names to the trace signals used to detect when a phase is active.
+    required: true
+  checks:
+    type: List[check]
+    description: The behavioral checks derived from the workflow source.
+    required: true
 
 # ---------------------------------------------------------------------------
 # PHASE TOOL MAPPING FIELDS
 # ---------------------------------------------------------------------------
-# Fields supported on each entry in a fixture's phase_tool_mapping block.
+# Fields supported on each entry in a test config's phase_tool_mapping block.
 phase_tool_mapping_fields:
   signals:
     description: Trace event types whose presence indicates this phase is active.
@@ -35,27 +54,41 @@ phase_tool_mapping_fields:
     used_by: [strictly_ordered_subset]
 
 # ---------------------------------------------------------------------------
-# CONDITION FIELDS
+# CHECK FIELDS
 # ---------------------------------------------------------------------------
-# Optional fields supported in every check's condition block.
-condition_fields:
-  transform:
-    description: Reduces the metric to a scalar before the operator is applied. Only applies to the metric (left-hand side). Omit when the metric is already a scalar or when using a collection operator.
-    see: transforms
-  target_args:
-    description: Filters the target event to only calls whose args match this value. Supports ${variable} interpolation.
+# Fields supported on each entry in a test config's checks list.
+check_fields:
+  id:
+    type: String
+    description: Unique identifier for this check within the test config.
+    required: true
+  phase:
+    type: String
+    description: The phase this check belongs to. Must be a phase declared in phase_classification.
+    required: true
+  description:
+    type: String
+    description: Human-readable description of the behavior being verified.
+    required: true
+  type:
+    type: String
+    description: The structural role of this check.
+    required: true
+    options: [gate, constraint, sequential_step, workflow_order, command_adherence]
+  condition:
+    type: Object
+    description: The evaluable assertion. See condition_fields.
+    required: true
+  prompt_condition:
+    type: String
+    description: >
+      Name of a condition from prompt-schema.yml. When the condition evaluates to false
+      for a given prompt, this check is skipped. Negate with "!" prefix.
+    required: false
   timing:
-    description: When to evaluate this check.
-    overrides: timing_default
+    description: When to evaluate this check against the trace.
     options: [any, task_completed]
-  severity:
-    description: Whether failure is a hard error or soft warning.
-    overrides: severity_default
-    options: [error, warning]
-  window:
-    description: For windowed operators, the maximum number of trace steps to look back.
-    type: integer
-    used_by: [each_preceded_by_within_N_steps]
+    default: any
   iteration:
     description: For workflows with repeatable phases, controls which cycle(s) the check is evaluated against.
     default: any
@@ -65,153 +98,43 @@ condition_fields:
       last: Evaluated only on the final cycle.
 
 # ---------------------------------------------------------------------------
-# DIFF SCOPE DEFINITION (v1)
+# CONDITION FIELDS
 # ---------------------------------------------------------------------------
-# How diff.scope is calculated. Deterministic, no LLM required.
-#
-#   diff.files_changed        = set of files modified in the final diff
-#   tool_call.file_read.paths = set of files the agent opened
-#   prompt.requested_paths    = set of paths referenced by the user
-#
-# Scope check passes when:
-#   diff.files_changed ⊆ (tool_call.file_read.paths ∩ prompt.requested_paths)
-#
-# v1 uses line-based hunk count per file (not AST-based).
-# Note: v1 will not catch unrelated in-file edits (e.g. a docstring fix in
-# the same file as the intentional change). Upgrade to AST-based in v2.
-diff_scope_definition:
-  version: v1
-  method: line_based_hunk_count
-  formula: "diff.files_changed ⊆ (tool_call.file_read.paths ∩ prompt.requested_paths)"
+# Fields supported in every check's condition block.
+condition_fields:
+  metric:
+    type: String
+    description: The trace value or computed metric being evaluated. Left-hand side of the assertion.
+    required: true
+  operator:
+    type: String
+    description: The comparison or sequence operator to apply. Must be a key in transforms, scalar_operators, or collection_operators.
+    required: true
+  target:
+    description: The expected value or reference metric. Right-hand side of the assertion.
+    required: true
+  transform:
+    description: Reduces the metric to a scalar before the operator is applied. Only applies to the metric (left-hand side). Omit when the metric is already a scalar or when using a collection operator.
+    see: transforms
+  target_args:
+    description: Filters the target event to only calls whose args match this value. Supports ${variable} interpolation.
+  metric_args:
+    description: Filters the metric event to only calls whose primary arg contains this value. Supports ${variable} interpolation. Use instead of target_args when the filter should apply to the metric (left-hand) side.
+  window:
+    description: For windowed operators, the maximum number of trace steps to look back.
+    type: integer
+    used_by: [each_preceded_by_within_N_steps]
 
 # ---------------------------------------------------------------------------
-# VARIABLES
+# EVALUATION DEFAULTS
 # ---------------------------------------------------------------------------
-# Resolved from the prompt context or test fixture before trace evaluation.
-# Use ${variable_name} in check configs to interpolate these values.
-variables:
-  file_path:
-    type: String
-    description: A specific file path referenced in the user prompt.
-    resolution: regex
-    pattern: '(\/)?[\w\d._\-]+\.\w{2,6}'
-  test_command:
-    type: String
-    description: The standard test execution command for the repository.
-    resolution: prompt_annotation
-  repo_root:
-    type: String
-    description: The absolute path to the root of the repository.
-    resolution: prompt_annotation
-  requested_features:
-    type: List
-    description: Explicit features requested by the user.
-    resolution: prompt_annotation
-  deliverable:
-    type: String
-    description: The specific outcome or artifact the user requested.
-    resolution: prompt_annotation
-
-# ---------------------------------------------------------------------------
-# DISCOVERED VARIABLES
-# ---------------------------------------------------------------------------
-# Populated at runtime by accumulating values from the trace.
-# Checks that reference discovered_variables are ALWAYS evaluated against
-# the complete trace (implicitly timing: task_completed). Do not use in
-# checks that fire mid-trace.
-discovered_variables:
-  discovered_file_paths:
-    type: List[String]
-    source: tool_call.file_read.args.path
-    accumulate: true
-    description: All file paths the agent opened during the session.
-  discovered_command_args:
-    type: List[String]
-    source: tool_call.execute_command.args.command
-    accumulate: true
-    description: All shell commands issued during the session.
-
-# ---------------------------------------------------------------------------
-# TOOL NAME MAPPING
-# ---------------------------------------------------------------------------
-# Maps abstract event types used in check conditions to actual Claude Code
-# tool names. Required for the runner to translate check definitions to
-# real log entries.
-#
-# Disambiguation: tool_call.file_write and tool_call.file_create both map
-# to the Write tool. The runner resolves the distinction by checking
-# workspace state before each Write call: if the target path does not exist,
-# the event is classified as file_create; otherwise file_write.
-tool_name_mapping:
-  tool_call.file_read:       Read
-  tool_call.file_write:      Write          # target path already exists
-  tool_call.file_edit:       Edit           # existing path only; fails on new paths
-  tool_call.file_create:     Write          # target path does not exist pre-call
-  tool_call.execute_command: Bash
-  tool_call.search:          Grep
-  tool_call.glob:            Glob
-  tool_call.ask_user:        AskUserQuestion
-  tool_call.skill:           Skill
-
-# ---------------------------------------------------------------------------
-# CONDITIONS
-# ---------------------------------------------------------------------------
-# Evaluated before the trace. Used as prompt_condition guards on checks.
-# A check is skipped when its prompt_condition evaluates to false.
-# Negate with "!" prefix: prompt_condition: "!explicit_docs_requested"
-# resolution options: prompt_annotation | regex | always_true
-conditions:
-  is_informational:
-    type: Boolean
-    description: True if the prompt only asks for research or information, not changes.
-    resolution: prompt_annotation
-  is_ambiguous:
-    type: Boolean
-    description: True if the prompt intent is unclear or could be interpreted multiple ways.
-    resolution: prompt_annotation
-  explicit_edit_requested:
-    type: Boolean
-    description: True if the user explicitly asked for code changes.
-    resolution: prompt_annotation
-  explicit_docs_requested:
-    type: Boolean
-    description: True if the user explicitly asked for documentation.
-    resolution: prompt_annotation
-  contains_sensitive_data:
-    type: Boolean
-    description: True if the prompt contains API keys or passwords.
-    resolution: regex
-    pattern: '(?i)(api[_\s\-]?key|password|secret|token)\s*[:=]\s*\S+'
-  is_large_refactor:
-    type: Boolean
-    description: True if the prompt requests a multi-file or architectural change.
-    resolution: prompt_annotation
-  explicit_feature_requested:
-    type: Boolean
-    description: True if specific new features are requested.
-    resolution: prompt_annotation
-  references_file_path:
-    type: Boolean
-    description: True if the prompt references a specific file or path.
-    resolution: regex
-    pattern: '(\/)?[\w\d._\-]+\.\w{2,6}'
-  involves_claude_code_features:
-    type: Boolean
-    description: True if the task involves Claude Code features (hooks, skills, subagents, MCP servers).
-    resolution: prompt_annotation
-  involves_codebase_search:
-    type: Boolean
-    description: True if the task requires searching or exploring the codebase.
-    resolution: prompt_annotation
+timing_default: any     # Options: any | task_completed
 
 # ---------------------------------------------------------------------------
 # OPERATOR VOCABULARY
 # ---------------------------------------------------------------------------
-# Three layers:
-#   transforms        — reduce a metric to a scalar (optional condition field)
-#   scalar_operators  — compare two scalar values (used after a transform, or
-#                       when the metric is already a scalar)
-#   collection_operators — operate on sets/sequences directly (no transform)
+# Names and logic for all valid operators. The evaluator implements these as
+# code; this block defines the interface contract.
 #
 # Evaluation order for a condition:
 #   1. Resolve metric from trace
@@ -221,7 +144,7 @@ conditions:
 # "inputs" describes what A (metric/transformed metric) and B (target) must be.
 
 # -- TRANSFORMS --------------------------------------------------------------
-# Applied to the metric before comparison. Specified via "transform" field.
+# Applied to the metric before comparison. Specified via the "transform" field.
 transforms:
   count:
     input: event_list | collection
@@ -337,22 +260,6 @@ collection_operators:
     inputs: {A: dict, B: string}
     logic: "B is a key in A"
 
-  matches_any:
-    inputs: {A: string, B: string_list}
-    logic: "A contains at least one element of B as a substring"
-
-  contains_paths_from:
-    inputs: {A: string, B: path_list}
-    logic: "A contains at least one path from B as a substring"
-
-  references:
-    inputs: {A: string, B: string}
-    logic: "B appears as a substring of A"
-
-  contains_strings_from:
-    inputs: {A: string, B: string_list}
-    logic: "A contains at least one string from B as a substring"
-
   contains:
     inputs: {A: list, B: scalar}
     logic: "B ∈ A"
@@ -396,13 +303,12 @@ collection_operators:
       of the last search call in A. Intermediate calls are unconstrained,
       allowing accordion-style search patterns.
     note: Replaces non_decreasing, which was too strict for real debugging flows.
-    severity_override: warning
 
 # ---------------------------------------------------------------------------
-# BUILT-IN CYCLE METRICS
+# CYCLE METRICS
 # ---------------------------------------------------------------------------
-# Computed automatically by the runner when repeatable phases are present.
-# Use these in regular checks — no special syntax required.
+# Computed automatically by the evaluator when repeatable phases are present.
+# Reference these by name in check conditions — no special syntax required.
 cycle_metrics:
   phase.cycle_count:
     type: integer

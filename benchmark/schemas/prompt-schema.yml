@@ -1,0 +1,153 @@
+prompt_schema_version: "1.0"
+
+# ---------------------------------------------------------------------------
+# PROMPT FILE SHAPE
+# ---------------------------------------------------------------------------
+# Defines the valid structure of a prompt file in benchmark/prompts/.
+# A prompt file declares one test task plus the metadata the coordinator
+# and evaluator need to run it correctly.
+prompt_fields:
+  id:
+    type: String
+    description: Machine-readable identifier. Used by the coordinator to compose benchmark cases.
+    required: true
+  description:
+    type: String
+    description: Human-readable description of what this prompt is testing.
+    required: true
+  prompt:
+    type: String
+    description: The exact text passed to Claude Code as the user task.
+    required: true
+  conditions:
+    type: Map[condition_name, Boolean]
+    description: >
+      Prompt-level annotations the evaluator uses to decide which checks apply.
+      Each key must be a condition defined in this schema's conditions block.
+      All conditions use prompt_annotation resolution — values are declared here,
+      not inferred at runtime.
+    required: false
+  variables:
+    type: Map[variable_name, value]
+    description: >
+      Concrete values for variables referenced in test-config checks via ${variable_name}.
+      Each key must be a variable defined in this schema's variables block.
+    required: false
+  overrides:
+    type: List[override_declaration]
+    description: >
+      Declares how instructions in this prompt interact with specific checks in the
+      test config. Used by the evaluator to annotate results. See override_declarations.
+    required: false
+
+# ---------------------------------------------------------------------------
+# CONDITIONS
+# ---------------------------------------------------------------------------
+# Boolean annotations declared in a prompt file.
+# The evaluator reads these to decide which checks are applicable for a given prompt.
+# A check whose prompt_condition evaluates to false is skipped for that prompt.
+# Negate with "!" prefix in a check: prompt_condition: "!explicit_docs_requested"
+# resolution options: prompt_annotation | regex | always_true
+conditions:
+  is_informational:
+    type: Boolean
+    description: True if the prompt only asks for research or information, not changes.
+    resolution: prompt_annotation
+  is_ambiguous:
+    type: Boolean
+    description: True if the prompt intent is unclear or could be interpreted multiple ways.
+    resolution: prompt_annotation
+  explicit_edit_requested:
+    type: Boolean
+    description: True if the user explicitly asked for code changes.
+    resolution: prompt_annotation
+  explicit_docs_requested:
+    type: Boolean
+    description: True if the user explicitly asked for documentation.
+    resolution: prompt_annotation
+  contains_sensitive_data:
+    type: Boolean
+    description: True if the prompt contains API keys or passwords.
+    resolution: regex
+    pattern: '(?i)(api[_\s\-]?key|password|secret|token)\s*[:=]\s*\S+'
+  is_large_refactor:
+    type: Boolean
+    description: True if the prompt requests a multi-file or architectural change.
+    resolution: prompt_annotation
+  explicit_feature_requested:
+    type: Boolean
+    description: True if specific new features are requested.
+    resolution: prompt_annotation
+  references_file_path:
+    type: Boolean
+    description: True if the prompt references a specific file or path.
+    resolution: regex
+    pattern: '(\/)?[\w\d._\-]+\.\w{2,6}'
+  involves_claude_code_features:
+    type: Boolean
+    description: True if the task involves Claude Code features (hooks, skills, subagents, MCP servers).
+    resolution: prompt_annotation
+  involves_codebase_search:
+    type: Boolean
+    description: True if the task requires searching or exploring the codebase.
+    resolution: prompt_annotation
+
+# ---------------------------------------------------------------------------
+# VARIABLES
+# ---------------------------------------------------------------------------
+# Variables that can be interpolated into check conditions via ${variable_name}.
+# Concrete values are declared in the prompt file under the variables key.
+# resolution options: prompt_annotation | regex
+variables:
+  file_path:
+    type: String
+    description: A specific file path referenced in the user prompt.
+    resolution: regex
+    pattern: '(\/)?[\w\d._\-]+\.\w{2,6}'
+  test_command:
+    type: String
+    description: The standard test execution command for the repository.
+    resolution: prompt_annotation
+  repo_root:
+    type: String
+    description: The absolute path to the root of the repository.
+    resolution: prompt_annotation
+  requested_features:
+    type: List
+    description: Explicit features requested by the user.
+    resolution: prompt_annotation
+  deliverable:
+    type: String
+    description: The specific outcome or artifact the user requested.
+    resolution: prompt_annotation
+
+# ---------------------------------------------------------------------------
+# OVERRIDE DECLARATIONS
+# ---------------------------------------------------------------------------
+# Describes how instructions in a prompt interact with checks in the test config.
+# Declared in the prompt file under the overrides key.
+# The evaluator uses these to annotate results — it does not automatically skip
+# a check unless relationship: conflicts and evaluator_behavior: skip are both set.
+#
+# The most important use: when a prompt explicitly reinforces or contradicts a
+# workflow instruction, the evaluator flags the result accordingly. This makes
+# conflict and reinforcement scenarios first-class data points in the benchmark.
+override_declaration_fields:
+  check_id:
+    type: String | List[String]
+    description: The check ID(s) in the test config that this declaration applies to.
+    required: true
+  relationship:
+    description: How the prompt's instruction relates to the check being evaluated.
+    required: true
+    options:
+      reinforces: The prompt explicitly restates or emphasizes the same behavior the check verifies.
+      conflicts: The prompt explicitly instructs behavior that would cause this check to fail.
+      neutral: The prompt neither mentions nor contradicts the behavior this check verifies.
+    default: neutral
+  evaluator_behavior:
+    description: How the evaluator treats the check given this relationship.
+    options:
+      run_and_flag: Run the check and annotate the result with the declared relationship.
+      skip: Do not evaluate this check for this prompt.
+    default: run_and_flag
