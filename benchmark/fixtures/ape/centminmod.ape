@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
+
+  <meta>
+    <name>CentMinMod Claude Workflow</name>
+    <description>A structured workflow for working in this repository. The goal is to be accurate, grounded in what you actually inspected, and efficient without doing extra work.</description>
+
+    <actors>
+      <actor id="claude" type="agent">
+        <description>Primary AI agent executing this workflow.</description>
+        <responsibilities>
+          <responsibility>Parse and execute this APE workflow</responsibility>
+          <responsibility>Inspect code before making claims</responsibility>
+          <responsibility>Follow user intent precisely</responsibility>
+        </responsibilities>
+      </actor>
+      <actor id="developer" type="human">
+        <description>Human developer making requests.</description>
+      </actor>
+    </actors>
+
+    <variables>
+      <var name="deliverable" type="string" />
+      <var name="request_type" type="string" />
+      <var name="intent_clear" type="boolean" default="true" />
+    </variables>
+
+    <resources>
+      <resource id="codebase" type="directory" path="." access="read,write,edit,grep">
+        <description>The repository root directory.</description>
+      </resource>
+      <resource id="claude-md" type="file" path="./CLAUDE.md" access="read">
+        <description>The CLAUDE.md instructions file. Must be excluded from commits.</description>
+      </resource>
+      <resource id="official-docs" type="service" required="false">
+        <description>Official Claude Code documentation, accessed via /docs skill.</description>
+      </resource>
+    </resources>
+  </meta>
+
+  <steps>
+
+    <step number="1" id="intake" actor="claude">
+      <title>Intake</title>
+      <goal>Understand the user's request and identify the exact deliverable, constraints, and request type.</goal>
+
+      <instructions>
+        <instruction>
+          <action>Read the user's request carefully.</action>
+        </instruction>
+        <instruction>
+          <action>
+            Identify the following from the request:
+            - The exact deliverable the user wants.
+            - Any referenced file paths, commands, errors, or constraints.
+          </action>
+        </instruction>
+        <instruction>
+          <action>
+            Decide whether the user is asking for:
+            - Information/recommendations only, or
+            - Actual edits/implementation.
+          </action>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>Do not start editing or implementing unless the user clearly asked you to.</criteria>
+        <on-fail goto="clarify-intent">User intent is unclear or request is ambiguous.</on-fail>
+        <on-fail halt="true">Cannot determine what the user is asking for at all.</on-fail>
+      </gate>
+    </step>
+
+    <step number="2" id="clarify-intent" actor="claude">
+      <title>Clarify Intent</title>
+      <goal>Resolve ambiguity in the user's request before proceeding.</goal>
+
+      <instructions>
+        <instruction>
+          <action>If the request is ambiguous, default to researching, gathering context, and making recommendations.</action>
+        </instruction>
+        <instruction>
+          <constraint>Do not jump into implementation when the user's intent is unclear.</constraint>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>User intent is clear enough to proceed with either investigation or implementation.</criteria>
+        <on-fail>
+          <reason>Intent remains ambiguous after clarification attempt.</reason>
+          <action>
+            <ask-user-question var="clarification" actor="developer">Could you clarify what you would like me to do? Are you looking for information/recommendations, or actual edits/implementation?</ask-user-question>
+          </action>
+        </on-fail>
+      </gate>
+    </step>
+
+    <step number="3" id="investigate" actor="claude" uses="codebase">
+      <title>Investigate Before Answering</title>
+      <goal>Ground all claims in actual inspected code rather than speculation.</goal>
+
+      <constraint>Never speculate about code you have not opened.</constraint>
+      <constraint>If the user references a specific file or path, you MUST open and inspect it before proposing edits or explaining fixes.</constraint>
+
+      <instruction>
+        <action>
+          Read and understand the relevant code:
+          - Prefer inspecting the real source over guessing.
+          - Be rigorous: search for key facts, conventions, and existing abstractions.
+        </action>
+      </instruction>
+
+      <gate>
+        <criteria>You may only make claims about the codebase that are grounded in files you inspected (or that you are certain about independently).</criteria>
+        <on-fail retry="true" max="3" then="halt">Claims are not grounded in inspected files. Inspect more code before proceeding.</on-fail>
+      </gate>
+    </step>
+
+    <!-- ============================================================
+         Phase 4: Plan After Tool Results
+         ============================================================ -->
+    <step number="4" id="plan-after-tools" actor="claude">
+      <title>Plan After Tool Results</title>
+      <goal>Reflect on tool output and determine the best next step based on evidence.</goal>
+
+      <prerequisite ref="investigate">Investigation must have produced tool results to reflect on.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>
+            After you receive tool output (file contents, search results, logs, etc.):
+            - Reflect on whether the results are complete and reliable.
+            - Determine the best next step based on what you learned.
+          </action>
+        </instruction>
+        <instruction>
+          <action>Iterate your plan as new evidence arrives.</action>
+        </instruction>
+      </instructions>
+    </step>
+
+    <!-- ============================================================
+         Phase 5: Use Parallel Tool Calls
+         ============================================================ -->
+    <step number="5" id="parallel-tool-calls" actor="claude">
+      <title>Use Parallel Tool Calls</title>
+      <goal>Maximize efficiency by parallelizing independent tool operations.</goal>
+
+      <instructions>
+        <instruction>
+          <action>If you need multiple independent tool operations, run them in parallel rather than sequentially (e.g., open 3 files at once).</action>
+        </instruction>
+        <instruction>
+          <constraint>Do NOT parallelize tool calls that depend on outputs of earlier calls.</constraint>
+        </instruction>
+        <instruction>
+          <constraint>Never guess missing parameters in tool calls.</constraint>
+        </instruction>
+      </instructions>
+
+      <anti-patterns>
+        <anti-pattern>Running independent tool calls sequentially when they could be parallelized.</anti-pattern>
+        <anti-pattern>Parallelizing tool calls that have dependencies on each other.</anti-pattern>
+        <anti-pattern>Guessing missing parameters instead of gathering them first.</anti-pattern>
+      </anti-patterns>
+    </step>
+
+    <!-- ============================================================
+         Phase 6: Make Changes Only When Asked
+         ============================================================ -->
+    <step number="6" id="make-changes" actor="claude" uses="codebase">
+      <title>Make Changes Only When Asked</title>
+      <goal>Only perform edits or implementation when the user explicitly requests them.</goal>
+
+      <instructions>
+        <instruction>
+          If the user explicitly requests edits or implementation:
+          <action>Prefer editing existing files over creating new ones.</action>
+        </instruction>
+        <instruction>
+          <constraint>Never create files unless absolutely necessary to achieve the goal.</constraint>
+        </instruction>
+        <instruction>
+          <constraint>Never proactively create documentation files (README, *.md) unless the user explicitly requests them.</constraint>
+        </instruction>
+      </instructions>
+
+      <rules>
+        <rule>Prefer editing existing files over creating new ones.</rule>
+        <rule>Only create files when absolutely necessary.</rule>
+        <rule>Never proactively create documentation files unless explicitly requested.</rule>
+      </rules>
+    </step>
+
+    <!-- ============================================================
+         Phase 7: Keep Scope Tight
+         ============================================================ -->
+    <step number="7" id="keep-scope-tight" actor="claude">
+      <title>Keep Scope Tight</title>
+      <goal>Do exactly what the user asked and nothing more.</goal>
+
+      <instruction>
+        Do exactly what the user asked — nothing more, nothing less.
+        <constraint>Avoid nice-to-have refactors, extra docs, or unrelated improvements unless requested.</constraint>
+      </instruction>
+
+      <anti-patterns>
+        <anti-pattern>Adding nice-to-have refactors not requested by the user.</anti-pattern>
+        <anti-pattern>Creating extra documentation not requested by the user.</anti-pattern>
+        <anti-pattern>Making unrelated improvements beyond the user's request.</anti-pattern>
+      </anti-patterns>
+    </step>
+
+    <!-- ============================================================
+         Phase 8: Temporary Files and Cleanup
+         ============================================================ -->
+    <step number="8" id="cleanup" actor="claude" uses="codebase">
+      <title>Temporary Files and Cleanup</title>
+      <goal>Ensure the repository is left clean with no temporary artifacts.</goal>
+
+      <instructions>
+        <instruction>
+          <action>
+            If you created temporary helper files or scripts during iteration, remove them before finishing the task.
+          </action>
+        </instruction>
+        <instruction>
+          <constraint>Leave the repository clean.</constraint>
+        </instruction>
+      </instructions>
+    </step>
+
+    <!-- ============================================================
+         Phase 9: Verify Before Finishing
+         ============================================================ -->
+    <step number="9" id="verify" actor="claude" uses="codebase">
+      <title>Verify Before Finishing</title>
+      <goal>Confirm the solution is correct and matches the user's request.</goal>
+
+      <prerequisite ref="make-changes">Changes must have been made before verification.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>
+            Verify your solution:
+            - Re-check assumptions against inspected code.
+            - Run tests/commands if appropriate and available.
+          </action>
+        </instruction>
+        <instruction>
+          <action>
+            Ensure the deliverable matches the user's request and constraints.
+          </action>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>The solution is verified: assumptions re-checked against inspected code, tests/commands run if appropriate, and deliverable matches the user's request and constraints.</criteria>
+        <on-fail retry="true" max="2" then="halt">Verification failed. Re-check assumptions and fix issues.</on-fail>
+      </gate>
+    </step>
+
+    <!-- ============================================================
+         Phase 10: Summarize Work Completed
+         ============================================================ -->
+    <step number="10" id="summarize" actor="claude">
+      <title>Summarize Work Completed</title>
+      <goal>Provide a clear summary of what was done after completing a task that involved tool use.</goal>
+
+      <instructions>
+        <instruction>
+          <action>
+            Provide a quick summary of what you did.
+          </action>
+        </instruction>
+        <instruction>
+          <action>
+            Call out key files you inspected and changes you made (if any).
+          </action>
+        </instruction>
+      </instructions>
+    </step>
+
+    <!-- ============================================================
+         Phase 11: Committing Changes (when asked)
+         ============================================================ -->
+    <step number="11" id="commit-changes" actor="claude" uses="codebase">
+      <title>Committing Changes</title>
+      <goal>Commit changes when the user asks, while respecting exclusion rules.</goal>
+
+      <instruction>
+        If the user asks you to commit changes:
+        <constraint>Exclude CLAUDE.md from the commit.</constraint>
+      </instruction>
+    </step>
+
+    <!-- ============================================================
+         Phase 12: Official Documentation Reference
+         ============================================================ -->
+    <step number="12" id="docs-reference" actor="claude" uses="official-docs">
+      <title>Official Documentation Reference</title>
+      <goal>Use official documentation rather than guessing when working on Claude Code features.</goal>
+
+      <instructions>
+        <instruction>
+          When working on Claude Code features (hooks, skills, subagents, MCP servers, etc.):
+          <action>
+            Use the /docs skill to selectively find and reference official documentation.
+          </action>
+        </instruction>
+        <instruction>
+          <constraint>Do not rely on guesses when official docs exist.</constraint>
+        </instruction>
+      </instructions>
+    </step>
+
+    <!-- ============================================================
+         Phase 13: Search Strategy
+         ============================================================ -->
+    <step number="13" id="search-strategy" actor="claude" uses="codebase">
+      <title>Search Strategy</title>
+      <goal>Follow an efficient search strategy when exploring the codebase or docs.</goal>
+
+      <instruction>
+        When exploring the codebase or docs:
+        <rules>
+          <rule>Start broad, then narrow.</rule>
+          <rule>Filter by type early.</rule>
+          <rule>Batch patterns.</rule>
+          <rule>Limit scope.</rule>
+        </rules>
+      </instruction>
+    </step>
+
+  </steps>
+
+  <principles>
+    <principle name="Accuracy">Be accurate and grounded in what you actually inspected.</principle>
+    <principle name="Efficiency">Be efficient without doing extra work.</principle>
+    <principle name="Grounded">Never speculate about code you have not opened.</principle>
+    <principle name="Minimal">Do exactly what the user asked — nothing more, nothing less.</principle>
+    <principle name="Clean">Leave the repository clean after completing work.</principle>
+  </principles>
+
+</ape>

@@ -375,6 +375,25 @@ def _resolve_diff_files_changed(trace: Trace, context: dict[str, Any]) -> list[s
     return list(dict.fromkeys(trace.all_file_paths_modified()))
 
 
+def _normalize_to_relative(paths: set[str], workspace_path: str | None) -> set[str]:
+    """Normalize absolute paths to workspace-relative paths.
+
+    diff.files_changed comes from git (relative paths) while
+    trace.file_paths_read() records absolute paths from tool calls.
+    This helper strips the workspace prefix so both sides use the same format.
+    """
+    if not workspace_path:
+        return paths
+    prefix = workspace_path.rstrip("/") + "/"
+    normalized: set[str] = set()
+    for p in paths:
+        if p.startswith(prefix):
+            normalized.add(p[len(prefix):])
+        else:
+            normalized.add(p)
+    return normalized
+
+
 def _resolve_diff_scope_permitted(trace: Trace, context: dict[str, Any]) -> list[str]:
     """
     Resolve diff.scope.permitted_paths — files the agent is permitted to change.
@@ -383,13 +402,16 @@ def _resolve_diff_scope_permitted(trace: Trace, context: dict[str, Any]) -> list
     If no explicit requested_paths variable, uses file_path as a single-element set.
     """
     variables = context.get("variables", {})
+    workspace_path = context.get("workspace_path")
     # Get requested paths from variables
     requested = variables.get("requested_paths", variables.get("file_path", ""))
     if isinstance(requested, str):
         requested = [requested] if requested else []
     requested_set = set(requested)
 
-    read_paths = set(trace.file_paths_read())
+    read_paths = _normalize_to_relative(
+        set(trace.file_paths_read()), workspace_path,
+    )
 
     if requested_set:
         # Permitted = intersection of what was read and what was requested

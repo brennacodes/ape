@@ -10,7 +10,7 @@ Directory layout:
     fixtures/
       apps/{app_name}/          # App codebases Claude works in
       {format}/{stem}.{ext}     # Workflow instructions in various formats
-    test-configs/{format}/{stem}.yml  # Behavioral expectations per workflow
+    test-configs/{stem}.yml           # Behavioral expectations per workflow
     prompts/{prompt_id}.yml     # Prompt templates or concrete prompts
     prompts/app-configs/{app}.yaml  # App fixture configs (variables for templates)
 
@@ -74,7 +74,6 @@ class TestConfigPath:
     __test__ = False
     path: Path
     stem: str
-    format: str
 
 
 @dataclass(frozen=True)
@@ -181,19 +180,15 @@ def discover_workflows(benchmark_root: Path) -> list[WorkflowFixture]:
 
 
 def discover_test_configs(benchmark_root: Path) -> list[TestConfigPath]:
-    """Find all test-config YAML files under benchmark_root/test-configs/{format}/."""
+    """Find all test-config YAML files under benchmark_root/test-configs/."""
     configs_dir = benchmark_root / "test-configs"
     if not configs_dir.is_dir():
         return []
 
     results = []
-    for format_dir in sorted(configs_dir.iterdir()):
-        if not format_dir.is_dir():
-            continue
-        fmt = format_dir.name
-        for f in sorted(format_dir.iterdir()):
-            if f.is_file() and f.suffix in (".yml", ".yaml"):
-                results.append(TestConfigPath(path=f, stem=f.stem, format=fmt))
+    for f in sorted(configs_dir.iterdir()):
+        if f.is_file() and f.suffix in (".yml", ".yaml"):
+            results.append(TestConfigPath(path=f, stem=f.stem))
     return results
 
 
@@ -263,7 +258,7 @@ def match_cases(
     """Compose TestCases from apps, workflows, configs, prompts, and app-configs.
 
     Matching rules:
-    1. Workflow and config must share the same stem AND format.
+    1. Workflow and config must share the same stem.
     2. For each app, check if any prompt's filename stem matches a category
        in that app's app-config. If so, the prompt is a template — expand it
        into one case per item under that category.
@@ -273,9 +268,9 @@ def match_cases(
     Workflows or configs without a match are silently skipped.
     An empty apps or prompts list means no cases are produced.
     """
-    config_index: dict[tuple[str, str], TestConfigPath] = {}
+    config_index: dict[str, TestConfigPath] = {}
     for c in configs:
-        config_index[(c.stem, c.format)] = c
+        config_index[c.stem] = c
 
     # Build app-config index: app_name -> (path, parsed categories)
     ac_index: dict[str, tuple[Path, dict[str, dict[str, dict]]]] = {}
@@ -305,7 +300,7 @@ def match_cases(
 
     cases = []
     for wf in workflows:
-        config = config_index.get((wf.stem, wf.format))
+        config = config_index.get(wf.stem)
         if config is None:
             continue
 

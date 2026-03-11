@@ -87,7 +87,7 @@ Decorators are elements that annotate but don't alter execution: `<constraint>`,
 
 **Structural elements** — `<ape>`, `<meta>`, `<gate>`, `<steps>`, `<actors>`, `<variables>`, `<resources>`, `<commands>`, `<tool-tags>`, `<params>`, `<sequence>`, `<prerequisites>` — do **not** allow mixed content. Children only, no interleaved text.
 
-**Instruction-level elements** — `<instruction>`, `<instructions>`, `<action>`, `<if>`, `<else>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` — **do** allow mixed content. Plain text serves as narrative guidance; child tags serve as concrete anchors to execute.
+**Instruction-level elements** — `<instruction>`, `<instructions>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` — **do** allow mixed content. Plain text serves as narrative guidance; child tags serve as concrete anchors to execute.
 
 This is the one structural distinction to internalize: *above* the instruction layer, structure is strict. *At* the instruction layer, prose and tags intermix freely.
 
@@ -531,7 +531,7 @@ Both forms are ordered. Children execute/read top to bottom. Mixed content allow
 </instructions>
 ```
 
-`<instruction>` can contain: `<note>`, `<action>`, `<command>`, `<when>`, `<match>`, `<each>`, `<sequence>`, any tool tag, `<constraint>`, `<rules>`, inline declarations.
+`<instruction>` can contain: `<note>`, `<action>`, `<command>`, `<conditional>`, `<each>`, `<sequence>`, any tool tag, `<constraint>`, `<rules>`, inline declarations.
 
 `<instructions>` contains only `<instruction>` elements (two or more).
 
@@ -610,38 +610,68 @@ An executable directive. The LLM should perform what `<action>` says directly �
 | `max` | No | Max retries, requires `retry` (gate context only) |
 | `then` | No | After max retries, requires `retry` (gate context only) |
 
-`<action>` does **not** contain structural or decision-making elements like `<rules>`, `<gate>`, `<constraint>`, or `<when>`. If you need those, they belong in the `<instruction>` or `<step>` that contains the action.
+`<action>` does **not** contain structural or decision-making elements like `<rules>`, `<gate>`, `<constraint>`, or `<conditional>`. If you need those, they belong in the `<instruction>` or `<step>` that contains the action.
 
 ---
 
 ## 13. Conditionals
 
-### `<when>`
+### `<conditional>`
+
+A unified branching construct. Evaluates the `on` expression and routes to the matching `<case>`.
 
 ```xml
-<when>
-  <if test="{{ env }} == 'ci'">
-    <command ref="coverage" />
-  </if>
-  <else>
-    <note>Skip coverage locally.</note>
-  </else>
-</when>
+<!-- Multiple branches -->
+<conditional on="{{ request_type }}">
+  <case value="implementation">
+    <action>Edit existing files, preferring edits over new files.</action>
+  </case>
+  <case value="information">
+    <action>Research and make recommendations.</action>
+  </case>
+  <default>
+    <action goto="clarify-intent">Request type unclear.</action>
+  </default>
+</conditional>
+
+<!-- Binary with attribute default -->
+<conditional on="{{ intent_clear }}" default="halt">
+  <case value="true">
+    <action>Proceed with identified deliverable.</action>
+  </case>
+</conditional>
+
+<!-- Simple routing -->
+<conditional on="{{ env }}" default="proceed">
+  <case value="ci"><command ref="coverage" /></case>
+</conditional>
 ```
 
-**Structure:** Exactly one `<if>`. At most one `<else>`. `<if>` requires a non-empty `test` attribute. Mixed content allowed in both `<if>` and `<else>`.
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `on` | Yes | Expression to evaluate (supports `{{ }}` interpolation) |
+| `default` | No | Shorthand for simple default outcomes: a step ID (acts as `goto`), `"halt"`, or `"proceed"`. Mutually exclusive with a `<default>` child element. |
 
-### `<match>`
+**Children:**
 
-```xml
-<match on="{{ build_target }}">
-  <case value="debug"><command>cargo build</command></case>
-  <case value="release"><command ref="build-release" /></case>
-  <default><command ref="build-all" /></default>
-</match>
-```
+| Child | Required | Description |
+|-------|----------|-------------|
+| `<case>` | Yes (≥1) | A branch. `value` attribute (required) matches against the `on` expression. |
+| `<default>` | No (≤1) | Fallback when no `<case>` matches. Mutually exclusive with `default` attribute. |
 
-**Structure:** At least one `<case>`. `<case>` `value` attributes must be unique. At most one `<default>`. Mixed content allowed in `<case>` and `<default>`.
+**`<case>` and `<default>` attributes:**
+
+| Attribute | Description |
+|-----------|-------------|
+| `value` | Required on `<case>`. The value to match against. Must be unique within the `<conditional>`. |
+| `goto` | Jump to a step ID |
+| `halt` | Stop workflow (`true`) |
+
+`goto` and `halt` are mutually exclusive on each element. `<case>` and `<default>` can also contain child elements (instructions, actions, commands, tool tags). A `<case>` with both content and `goto` executes the content, then routes.
+
+**Conditionals vs. gates:** Conditionals are **navigational** — they route based on a value that already exists. Gates are **evaluative** — they judge whether completed work meets a bar. Conditionals do not support `retry`, `max`, or `then` because the value won't change by retrying. Gates do, because the work can be redone.
+
+**Structure:** At least one `<case>`. `<case>` `value` attributes must be unique within their `<conditional>`. At most one `<default>` child element. Mixed content allowed in `<case>` and `<default>`.
 
 ---
 
@@ -880,14 +910,15 @@ APE uses a layered validation model:
 **Required children:**
 - `<step>` must contain `<title>` and exactly one `<instruction>` or `<instructions>`
 - `<gate>` must contain exactly one `<criteria>` and at least one `<on-fail>`
-- `<when>` must contain exactly one `<if>` and at most one `<else>`
-- `<match>` must contain at least one `<case>` and at most one `<default>`
-- `<if>` must have a non-empty `test` attribute
+- `<conditional>` must have a non-empty `on` attribute
+- `<conditional>` must contain at least one `<case>`
+- `<conditional>` must contain at most one `<default>` child element
+- `<conditional>` `default` attribute and `<default>` child element are mutually exclusive
 
 **Identity and uniqueness:**
 - Global IDs (`actor`, `resource`, `command`, `sequence`, `reference`, `tool-tag`, `step`, `template`, `output`) are unique across the entire document. No shadowing.
 - Scoped names (`var/@name`, `param/@ref`) are unique within their scope. Shadowing is permitted.
-- `<case>` `value` attributes are unique within their `<match>`
+- `<case>` `value` attributes are unique within their `<conditional>`
 
 **Reference resolution:**
 - All `ref` attributes resolve to a declared `id` of the correct type
@@ -946,7 +977,7 @@ APE uses a layered validation model:
 3. **Declarations scope to their block.** Available inside and after, not upward or backward. `<param>` declarations resolve from the caller's scope and are then locally scoped.
 4. **Two-pass resolution.** Forward references work. Nearest scope wins.
 5. **Global IDs are globally unique.** `actor`, `resource`, `command`, `sequence`, `reference`, `tool-tag`, `step`, `template`, and `output` IDs cannot shadow or collide. Only `var/@name` and `param/@ref` support scoped shadowing.
-6. **Mixed content is allowed in instruction-level elements.** `<instruction>`, `<action>`, `<if>`, `<else>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` allow interleaved text and child elements. Tags are anchors; text is narrative. `<instructions>` (plural) is a structural wrapper containing `<instruction>` elements and does not itself allow mixed content.
+6. **Mixed content is allowed in instruction-level elements.** `<instruction>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` allow interleaved text and child elements. Tags are anchors; text is narrative. `<instructions>` (plural) is a structural wrapper containing `<instruction>` elements and does not itself allow mixed content.
 7. **`<command>` identity is exclusive.** `id` and `ref` cannot both be present. If `ref` is present, the element body must be empty/whitespace. `set` works with any mode.
 8. **Flow control: one primary attribute** per `<on-fail>`/`<on-pass>`/`<action>`. Primary attributes are `goto`, `retry`, `halt`, `proceed`. Modifiers `max` and `then` require `retry`.
 9. **`<on-fail>` default is halt with error.** If no flow-control attributes are present, the engine halts and includes available context (step id, title, criteria, reason).

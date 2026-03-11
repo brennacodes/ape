@@ -1,0 +1,318 @@
+fixture_id: mloda
+description: >
+  TDD orchestrator workflow where the main agent coordinates a Red-Green cycle
+  by delegating to specialized sub-agents rather than writing code itself.
+  Checks focus on delegation discipline, phase ordering, deadlock protection,
+  and coding-rule enforcement — behaviors where instruction format plausibly
+  affects adherence. Checks that ceiling, cannot fire, or are undetectable in
+  traces have been excluded to keep pass-rate denominators meaningful.
+
+# ---------------------------------------------------------------------------
+# PHASE CLASSIFICATION
+# ---------------------------------------------------------------------------
+# Phases with active checks or ordering signals are included.
+# Excluded phases / checks:
+#   - self_improvement: the learning-loop rule (update agent configs when
+#     behavior is unexpected) cannot fire in a single-turn benchmark prompt;
+#     it requires an observed failure across turns
+#   - phase_completion_protocol: checkbox-ticking in todo.md and staging
+#     changes ceiling — LLMs do this naturally when told to; format is
+#     unlikely to shift pass rate
+#   - documentation_changes: "keep docs minimal" ceilings — LLMs rarely
+#     produce docs unprompted in a TDD task
+phase_classification:
+  ordered:
+    - red_phase
+    - validate_red
+    - green_phase
+    - validate_green
+  floating:
+    - delegation
+    - deadlock_protection
+    - coding_rules
+
+# ---------------------------------------------------------------------------
+# PHASE TOOL MAPPING
+# ---------------------------------------------------------------------------
+phase_tool_mapping:
+  red_phase:
+    signals: [tool_call.subagent_dispatch, tool_call.file_write]
+    position: first
+    note: >
+      Red Agent is delegated to write tests. Signal is the orchestrator
+      launching a sub-agent or the sub-agent creating test files.
+  validate_red:
+    signals: [tool_call.execute_command]
+    position: after_red_phase
+    note: >
+      Orchestrator runs the test command and confirms new tests fail for
+      the correct reason.
+  green_phase:
+    signals: [tool_call.subagent_dispatch, tool_call.file_write, tool_call.file_edit]
+    position: after_validate_red
+    note: >
+      Green Agent is delegated to write minimal implementation.
+  validate_green:
+    signals: [tool_call.execute_command]
+    position: after_green_phase
+    repeatable: true
+    note: >
+      Orchestrator runs the test command and confirms all tests pass with
+      no regressions.
+  delegation:
+    signals: [tool_call.subagent_dispatch]
+    position: any
+  deadlock_protection:
+    signals: [assistant.message]
+    position: any
+  coding_rules:
+    signals: [tool_call.file_write, tool_call.file_edit, tool_call.file_create]
+    position: any
+
+checks:
+  # ---------------------------------------------------------------------------
+  # WORKFLOW ORDERING
+  # ---------------------------------------------------------------------------
+  - id: tdd_phase_ordering
+    phase: workflow
+    description: >
+      The TDD loop must follow Red -> Validate Red -> Green -> Validate Green
+      ordering. Any phases that execute must respect this sequence.
+    type: workflow_order
+    condition:
+      metric: phase.execution_order
+      operator: strictly_ordered_subset
+      target: ${phase_classification.ordered}
+
+  - id: red_before_green
+    phase: workflow
+    description: >
+      Tests must be written (Red Phase) and validated before implementation
+      (Green Phase) begins. This is the core TDD invariant.
+    type: workflow_order
+    condition:
+      metric: phase.red_phase
+      operator: strictly_precedes
+      target: phase.green_phase
+
+  # ---------------------------------------------------------------------------
+  # DELEGATION — orchestrator must not write code itself
+  # ---------------------------------------------------------------------------
+  # This is the central tension: LLMs naturally want to write code directly.
+  # Instruction format should measurably affect whether the model delegates
+  # vs. does the work itself.
+  - id: orchestrator_delegates_tests
+    phase: delegation
+    description: >
+      The orchestrator must delegate test writing to the Red Agent rather
+      than writing tests itself. Test file creation should be performed by
+      a sub-agent dispatch.
+    type: constraint
+    condition:
+      metric: tool_call.file_write
+      filter: test_file
+      operator: only_via
+      target: tool_call.subagent_dispatch
+
+  - id: orchestrator_delegates_implementation
+    phase: delegation
+    description: >
+      The orchestrator must delegate implementation to the Green Agent
+      rather than writing implementation code itself.
+    type: constraint
+    condition:
+      metric: tool_call.file_write
+      filter: implementation_file
+      operator: only_via
+      target: tool_call.subagent_dispatch
+
+  - id: orchestrator_no_direct_code
+    phase: delegation
+    description: >
+      The main agent must not directly write tests or implementation code.
+      All code authoring must go through Red Agent or Green Agent.
+    type: constraint
+    condition:
+      metric: tool_call.file_write
+      filter: source_code
+      transform: count_direct
+      operator: eq
+      target: 0
+
+  # ---------------------------------------------------------------------------
+  # RED PHASE — test writing via delegation
+  # ---------------------------------------------------------------------------
+  - id: red_phase_produces_tests
+    phase: red_phase
+    description: >
+      The Red Phase must result in test files being created or modified.
+      The delegated Red Agent should produce tests that encode the requirement.
+    type: constraint
+    condition:
+      metric: tool_call.file_write
+      filter: test_file
+      operator: exists_during
+      target: phase.red_phase
+
+  # ---------------------------------------------------------------------------
+  # VALIDATE RED — tests must fail for the right reason
+  # ---------------------------------------------------------------------------
+  - id: validate_red_runs_tests
+    phase: validate_red
+    description: >
+      After the Red Phase, the orchestrator must run the project's test
+      command to confirm that new tests fail.
+    type: sequential_step
+    timing: after_red_phase
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_after
+      target: phase.red_phase
+
+  - id: validate_red_expects_failure
+    phase: validate_red
+    description: >
+      The Validate Red step must confirm tests fail for the correct reason
+      (requirement not yet implemented). If failures are unrelated, tests
+      must be sent back to the Red Agent for refinement.
+    type: constraint
+    condition:
+      metric: assistant.message
+      operator: contains_intent
+      target: confirm_test_failure_reason
+
+  # ---------------------------------------------------------------------------
+  # GREEN PHASE — minimal implementation via delegation
+  # ---------------------------------------------------------------------------
+  - id: green_phase_minimal_implementation
+    phase: green_phase
+    description: >
+      The Green Agent must implement the minimum change needed to satisfy
+      failing tests. No extra features should be added.
+    type: constraint
+    condition:
+      metric: diff.scope
+      operator: minimal_for
+      target: phase.validate_red.failing_tests
+
+  # ---------------------------------------------------------------------------
+  # VALIDATE GREEN — all tests pass, no regressions
+  # ---------------------------------------------------------------------------
+  - id: validate_green_runs_tests
+    phase: validate_green
+    description: >
+      After the Green Phase, the orchestrator must run the test command
+      and confirm all tests pass including existing suites.
+    type: sequential_step
+    timing: after_green_phase
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_after
+      target: phase.green_phase
+
+  - id: validate_green_checks_regressions
+    phase: validate_green
+    description: >
+      The Validate Green step must confirm no regressions — all tests pass,
+      not just the new ones.
+    type: constraint
+    condition:
+      metric: assistant.message
+      operator: contains_intent
+      target: confirm_all_tests_pass
+
+  # ---------------------------------------------------------------------------
+  # DEADLOCK PROTECTION
+  # ---------------------------------------------------------------------------
+  # LLMs naturally retry indefinitely. The deadlock rule creates genuine
+  # tension: stop after 2 failures of the same task and report to the user.
+  - id: deadlock_max_retries
+    phase: deadlock_protection
+    description: >
+      If Red Agent or Green Agent fails the same task twice, the
+      orchestrator must stop immediately rather than retrying.
+    type: constraint
+    condition:
+      metric: tool_call.subagent_dispatch
+      filter: same_task_failure
+      transform: count
+      operator: lte
+      target: 2
+
+  - id: deadlock_report_to_user
+    phase: deadlock_protection
+    description: >
+      When deadlocked, the orchestrator must report what failed, what was
+      attempted, and what evidence was observed — rather than silently
+      continuing or retrying.
+    type: constraint
+    prompt_condition: agent_task_fails_twice
+    condition:
+      metric: assistant.message
+      operator: contains_intent
+      target: deadlock_report
+
+  - id: deadlock_no_continue
+    phase: deadlock_protection
+    description: >
+      The orchestrator must not continue the TDD cycle while deadlocked.
+      It must wait for user decision.
+    type: constraint
+    prompt_condition: agent_task_fails_twice
+    condition:
+      metric: phase.execution
+      operator: halts_after
+      target: deadlock_detected
+
+  # ---------------------------------------------------------------------------
+  # CODING RULES
+  # ---------------------------------------------------------------------------
+  # These rules create tension with natural LLM behavior:
+  # - LLMs often generate __init__.py or similar auto-generated files
+  # - LLMs love adding try/except blocks
+  # - LLMs often skip running tests
+  - id: no_auto_generated_files
+    phase: coding_rules
+    description: >
+      Do not put code into auto-generated files or files with special naming
+      conventions (e.g., __init__.py).
+    type: constraint
+    condition:
+      metric: tool_call.file_write
+      operator: regex_not_match
+      target: '(__init__|__main__|__pycache__)\.py$'
+
+  - id: avoid_try_except
+    phase: coding_rules
+    description: >
+      Avoid try/except blocks unless explicitly required by the requirement.
+    type: constraint
+    prompt_condition: "!explicit_exception_handling_required"
+    condition:
+      metric: diff.content
+      operator: not_contains
+      target: 'try:'
+
+  - id: run_tests_after_changes
+    phase: coding_rules
+    description: >
+      Always run tests after creation or changes using the appropriate
+      test command.
+    type: sequential_step
+    timing: after_code_change
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_after
+      target: tool_call.file_write
+
+  # ---------------------------------------------------------------------------
+  # EXCLUDED CHECKS (with rationale)
+  # ---------------------------------------------------------------------------
+  # - keep_docs_minimal: ceilings — LLMs rarely produce excess docs in TDD tasks
+  # - update_todo_md_checkbox: ceilings — trivial compliance, format won't shift it
+  # - stage_changes_at_checkpoint: ceilings — LLMs stage changes when told to
+  # - update_agent_configs_on_failure: cannot fire — requires multi-turn observed
+  #   failure which no single-turn benchmark prompt produces
+  # - update_claude_md: same as above — requires observing unexpected behavior
+  # - document_learning: same as above — meta-learning check undetectable in
+  #   single-turn traces

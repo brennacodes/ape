@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
+
+  <meta>
+    <name>Project Workflow</name>
+    <description>A structured development workflow that enforces skills-first triage, intent confirmation, planning for large changes, tool reuse, modular design, disciplined implementation style, test-driven development, verification, and living documentation.</description>
+
+    <actors>
+      <actor id="agent" type="agent">
+        <description>Primary AI agent executing this workflow.</description>
+        <responsibilities>
+          <responsibility>Parse and execute this APE workflow</responsibility>
+          <responsibility>Track step state and gate results</responsibility>
+          <responsibility>Follow skills protocol before all other work</responsibility>
+        </responsibilities>
+      </actor>
+      <actor id="developer" type="human">
+        <description>Human developer providing requests and approvals.</description>
+      </actor>
+    </actors>
+
+    <resources>
+      <resource id="skill-tool" type="service">
+        <description>The Skill tool used to read and run skill files.</description>
+      </resource>
+      <resource id="test-suite" type="service">
+        <description>The project's existing test suite and test runner.</description>
+      </resource>
+      <resource id="build-tools" type="service">
+        <description>Standard build and test commands for the project.</description>
+      </resource>
+      <resource id="workflow-doc" type="file" access="read,write">
+        <description>This workflow document itself, kept as a living reference.</description>
+      </resource>
+    </resources>
+  </meta>
+
+  <steps>
+
+    <!-- =============================================
+         Step 1: Skills Protocol (Mandatory First Pass)
+         ============================================= -->
+    <step number="1" id="skills-protocol" actor="agent" uses="skill-tool">
+      <title>Skills Protocol</title>
+      <goal>Ensure every user request is checked against available skills before any work begins.</goal>
+
+      <constraint>This step is MANDATORY before responding to ANY user message.</constraint>
+      <constraint>Do not proceed to any work until the skills checklist is complete.</constraint>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">Mentally list all skills currently available.</action>
+        </instruction>
+        <instruction>
+          <action actor="agent">Ask yourself: "Does ANY skill match this request?"</action>
+        </instruction>
+        <instruction>
+          <when>
+            <if test="{{ skill_matches }} == true">
+              <action actor="agent">
+                Use the Skill tool to read and run the matching skill file.
+                Explicitly announce which skill you are using.
+                Follow that skill exactly.
+              </action>
+            </if>
+          </when>
+        </instruction>
+        <instruction>
+          <constraint>If you catch yourself rationalizing ("this is simple", "I'll do one quick thing first", etc.), stop and run the checklist again.</constraint>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>The skills checklist has been fully evaluated and either a matching skill has been invoked or no skill applies.</criteria>
+        <on-fail retry="true" max="1" then="halt">Skills checklist was skipped or incomplete.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 2: Intake and Intent Confirmation
+         ============================================= -->
+    <step number="2" id="intake" actor="agent">
+      <title>Intake and Intent Confirmation</title>
+      <goal>Understand the user's request well enough to plan or execute without guessing.</goal>
+      <description>Lightweight triage to identify what the user is asking for, including task outcome, constraints, and format.</description>
+
+      <prerequisite ref="skills-protocol">Skills protocol must be completed first.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">Identify what the user is asking for: task outcome, constraints, and desired format.</action>
+        </instruction>
+        <instruction>
+          <when>
+            <if test="{{ task_is_large }} == true">
+              <note>If the task is a large refactor or new feature request, prepare to write a plan and request approval before implementation.</note>
+            </if>
+          </when>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>You understand the request well enough to plan or execute without guessing.</criteria>
+        <on-fail retry="true" max="2" then="halt">Request is ambiguous or unclear — clarify with the developer before proceeding.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 3: Plan Before Big Changes
+         ============================================= -->
+    <step number="3" id="plan-big-changes" actor="agent">
+      <title>Plan Before Big Changes</title>
+      <goal>Ensure large changes are planned and approved before implementation begins.</goal>
+
+      <prerequisite ref="intake">Intent must be confirmed first.</prerequisite>
+
+      <instruction>
+        <when>
+          <if test="{{ task_is_large }} == true">
+            <action actor="agent">
+              Explain a concrete plan covering scope, steps, risks, and test strategy.
+            </action>
+            <action>
+              <ask-user-question var="plan_approved" type="confirm" actor="developer">Do you approve this plan?</ask-user-question>
+            </action>
+          </if>
+          <else>
+            <note>If the work is small, proceed directly but still keep changes minimal and intentional.</note>
+          </else>
+        </when>
+      </instruction>
+
+      <constraint>Large changes (multi-file refactor, new subsystem, broad API change) require explicit approval before implementation.</constraint>
+
+      <gate>
+        <criteria>Approval has been obtained for large changes, or the task is clearly small enough to proceed directly.</criteria>
+        <on-fail goto="plan-big-changes">Plan was not approved — revise and re-present.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 4: Use Existing Tools First
+         ============================================= -->
+    <step number="4" id="use-existing-tools" actor="agent">
+      <title>Use Existing Tools First</title>
+      <goal>Prevent reinventing the wheel by checking for existing solutions before building custom ones.</goal>
+
+      <prerequisite ref="plan-big-changes">Planning phase must be resolved.</prerequisite>
+
+      <instruction>
+        <action actor="agent">
+          Prefer established libraries and existing project utilities. Only build custom solutions when necessary and justified.
+          Check whether a proven library or tool already solves the problem at hand.
+        </action>
+      </instruction>
+
+      <constraint>Only build custom solutions when no existing library or utility can do the job, and justify the decision.</constraint>
+
+      <anti-patterns>
+        <anti-pattern>Building a custom utility when a well-maintained library already exists in the project's ecosystem.</anti-pattern>
+      </anti-patterns>
+
+      <gate>
+        <criteria>You have checked whether a proven library or tool already solves the problem.</criteria>
+        <on-fail retry="true" max="1" then="halt">Existing tools were not evaluated — review available libraries and project utilities before proceeding.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 5: Design for Modularity
+         ============================================= -->
+    <step number="5" id="design-modularity" actor="agent">
+      <title>Design for Modularity</title>
+      <goal>Ensure the architecture keeps responsibilities separated and APIs small and clear.</goal>
+
+      <prerequisite ref="use-existing-tools">Tool evaluation must be complete.</prerequisite>
+
+      <instruction>
+        <action actor="agent">Design highly modular code that separates concerns into focused modules. Keep each module single-responsibility with clear boundaries and minimal public API.</action>
+        <note>Prefer composition over monoliths. Extract shared functionality into dedicated modules as the codebase grows.</note>
+      </instruction>
+
+      <rules>
+        <rule>Prefer highly modular code that separates concerns into focused modules.</rule>
+        <rule>Keep each module single-responsibility with clear boundaries and minimal public API.</rule>
+        <rule>Prefer composition over monoliths.</rule>
+        <rule>Extract shared functionality into dedicated modules as the codebase grows.</rule>
+      </rules>
+
+      <gate>
+        <criteria>The design keeps responsibilities separated and APIs are small and clear.</criteria>
+        <on-fail goto="design-modularity">Design violates modularity principles — refactor the design.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 6: Implementation
+         ============================================= -->
+    <step number="6" id="implementation" actor="agent">
+      <title>Implementation</title>
+      <goal>Write code that is readable, properly typed, and documented where it matters.</goal>
+
+      <prerequisite ref="design-modularity">Modular design must be established.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">Write code following the documentation and style rules below.</action>
+          <note>Documentation means docstrings and type hints INSIDE the code, not separate doc files.</note>
+        </instruction>
+        <instruction>
+          <action actor="agent">Use docstrings and type hints primarily for: public APIs, complex logic, non-obvious constraints, edge cases, and "why/how" decisions (not obvious "what").</action>
+        </instruction>
+        <instruction>
+          <action actor="agent">Keep functions small, well-named, and focused. Break up complex functions.</action>
+        </instruction>
+      </instructions>
+
+      <constraint>Do NOT create separate documentation pages (README or markdown docs) as part of this workflow.</constraint>
+      <constraint>Avoid over-documenting trivial functions.</constraint>
+
+      <rules>
+        <rule>Documentation means docstrings and type hints inside the code.</rule>
+        <rule>Document public APIs, complex logic, non-obvious constraints, edge cases, and why/how decisions.</rule>
+        <rule>Keep functions small, well-named, and focused.</rule>
+        <rule>Break up complex functions into smaller, composable pieces.</rule>
+      </rules>
+
+      <anti-patterns>
+        <anti-pattern>Creating separate README or markdown documentation files as part of implementation.</anti-pattern>
+        <anti-pattern>Over-documenting trivial or self-explanatory functions.</anti-pattern>
+        <anti-pattern>Writing large monolithic functions instead of small focused ones.</anti-pattern>
+      </anti-patterns>
+
+      <gate>
+        <criteria>Code changes are readable, typed, and documented where it matters.</criteria>
+        <on-fail goto="implementation">Code does not meet style or documentation standards — revise.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 7: Test-Driven Development
+         ============================================= -->
+    <step number="7" id="tdd" actor="agent" uses="test-suite">
+      <title>Test-Driven Development</title>
+      <goal>Ensure new behavior is covered by proper tests that validate critical paths and edge cases.</goal>
+
+      <prerequisite ref="implementation">Implementation must be in progress or complete.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">For new behavior, write or update proper tests in the existing test suite first.</action>
+          <constraint>Do not create throwaway test scripts or ad hoc verification files.</constraint>
+        </instruction>
+        <instruction>
+          <action actor="agent">
+            Run tests and confirm new or updated tests FAIL for the right reasons before implementing the change.
+          </action>
+        </instruction>
+        <instruction>
+          <action actor="agent">Implement the change until tests pass.</action>
+        </instruction>
+        <instruction>
+          <action actor="agent">Ensure coverage for critical paths and edge cases including empty inputs, invalid types, and large datasets.</action>
+          <note>Add brief test docstrings or comments where they clarify edge cases and expectations.</note>
+        </instruction>
+      </instructions>
+
+      <constraint>Do not create throwaway test scripts or ad hoc verification files.</constraint>
+      <constraint>Tests must exist in the existing test suite, not in separate one-off files.</constraint>
+
+      <rules>
+        <rule>Write or update tests before implementing new behavior.</rule>
+        <rule>Confirm tests fail for the right reasons before writing implementation code.</rule>
+        <rule>Cover critical paths and edge cases (empty inputs, invalid types, large datasets).</rule>
+        <rule>Add brief test docstrings or comments where they clarify expectations.</rule>
+      </rules>
+
+      <anti-patterns>
+        <anti-pattern>Creating throwaway test scripts or ad hoc verification files.</anti-pattern>
+        <anti-pattern>Skipping the red-green-refactor cycle by writing implementation before tests.</anti-pattern>
+        <anti-pattern>Only testing the happy path without covering edge cases.</anti-pattern>
+      </anti-patterns>
+
+      <gate>
+        <criteria>Tests exist for new behavior and validate critical paths and edge cases.</criteria>
+        <on-fail goto="tdd">Tests are missing or insufficient — write additional tests.</on-fail>
+        <on-fail goto="implementation">Tests fail due to implementation bugs — fix the code.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 8: Verify and Finish
+         ============================================= -->
+    <step number="8" id="verify-and-finish" actor="agent" uses="build-tools, test-suite">
+      <title>Verify and Finish</title>
+      <goal>Confirm the build is green, behavior matches the request, and a summary is delivered.</goal>
+
+      <prerequisite ref="tdd">Tests must pass before verification.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">
+            Run the standard build and test commands after every code change, unless a documented exception applies.
+          </action>
+        </instruction>
+        <instruction>
+          <action actor="agent">Confirm the result matches the requested behavior with tests.</action>
+        </instruction>
+        <instruction>
+          <action actor="agent">
+            Provide a concise summary of what changed, why it changed, and where tests were added or updated.
+          </action>
+        </instruction>
+      </instructions>
+
+      <constraint>Run build and test commands after every code change unless a documented exception applies.</constraint>
+
+      <gate>
+        <criteria>Build and tests are green, behavior matches the request, and a summary has been delivered.</criteria>
+        <on-fail goto="implementation">Build or tests are failing — return to implementation to fix.</on-fail>
+        <on-fail halt="true">Unrecoverable verification failure.</on-fail>
+      </gate>
+    </step>
+
+    <!-- =============================================
+         Step 9: Maintain Workflow Document
+         ============================================= -->
+    <step number="9" id="maintain-workflow" actor="agent" uses="workflow-doc">
+      <title>Maintain Workflow Document</title>
+      <goal>Keep this workflow document accurate, consistent, and high-level as practices evolve.</goal>
+
+      <prerequisite ref="verify-and-finish">Verification must be complete before updating the workflow.</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action actor="agent">Update this workflow document when development practices or project structure changes.</action>
+        </instruction>
+        <instruction>
+          <constraint>Do NOT contradict existing guidelines when updating.</constraint>
+        </instruction>
+        <instruction>
+          <action actor="agent">Keep the document as an executive summary. Avoid low-level implementation details.</action>
+        </instruction>
+      </instructions>
+
+      <constraint>Do NOT contradict existing guidelines when updating this document.</constraint>
+      <constraint>Keep this document as an executive summary — avoid low-level implementation details.</constraint>
+
+      <rules>
+        <rule>Updates must reflect current reality.</rule>
+        <rule>Updates must remain consistent with existing guidelines.</rule>
+        <rule>Content must stay high-level and avoid implementation minutiae.</rule>
+      </rules>
+
+      <gate>
+        <criteria>Updates reflect reality, remain consistent with existing guidelines, and stay high-level.</criteria>
+        <on-fail goto="maintain-workflow">Updates are inconsistent or too detailed — revise.</on-fail>
+      </gate>
+    </step>
+
+  </steps>
+
+  <principles>
+    <principle name="Skills-First">Always evaluate available skills before starting any work.</principle>
+    <principle name="Minimal-Change">Keep changes minimal and intentional, even for small tasks.</principle>
+    <principle name="No-Reinvention">Prefer existing tools and libraries over custom solutions.</principle>
+    <principle name="Modularity">Separate concerns into focused, single-responsibility modules with small APIs.</principle>
+    <principle name="Inline-Documentation">Document with docstrings and type hints inside code, not separate files.</principle>
+    <principle name="Test-Driven">Write tests first, confirm they fail, then implement until they pass.</principle>
+    <principle name="Living-Document">Keep this workflow up to date as practices evolve.</principle>
+  </principles>
+
+</ape>

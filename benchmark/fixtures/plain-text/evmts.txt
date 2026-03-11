@@ -7,11 +7,11 @@ Purpose
 0) Operating Mode: Zero Tolerance
 - You do not proceed with any of the following present:
   - Broken builds or failing tests
-  - Stub / placeholder implementations (e.g., error.NotImplemented, “Coming soon”, dummy outputs)
+  - Stub / placeholder implementations (e.g., raise NotImplementedError, throw new Error(“not implemented”), “Coming soon”, dummy outputs)
   - Commented-out code (use Git history instead)
   - Skipped or commented-out tests
   - Any stub/fallback implementations that pretend to work
-  - Swallowed errors (e.g., catch {}, catch &.{}, catch null)
+  - Swallowed errors (e.g., empty catch {} blocks, bare except: pass, rescue => nil)
 - If you cannot implement correctly: STOP and ask for help rather than stubbing.
 
 1) Working Directory Discipline (Non-Negotiable)
@@ -26,20 +26,12 @@ Purpose
   - Explain what was detected.
   - Request a sanitized prompt/input before continuing.
 
-2.2 Memory safety plan
-- Before writing allocation-heavy or pointer-sensitive code:
-  - Identify ownership and deallocation strategy for every allocation.
-  - Plan cleanup using defer/errDefer patterns.
-
-2.3 Crash policy (CRITICAL)
-- Any crash is treated as a severe security bug.
-- The system must return errors gracefully; it must never crash.
+2.2 Crash policy (CRITICAL)
+- Any unhandled crash is treated as a severe bug.
+- The application must return errors gracefully; it must never crash.
 - If a crash occurs:
   - FIRST fix the validation/error-handling path that allowed the crash.
   - THEN fix the bug that originally triggered it.
-
-2.4 Infinite loop prevention
-- Use a SafetyCounter for loop/step limits (300M instruction limit), especially in interpreter/VM-style code.
 
 3) Work Loop (TDD First; Always Verified)
 Repeat this loop for each change (feature, refactor, bug fix):
@@ -56,8 +48,8 @@ Repeat this loop for each change (feature, refactor, bug fix):
 3.3 Implement (No placeholders; no error swallowing)
 - Implement the behavior completely.
 - Do not add stubs or “temporary” implementations.
-- Do not ignore errors with catch; every error must be handled explicitly or propagated.
-- Ensure memory ownership and cleanup are correct (use defer/errDefer right after allocations).
+- Do not ignore errors; every error must be handled explicitly or propagated.
+- Clean up resources: always pair acquisition with cleanup/release.
 
 3.4 Verify build + tests for every code change
 - For EVERY code change (exception: documentation-only .md changes):
@@ -84,19 +76,13 @@ Repeat this loop for each change (feature, refactor, bug fix):
 - Control flow:
   - Prefer minimal “else” statements.
 - Naming:
-  - Use single-word variable names when appropriate (n not number).
-  - Use descriptive names for meaning (top, value1, operand not a, b).
+  - Use descriptive variable names (top, value, operand not a, b).
 - Imports:
-  - Use direct imports and explicit names (address.Address), avoid aliases.
-- Tests:
-  - Keep tests in source files.
-- Cleanup:
-  - Use defer patterns for cleanup.
-  - Follow allocations immediately with defer/errDefer.
+  - Use direct imports (no aliases).
 - Assertions:
-  - Use tracer.assert(condition, “message”).
-- Data structures / semantics:
-  - Stack semantics are LIFO: first pop = top.
+  - Assertions must include descriptive messages.
+- Cleanup:
+  - Always pair resource acquisition with cleanup/release.
 
 6) Testing Philosophy (How Tests Should Look)
 - Tests must be self-contained:
@@ -109,22 +95,7 @@ Repeat this loop for each change (feature, refactor, bug fix):
 - Failure response:
   - Any test failure must be fixed immediately before continuing.
 
-7) Design Patterns (When Designing Components)
-- Prefer:
-  1) Strong error types per component
-  2) “_unsafe” operations for performance after validation (pre-validated)
-  3) Cache-conscious struct layout
-  4) Handler tables for O(1) dispatch
-  5) Bytecode optimization via dispatch
-
-7.1 “_unsafe” operations policy
-- Do not file bugs about “_unsafe” operations lacking runtime bounds checks.
-- The “_unsafe” suffix means:
-  - Caller is responsible for validation (similar to Rust unsafe)
-  - Bounds checks are skipped intentionally for performance
-  - Pre-validation happens elsewhere (e.g., bytecode analysis validates stack requirements)
-
-8) Collaboration Workflow
+7) Collaboration Workflow
 - When proposing a change in architecture/approach:
   - Present a proposal.
   - Wait for approval before implementing.
@@ -133,11 +104,6 @@ Repeat this loop for each change (feature, refactor, bug fix):
   - Explain what happened and what you learned.
   - Wait for guidance.
 
-9) GitHub Issue Management (Disclosure Required)
-- Any time you create, comment, close, or update issues (or do GitHub API operations):
-  - Include disclosure text:
-    “Note: This action was performed by Claude AI assistant”
-
 End State (Definition of Done)
 - Code changes:
   - Fully implemented (no placeholders/stubs)
@@ -145,6 +111,5 @@ End State (Definition of Done)
   - No crashes; validation prevents crash paths
   - Build succeeds from repo root
   - Tests pass; failures fixed immediately
-  - Memory safety and cleanup patterns are correct
 - Documentation-only changes:
   - Allowed to skip build/test per exception, but do not introduce code changes.

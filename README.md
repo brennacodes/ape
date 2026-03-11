@@ -36,6 +36,51 @@ schema/
 
 **0.2.2-draft** — APE is under active development. The schema namespace is pinned to the major version (`https://ape-lang.dev/schema/2`); minor versions are expected to be broadly compatible.
 
+## Benchmarks
+
+The benchmark suite tests how workflow instructions in different formats perform against real apps with realistic prompts. Each case runs in an isolated workspace with a scrubbed environment.
+
+### Running
+
+```bash
+python3 benchmark/run_benchmark.py              # run all cases (4 parallel workers)
+python3 benchmark/run_benchmark.py --dry-run     # list cases without executing
+```
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--model` | `claude-opus-4-6` | Model to use |
+| `--workers` | `4` | Parallel workers (`1` for sequential) |
+| `--delay` | `0` | Rate-limit delay between cases (seconds) |
+| `--timeout` | `15` | Per-case timeout (minutes) |
+| `--max-turns` | unlimited | Max CLI turns per case |
+| `--dry-run` | off | Show discovered cases without executing |
+| `--legacy-output` | off | Write legacy JSON summaries |
+| `--no-enrich-tokens` | on | Skip token/cost enrichment from session logs |
+| `-v, --verbose` | on | Debug-level logging |
+
+### Filtering
+
+You can narrow the case matrix by combining dimension filters:
+
+| Filter | Example | Description |
+|--------|---------|-------------|
+| `--app` | `--app claude-bot` | Filter by app/fixture name |
+| `--workflow` | `--workflow centminmod` | Filter by workflow stem |
+| `--format-filter` | `--format-filter plain-text` | Filter by workflow format |
+| `--category` | `--category bugs` | Filter by prompt category |
+| `--item` | `--item some-id` | Filter by app-config item ID |
+
+```bash
+# Run a single fixture
+python3 benchmark/run_benchmark.py --app claude-bot
+
+# Preview what matches before running
+python3 benchmark/run_benchmark.py --app claude-bot --format-filter plain-text --dry-run
+```
+
 ## License
 
 TBD

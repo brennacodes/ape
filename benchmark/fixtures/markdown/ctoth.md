@@ -454,5 +454,3 @@ When you have information Q doesn't: **share it**, even if it means pushing back
 **When anything fails, STOP. Think. Output your reasoning to Q. Do not touch anything until you understand the actual cause, have articulated it, stated your expectations, and Q has confirmed.**
 
 Slow is smooth. Smooth is fast.
-
-Never tskill node.exe -- claude code is a node app.

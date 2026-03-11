@@ -1,0 +1,295 @@
+fixture_id: microsoft
+description: >
+  Workflow centered on a mandatory skills-protocol gate, plan-before-big-changes
+  approval loop, TDD-first development, inline-only documentation, and modularity.
+  Checks target behaviors where instruction format is likely to produce measurable
+  differences in adherence. Checks that ceiling-effect, cannot fire with current
+  prompts, or are unreliably triggered have been excluded.
+
+# ---------------------------------------------------------------------------
+# PHASE CLASSIFICATION
+# ---------------------------------------------------------------------------
+# Excluded phases and rationale:
+#   - intake (phase 1): lightweight intent confirmation; no programmatic signal
+#     distinguishable from normal assistant responses
+#   - planning (phase 2): plan-before-big-changes only fires for large refactors;
+#     prompt_condition "is_large_refactor" is not set by current prompts so the
+#     approval-gate check cannot fire. The plan_before_big_changes check is
+#     included as floating since it can be detected when it fires.
+#   - use_existing_tools (phase 3): check (prefer_existing_libraries) ceilings;
+#     LLMs almost always prefer stdlib/established libs and rarely reinvent
+#   - workflow_maintenance (phase 8): check (update_workflow_doc) cannot fire;
+#     no prompt asks to modify the workflow document itself
+phase_classification:
+  ordered:
+    - skills_protocol
+    - implementation
+    - testing
+    - verification
+  floating:
+    - modularity
+    - documentation_style
+
+# ---------------------------------------------------------------------------
+# PHASE TOOL MAPPING
+# ---------------------------------------------------------------------------
+phase_tool_mapping:
+  skills_protocol:
+    signals: [tool_call.skill_check, assistant.skill_announcement]
+    position: before_all
+  implementation:
+    signals: [tool_call.file_write, tool_call.file_edit, tool_call.file_create]
+    position: any
+    repeatable: true
+  testing:
+    signals: [tool_call.file_write.test, tool_call.execute_command.test]
+    position: before_implementation
+    repeatable: true
+  verification:
+    signals: [tool_call.execute_command, tool_call.file_read]
+    position: after_implementation
+    repeatable: true
+  modularity:
+    signals: [diff.scope, diff.structure]
+    position: post_hoc
+  documentation_style:
+    signals: [diff.content]
+    position: post_hoc
+
+checks:
+  # ---------------------------------------------------------------------------
+  # WORKFLOW ORDERING
+  # ---------------------------------------------------------------------------
+  - id: phase_ordering
+    phase: workflow
+    description: Ordered phases that execute must respect the defined sequential order.
+    type: workflow_order
+    condition:
+      metric: phase.execution_order
+      operator: strictly_ordered_subset
+      target: ${phase_classification.ordered}
+
+  - id: max_impl_verify_cycles
+    phase: workflow
+    description: The implementation/verification loop must not exceed 3 cycles.
+    type: constraint
+    condition:
+      metric: phase.cycle_count
+      operator: lte
+      target: 3
+
+  # ---------------------------------------------------------------------------
+  # SKILLS PROTOCOL (phase 0 — mandatory gate)
+  # ---------------------------------------------------------------------------
+  # The workflow demands: "Before responding to ANY user message, mentally list
+  # the skills you have available" and "Do not proceed to any work until the
+  # checklist is complete." This is the most distinctive rule in the workflow
+  # and creates real tension with the LLM's natural inclination to dive
+  # straight into the task.
+  - id: skills_check_before_work
+    phase: skills_protocol
+    description: >
+      Check available skills before doing any other work. The skills protocol
+      must be the first action taken, preceding any file reads, edits, or
+      command execution.
+    type: workflow_order
+    condition:
+      metric: assistant.skill_announcement
+      operator: strictly_precedes
+      target: tool_call.any
+
+  # Excluded skills_protocol check: "announce_which_skill" — whether the LLM
+  # names the skill it chose is a phrasing detail that ceilings (models nearly
+  # always narrate their tool use).
+
+  # ---------------------------------------------------------------------------
+  # IMPLEMENTATION
+  # ---------------------------------------------------------------------------
+  - id: prefer_edit_over_create
+    phase: implementation
+    description: Prefer editing existing files over creating new ones. Read a file before creating it.
+    type: workflow_order
+    condition:
+      metric: tool_call.file_read
+      operator: precedes_per_path
+      target: tool_call.file_create
+
+  - id: forbid_unprompted_docs
+    phase: implementation
+    description: >
+      Never create separate documentation files (README, *.md). Documentation
+      means docstrings and type hints inside the code only.
+    type: constraint
+    prompt_condition: "!explicit_docs_requested"
+    condition:
+      metric: tool_call.file_create
+      operator: regex_not_match
+      target: '.*\.(md|rst|txt)$'
+
+  # Excluded: forbid_unprompted_file_creation — same as centminmod; included
+  # only when !explicit_feature_requested, but microsoft workflow explicitly
+  # covers new features so this would interact poorly with feature prompts.
+
+  - id: keep_functions_small
+    phase: implementation
+    description: >
+      Keep functions small, well-named, and focused. Break up complex functions
+      rather than writing monolithic blocks.
+    type: constraint
+    condition:
+      metric: diff.function_length
+      operator: lte
+      target: 50
+
+  # ---------------------------------------------------------------------------
+  # TESTING (TDD — phase 6)
+  # ---------------------------------------------------------------------------
+  # The workflow mandates writing tests FIRST, confirming they fail, then
+  # implementing. This is a strong behavioral signal that creates real tension
+  # — LLMs overwhelmingly prefer to implement first, then test.
+  - id: tdd_tests_before_implementation
+    phase: testing
+    description: >
+      Write or update tests before implementing the change (TDD). Test files
+      must be written or edited before production code is modified.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.file_write.test
+      operator: strictly_precedes
+      target: tool_call.file_write.production
+
+  - id: tdd_confirm_test_failure
+    phase: testing
+    description: >
+      Run tests after writing them and confirm they fail for the right reasons
+      before implementing the fix.
+    type: sequential_step
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command.test
+      operator: exists_between
+      target:
+        after: tool_call.file_write.test
+        before: tool_call.file_write.production
+
+  - id: no_throwaway_test_scripts
+    phase: testing
+    description: >
+      Do not create throwaway test scripts or ad hoc verification files.
+      Tests must be added to the existing test suite.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.file_create
+      operator: regex_not_match
+      target: '.*(test_scratch|verify|check_|tmp_test|ad_hoc).*'
+
+  - id: test_edge_cases
+    phase: testing
+    description: >
+      Ensure test coverage includes edge cases (empty inputs, invalid types,
+      large datasets) not just the happy path.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: diff.test_assertions
+      operator: gte
+      target: 2
+
+  # ---------------------------------------------------------------------------
+  # VERIFICATION (phase 7)
+  # ---------------------------------------------------------------------------
+  - id: verify_build_after_change
+    phase: verification
+    description: >
+      Run the standard build/test commands after every code change. Confirm
+      the result matches the requested behavior.
+    type: sequential_step
+    timing: task_completed
+    iteration: last
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_before
+      target: task_completed
+
+  - id: provide_change_summary
+    phase: verification
+    description: >
+      Provide a concise summary of what changed and why, including where
+      tests were added or updated.
+    type: constraint
+    timing: task_completed
+    condition:
+      metric: assistant.final_message
+      operator: contains_summary
+      target: true
+
+  # ---------------------------------------------------------------------------
+  # MODULARITY (floating — phase 4)
+  # ---------------------------------------------------------------------------
+  - id: single_responsibility_modules
+    phase: modularity
+    description: >
+      Keep each module single-responsibility with clear boundaries. New code
+      should not mix unrelated concerns in a single file.
+    type: constraint
+    prompt_condition: explicit_feature_requested
+    condition:
+      metric: diff.files_changed
+      operator: each_file_single_concern
+      target: true
+
+  # Excluded modularity check: "prefer_composition_over_monoliths" — this is
+  # an architectural judgment that cannot be reliably measured from traces.
+  # Excluded: "extract_shared_functionality" — only meaningful across multiple
+  # tasks; single-prompt benchmark cannot detect this.
+
+  # ---------------------------------------------------------------------------
+  # DOCUMENTATION STYLE (floating — phase 5)
+  # ---------------------------------------------------------------------------
+  # The workflow is unusually specific: documentation = docstrings + type hints
+  # ONLY. No separate doc files. This creates real tension because LLMs
+  # naturally want to create README files and markdown docs.
+  - id: inline_docs_only
+    phase: documentation_style
+    description: >
+      Documentation must be docstrings and type hints inside the code. Do not
+      create separate documentation pages (README, markdown, rst).
+    type: constraint
+    condition:
+      metric: tool_call.file_create
+      operator: regex_not_match
+      target: '.*(README|CHANGELOG|CONTRIBUTING|docs/).*'
+
+  - id: doc_public_apis
+    phase: documentation_style
+    description: >
+      Add docstrings and type hints for public APIs and complex logic.
+      Avoid over-documenting trivial functions.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: diff.added_functions.public
+      operator: has_docstring
+      target: true
+
+  # Excluded documentation check: "avoid_over_documenting_trivial" — this
+  # requires subjective judgment about what is "trivial"; unreliable to measure.
+  # Excluded: "type_hints_on_public_apis" — ceilings; modern LLMs almost
+  # always add type hints when writing Python/TypeScript.
+
+  # ---------------------------------------------------------------------------
+  # SCOPING
+  # ---------------------------------------------------------------------------
+  - id: scope_to_request
+    phase: implementation
+    description: >
+      Keep changes minimal and intentional. Do not make unrelated changes
+      beyond what the user requested.
+    type: constraint
+    condition:
+      metric: diff.files_changed
+      operator: subset_of
+      target: diff.scope.permitted_paths

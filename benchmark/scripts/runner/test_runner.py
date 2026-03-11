@@ -83,7 +83,7 @@ def _make_config(tmp_path: Path) -> Path:
         ],
     }
     import yaml
-    f = tmp_path / "test-configs" / "plain-text" / "test.yml"
+    f = tmp_path / "test-configs" / "test.yml"
     _write(f, yaml.dump(config))
     return f
 
@@ -96,7 +96,7 @@ def _make_case(tmp_path: Path) -> TestCase:
     return TestCase(
         app=AppFixture(app_path, "testapp"),
         workflow=WorkflowFixture(workflow_path, "test", "plain-text"),
-        test_config=TestConfigPath(config_path, "test", "plain-text"),
+        test_config=TestConfigPath(config_path, "test"),
         prompt=PromptPath(prompt_path, "test-prompt"),
     )
 

@@ -340,6 +340,24 @@ class TestWorkspaceIsolation:
         content = env.get_workflow_content(md_path, "markdown")
         assert content is None
 
+    def test_structured_md_placed_as_claude_md(self, tmp_path):
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "claude-bot"
+
+        workflow_path = BENCHMARK_ROOT / "fixtures" / "structured-md" / "centminmod.md"
+        workspace = env.setup(app_path, workflow_path, "structured-md")
+        assert (workspace / "CLAUDE.md").exists()
+        assert (workspace / "CLAUDE.md").read_text() == workflow_path.read_text()
+        env.teardown(workspace)
+
+    def test_get_workflow_content_structured_md_returns_none(self, tmp_path):
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        md_path = tmp_path / "workflow.md"
+        md_path.write_text("# Structured MD content")
+
+        content = env.get_workflow_content(md_path, "structured-md")
+        assert content is None
+
 
 # ---------------------------------------------------------------------------
 # Parallel execution
@@ -350,13 +368,13 @@ class TestParallelExecution:
     def test_single_worker_matches_sequential(self, case, isolated_env):
         mock = _make_trace_executor()
         seq = run_all([case], environment=isolated_env, _execute=mock)
-        par = run_parallel([case], workers=1, environment=isolated_env, _execute=mock)
+        par = list(run_parallel([case], workers=1, environment=isolated_env, _execute=mock))
         assert len(seq) == len(par) == 1
         assert (seq[0].error is None) == (par[0].error is None)
 
     def test_multiple_workers(self, case, isolated_env):
         mock = _make_trace_executor()
-        results = run_parallel([case, case], workers=2, delay_s=0.0, environment=isolated_env, _execute=mock)
+        results = list(run_parallel([case, case], workers=2, delay_s=0.0, environment=isolated_env, _execute=mock))
         assert len(results) == 2
         for r in results:
             assert isinstance(r, CaseResult)

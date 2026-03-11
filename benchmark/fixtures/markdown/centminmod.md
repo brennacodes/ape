@@ -16,18 +16,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 * If you create any temporary new files, scripts, or helper files for iteration, clean up these files by removing them at the end of the task.
 * When asked to commit changes, exclude CLAUDE.md.
 
-<investigate_before_answering>
+### Investigate before answering
 Never speculate about code you have not opened. If the user references a specific file, you MUST read the file before answering. Make sure to investigate and read relevant files BEFORE answering questions about the codebase. Never make any claims about code before investigating unless you are certain of the correct answer - give grounded and hallucination-free answers.
-</investigate_before_answering>
 
-<do_not_act_before_instructions>
+### Do not act before instructions
 Do not jump into implementatation or changes files unless clearly instructed to make changes. When the user's intent is ambiguous, default to providing information, doing research, and providing recommendations rather than taking action. Only proceed with edits, modifications, or implementations when the user explicitly requests them.
-</do_not_act_before_instructions>
 
-<use_parallel_tool_calls>
+### Use parallel tool calls
 If you intend to call multiple tools and there are no dependencies between the tool calls, make all of the independent tool calls in parallel. Prioritize calling tools simultaneously whenever the actions can be done in parallel rather than sequentially. For example, when reading 3 files, run 3 tool calls in parallel to read all 3 files into context at the same time. Maximize use of parallel tool calls where possible to increase speed and efficiency. However, if some tool calls depend on previous calls to inform dependent values like the parameters, do NOT call these tools in parallel and instead call them sequentially. Never use placeholders or guess missing parameters in tool calls.
-</use_parallel_tool_calls>
-
 
 ## Claude Code Official Documentation
 
@@ -39,4 +35,3 @@ When working on Claude Code features (hooks, skills, subagents, MCP servers, etc
 2. Filter by type early
 3. Batch patterns
 4. Limit scope
-

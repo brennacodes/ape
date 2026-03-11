@@ -1,12 +1,12 @@
 # Test Configs
 
-Each YAML file under `test-configs/{format}/` defines the **behavioral checks** for one workflow source in one format. The evaluator runs these checks against a session trace to measure whether the LLM adhered to the workflow instructions.
+Each YAML file under `test-configs/` defines the **behavioral checks** for one workflow source. The evaluator runs these checks against a session trace to measure whether the LLM adhered to the workflow instructions.
 
 ## What these are for
 
 The benchmark tests whether the same workflow instructions produce different levels of adherence when encoded in different formats (plain-text, markdown, ad-hoc XML, APE). Test configs define what "adherence" means in concrete, measurable terms.
 
-A test config for `plain-text/centminmod.yml` encodes the same behavioral expectations as `ape/centminmod.yml` — the checks are identical because the _rules_ are the same. What differs is the format of the workflow document the LLM receives. If format matters, the same checks will produce different pass rates across formats.
+There is one test config per workflow, shared across all formats. The checks encode what the workflow _says_ — the format is how it _says it_. If format matters, the same checks will produce different pass rates across formats.
 
 ## File structure
 
@@ -105,12 +105,7 @@ Missing conditions default to false. Only conditions declared as true in the pro
 
 ## Adding a new test config
 
-1. Create `test-configs/{format}/{workflow_stem}.yml`
+1. Create `test-configs/{workflow_stem}.yml`
 2. The `fixture_id` must match the workflow fixture stem under `fixtures/{format}/`
-3. Start with the phases and checks from an existing config for the same workflow (copy from another format)
-4. For each check, ask: "Does this check plausibly differentiate formats?" If not, leave it out.
-5. Document excluded phases/checks in comments so future readers understand the decisions
-
-## Copying a test config to a new format
-
-Test configs for the same workflow across different formats should have **identical checks**. The checks encode what the workflow _says_ — the format is how it _says it_. Copy the file, update the path, and leave the checks unchanged.
+3. For each check, ask: "Does this check plausibly differentiate formats?" If not, leave it out.
+4. Document excluded phases/checks in comments so future readers understand the decisions

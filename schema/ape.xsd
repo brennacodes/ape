@@ -114,8 +114,7 @@
     <xs:choice>
       <xs:element name="action" type="ape:actionType" />
       <xs:element name="output" type="ape:outputType" />
-      <xs:element name="when" type="ape:whenType" />
-      <xs:element name="match" type="ape:matchType" />
+      <xs:element name="conditional" type="ape:conditionalType" />
       <xs:element name="each" type="ape:eachType" />
       <xs:element name="sequence" type="ape:sequenceType" />
       <xs:group ref="ape:toolTagGroup" />
@@ -509,32 +508,13 @@
        Conditionals
        ==================== -->
 
-  <xs:complexType name="whenType">
-    <xs:sequence>
-      <xs:element name="if" type="ape:ifType" />
-      <xs:element name="else" type="ape:elseType" minOccurs="0" />
-    </xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="ifType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
-    </xs:choice>
-    <xs:attribute name="test" type="xs:string" use="required" />
-  </xs:complexType>
-
-  <xs:complexType name="elseType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
-    </xs:choice>
-  </xs:complexType>
-
-  <xs:complexType name="matchType">
+  <xs:complexType name="conditionalType">
     <xs:sequence>
       <xs:element name="case" type="ape:caseType" maxOccurs="unbounded" />
       <xs:element name="default" type="ape:defaultCaseType" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="on" type="xs:string" use="required" />
+    <xs:attribute name="default" type="xs:string" />
   </xs:complexType>
 
   <xs:complexType name="caseType" mixed="true">
@@ -542,12 +522,16 @@
       <xs:group ref="ape:instructionGroup" />
     </xs:choice>
     <xs:attribute name="value" type="xs:string" use="required" />
+    <xs:attribute name="goto" type="ape:identifierType" />
+    <xs:attribute name="halt" type="xs:boolean" />
   </xs:complexType>
 
   <xs:complexType name="defaultCaseType" mixed="true">
     <xs:choice maxOccurs="unbounded">
       <xs:group ref="ape:instructionGroup" />
     </xs:choice>
+    <xs:attribute name="goto" type="ape:identifierType" />
+    <xs:attribute name="halt" type="xs:boolean" />
   </xs:complexType>
 
   <!-- ====================

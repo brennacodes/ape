@@ -4,6 +4,7 @@
 
 ## Mandatory First Response Protocol
 
+<skills-checklist>
 Before responding to ANY user message, you MUST complete this checklist:
 
 1. ☐ List available skills in your mind
@@ -13,9 +14,9 @@ Before responding to ANY user message, you MUST complete this checklist:
 5. ☐ Follow the skill exactly
 
 **Responding WITHOUT completing this checklist = automatic failure.**
+</skills-checklist>
 
-## Common Rationalizations That Mean You're About To Fail
-
+<common-rationalizations>
 If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizing. Check for and use the skill.
 
 - "This is just a simple question" → WRONG. Questions are tasks. Check for skills.
@@ -28,18 +29,18 @@ If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizin
 - "I'll just do this one thing first" → WRONG. Check for skills BEFORE doing anything.
 
 **Why:** Skills document proven techniques that save time and prevent mistakes. Not using available skills means repeating solved problems and making known errors.
+</common-rationalizations>
 
 # Development Guidelines
 
 ## General
 
+<development-general>
 - Before implementing a large refactor or new feature explain your plan and get approval.
 - Avoid re-inventing the wheel: Use existing libraries and tools where appropriate.
+</development-general>
 
-### Technology Stack Focus
-
-### Code Organization and Modularity
-
+<code-organization>
 **Prefer highly modular code** that separates concerns into distinct modules. This improves:
 - **Testability**: Each module can be tested in isolation
 - **Reusability**: Modules can be used independently
@@ -51,25 +52,11 @@ If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizin
 - Use clear module boundaries and minimal public APIs
 - Prefer composition over large monolithic modules
 - Extract shared functionality into dedicated modules as the codebase grows
-
-### Code Organization and Modularity
-
-**Prefer highly modular code** that separates concerns into distinct modules. This improves:
-- **Testability**: Each module can be tested in isolation
-- **Reusability**: Modules can be used independently
-- **Maintainability**: Changes are localized to specific modules
-- **Readability**: Clear separation of concerns makes code easier to understand
-
-**Guidelines**:
-- Keep modules focused on a single responsibility
-- Use clear module boundaries and minimal public APIs
-- Prefer composition over large monolithic modules
-- Extract shared functionality into dedicated modules as the codebase grows
+</code-organization>
 
 # Code Style
 
-## Documentation
-
+<documentation>
 **IMPORTANT: Documentation means docstrings and type hints in the code, NOT separate documentation files.**
 
 - You should NOT create any separate documentation pages (README files, markdown docs, etc.)
@@ -85,9 +72,11 @@ If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizin
 - Write clear and concise comments for each function.
 - Ensure functions have descriptive names and include type hints.
 - Break down complex functions into smaller, more manageable functions.
+</documentation>
 
 # Test-Driven Development (TDD)
 
+<tdd>
 - Never create throwaway test scripts or ad hoc verification files
 - If you need to test functionality, write a proper test in the test suite
 - Write tests for all new features in the test suite
@@ -96,11 +85,14 @@ If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizin
 - Account for common edge cases like empty inputs, invalid data types, and large datasets.
 - Include comments for edge cases and the expected behavior in those cases.
 - Write unit tests for functions and document them with docstrings explaining the test cases.
-
+</tdd>
 
 # Updates to This Document
+
+<document-updates>
 - Update this document as needed to reflect changes in development practices or project structure
   - Updates usually come in the form of the package structure changing
 - Do NOT contradict existing guidelines in the document
 - This document should be an executive summary of the development practices for this project
   - Keep low-level implementation details out of this document
+</document-updates>

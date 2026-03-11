@@ -12,7 +12,7 @@ Usage:
     python3 benchmark/run_benchmark.py --model claude-opus-4-20250514
     python3 benchmark/run_benchmark.py --timeout 20    # 20 minutes
     python3 benchmark/run_benchmark.py --max-turns 25
-    python3 benchmark/run_benchmark.py --workers 4 --delay 5
+    python3 benchmark/run_benchmark.py --workers 1 --delay 5   # sequential
     python3 benchmark/run_benchmark.py --no-enrich-tokens
     python3 benchmark/run_benchmark.py --legacy-output
 """
@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import signal
 import sys
 import os
 from datetime import datetime
@@ -45,7 +46,7 @@ from coordinator import (
     discover_prompts, discover_app_configs, match_cases,
 )
 from runner import (
-    run_case, run_all, run_parallel, DEFAULT_MODEL, CaseResult,
+    run_case, run_all, run_parallel, DEFAULT_MODEL, CaseResult, shutdown_all,
 )
 from environment import BenchmarkEnvironment
 from results import format_run_summary, write_json
@@ -76,12 +77,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--timeout", type=float, default=15, help="Per-case timeout in minutes (default: 15).")
     parser.add_argument("--max-turns", type=int, default=None, help="Max CLI turns.")
     parser.add_argument("--dry-run", action="store_true", help="Show cases without executing.")
-    parser.add_argument("--workers", type=int, default=1, help="Parallel workers (1=sequential).")
-    parser.add_argument("--delay", type=float, default=10.0, help="Rate-limit delay (seconds).")
-    parser.add_argument("--enrich-tokens", action="store_true", default=True, dest="enrich_tokens")
+    parser.add_argument("--workers", type=int, default=4, help="Parallel workers (1=sequential).")
+    parser.add_argument("--delay", type=float, default=0, help="Rate-limit delay (seconds).")
+    parser.add_argument("--enrich-tokens", action="store_true", default=False, dest="enrich_tokens")
     parser.add_argument("--no-enrich-tokens", action="store_false", dest="enrich_tokens")
     parser.add_argument("--legacy-output", action="store_true")
-    parser.add_argument("-v", "--verbose", action="store_true", default=False)
+    parser.add_argument("-v", "--verbose", action="store_true", default=True)
 
     # Dimension filters — any combination narrows the case matrix
     parser.add_argument("--app", default=None, help="Filter by app name.")
@@ -127,6 +128,11 @@ def discover(benchmark_root: Path, filters: dict[str, str] | None = None):
 
     if filters:
         cases = [c for c in cases if c.matches_filter(**filters)]
+
+    # Sort so each test scenario runs across all formats before moving on.
+    # This lets you assess format differences per-category without waiting
+    # for the entire suite to finish.
+    cases.sort(key=lambda c: (c.app.name, c.category, c.item_id, c.prompt.prompt_id, c.workflow.stem, c.workflow.format))
 
     return apps, workflows, configs, prompts, app_configs, cases
 
@@ -175,6 +181,43 @@ def dry_run(args: argparse.Namespace) -> int:
 
     console.print(f"\n[bold]{len(cases)}[/bold] total cases would be executed.")
     return 0
+
+
+def _save_result(
+    result: CaseResult,
+    recorder: Recorder,
+    args: argparse.Namespace,
+) -> RunRecord | None:
+    """Persist a single CaseResult to disk immediately. Returns the RunRecord or None."""
+    if not result.summary:
+        return None
+
+    run_id = recorder.next_run_id(
+        result.summary.metadata.fixture_id,
+        result.summary.metadata.format,
+        result.summary.metadata.prompt_id,
+    )
+    record = RunRecord.from_run_summary(
+        result.summary, run_id,
+        wall_clock_ms=result.wall_clock_ms,
+        raw_output=result.raw_output,
+        exit_code=result.exit_code,
+        stderr=result.stderr,
+        workspace_state=result.workspace_state,
+        max_turns_configured=args.max_turns or 0,
+    )
+    recorder.save_run(record)
+
+    if result.trace_path and result.trace_path.exists():
+        try:
+            import json
+            with open(result.trace_path, "r", encoding="utf-8") as f:
+                trace_data = [json.loads(line) for line in f if line.strip()]
+            recorder.save_trace(record, trace_data)
+        except Exception:
+            logger.debug("Failed to save trace for %s", result.case.case_id)
+
+    return record
 
 
 def _enrich_with_tokens(recorder: Recorder, records: list[RunRecord]) -> None:
@@ -237,8 +280,16 @@ def run(args: argparse.Namespace) -> int:
     results: list[CaseResult] = []
     records: list[RunRecord] = []
 
+    def _on_result(result: CaseResult) -> None:
+        """Save a result to disk immediately and collect it."""
+        results.append(result)
+        if not args.legacy_output:
+            record = _save_result(result, recorder, args)
+            if record:
+                records.append(record)
+
     if args.workers > 1:
-        results = run_parallel(
+        for result in run_parallel(
             cases,
             model=args.model,
             timeout=timeout_seconds,
@@ -246,7 +297,8 @@ def run(args: argparse.Namespace) -> int:
             workers=args.workers,
             delay_s=args.delay,
             environment=environment,
-        )
+        ):
+            _on_result(result)
     else:
         for i, case in enumerate(cases, 1):
             logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), case.case_id)
@@ -257,7 +309,7 @@ def run(args: argparse.Namespace) -> int:
                 max_turns=args.max_turns,
                 environment=environment,
             )
-            results.append(result)
+            _on_result(result)
             if result.error:
                 logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i, len(cases), case.case_id, result.error)
             else:
@@ -269,36 +321,6 @@ def run(args: argparse.Namespace) -> int:
                     i, len(cases), case.case_id,
                     s.passed, s.failed, s.skipped, s.pass_rate * 100, t, warn,
                 )
-
-    # Build RunRecords and save
-    if not args.legacy_output:
-        for result in results:
-            if result.summary:
-                run_id = recorder.next_run_id(
-                    result.summary.metadata.fixture_id,
-                    result.summary.metadata.format,
-                    result.summary.metadata.prompt_id,
-                )
-                record = RunRecord.from_run_summary(
-                    result.summary, run_id,
-                    wall_clock_ms=result.wall_clock_ms,
-                    raw_output=result.raw_output,
-                    exit_code=result.exit_code,
-                    stderr=result.stderr,
-                    workspace_state=result.workspace_state,
-                    max_turns_configured=args.max_turns or 0,
-                )
-                recorder.save_run(record)
-                records.append(record)
-
-                if result.trace_path and result.trace_path.exists():
-                    try:
-                        import json
-                        with open(result.trace_path, "r", encoding="utf-8") as f:
-                            trace_data = [json.loads(line) for line in f if line.strip()]
-                        recorder.save_trace(record, trace_data)
-                    except Exception:
-                        logger.debug("Failed to save trace for %s", result.case.case_id)
 
     if args.enrich_tokens and records and not args.legacy_output:
         _enrich_with_tokens(recorder, records)
@@ -344,7 +366,21 @@ def run(args: argparse.Namespace) -> int:
     return 0 if failed == 0 else 1
 
 
+def _install_signal_handlers() -> None:
+    """Install signal handlers that kill all child processes on Ctrl+C / SIGTERM."""
+    def _handle(signum, frame):
+        shutdown_all()
+        # Restore default handler and re-raise so Python exits normally
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        os.kill(os.getpid(), signum)
+
+    signal.signal(signal.SIGINT, _handle)
+    signal.signal(signal.SIGTERM, _handle)
+
+
 def main(argv: list[str] | None = None) -> int:
+    _install_signal_handlers()
     args = parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,

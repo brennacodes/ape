@@ -42,8 +42,7 @@ def _make_benchmark_tree(root: Path):
     _write(root / "fixtures" / "plain-text" / "centminmod.txt", "fixture content")
     _write(root / "fixtures" / "ape" / "centminmod.xml", "<ape/>")
     # Test configs
-    _write(root / "test-configs" / "plain-text" / "centminmod.yml", "fixture_id: centminmod\nchecks: []")
-    _write(root / "test-configs" / "ape" / "centminmod.yml", "fixture_id: centminmod\nchecks: []")
+    _write(root / "test-configs" / "centminmod.yml", "fixture_id: centminmod\nchecks: []")
     # Prompts
     _write(root / "prompts" / "bug-fix.yml", "id: bug-fix\nprompt: fix the bug\nconditions: {}\nvariables: {}")
     _write(root / "prompts" / "refactor.yml", "id: refactor\nprompt: refactor it\nconditions: {}\nvariables: {}")
@@ -64,9 +63,8 @@ class TestDataTypes:
         assert wf.format == "plain-text"
 
     def test_test_config_path_fields(self):
-        tcp = TestConfigPath(path=Path("a/b.yml"), stem="b", format="ape")
+        tcp = TestConfigPath(path=Path("a/b.yml"), stem="b")
         assert tcp.stem == "b"
-        assert tcp.format == "ape"
 
     def test_prompt_path_fields(self):
         pp = PromptPath(path=Path("a/b.yml"), prompt_id="b")
@@ -76,7 +74,7 @@ class TestDataTypes:
         tc = TestCase(
             app=AppFixture(Path("a/myapp"), "myapp"),
             workflow=WorkflowFixture(Path("f"), "centminmod", "plain-text"),
-            test_config=TestConfigPath(Path("c"), "centminmod", "plain-text"),
+            test_config=TestConfigPath(Path("c"), "centminmod"),
             prompt=PromptPath(Path("p"), "bug-fix"),
         )
         assert tc.case_id == "myapp/centminmod/plain-text/bug-fix"
@@ -87,7 +85,7 @@ class TestDataTypes:
             wf.stem = "changed"
 
     def test_frozen_test_config_path(self):
-        tcp = TestConfigPath(Path("a"), "b", "c")
+        tcp = TestConfigPath(Path("a"), "b")
         with pytest.raises(AttributeError):
             tcp.stem = "changed"
 
@@ -171,14 +169,13 @@ class TestDiscoverTestConfigs:
     def test_finds_configs(self, tmp_path):
         _make_benchmark_tree(tmp_path)
         results = discover_test_configs(tmp_path)
-        assert len(results) == 2
-        stems = {r.stem for r in results}
-        assert stems == {"centminmod"}
+        assert len(results) == 1
+        assert results[0].stem == "centminmod"
 
     def test_only_yml_files(self, tmp_path):
-        _write(tmp_path / "test-configs" / "plain-text" / "good.yml")
-        _write(tmp_path / "test-configs" / "plain-text" / "good2.yaml")
-        _write(tmp_path / "test-configs" / "plain-text" / "bad.txt")
+        _write(tmp_path / "test-configs" / "good.yml")
+        _write(tmp_path / "test-configs" / "good2.yaml")
+        _write(tmp_path / "test-configs" / "bad.txt")
         results = discover_test_configs(tmp_path)
         assert len(results) == 2
 
@@ -186,8 +183,8 @@ class TestDiscoverTestConfigs:
         assert discover_test_configs(tmp_path) == []
 
     def test_sorted(self, tmp_path):
-        _write(tmp_path / "test-configs" / "plain-text" / "z.yml")
-        _write(tmp_path / "test-configs" / "plain-text" / "a.yml")
+        _write(tmp_path / "test-configs" / "z.yml")
+        _write(tmp_path / "test-configs" / "a.yml")
         results = discover_test_configs(tmp_path)
         assert results[0].stem == "a"
         assert results[1].stem == "z"
@@ -227,16 +224,13 @@ class TestDiscoverPrompts:
 # ===========================================================================
 
 class TestMatchCases:
-    def test_matches_by_stem_and_format(self):
+    def test_matches_by_stem(self):
         apps = [AppFixture(Path("a/myapp"), "myapp")]
         workflows = [
             WorkflowFixture(Path("f/plain-text/cm.txt"), "cm", "plain-text"),
             WorkflowFixture(Path("f/ape/cm.xml"), "cm", "ape"),
         ]
-        configs = [
-            TestConfigPath(Path("c/plain-text/cm.yml"), "cm", "plain-text"),
-            TestConfigPath(Path("c/ape/cm.yml"), "cm", "ape"),
-        ]
+        configs = [TestConfigPath(Path("c/cm.yml"), "cm")]
         prompts = [PromptPath(Path("p/bug.yml"), "bug")]
         cases = match_cases(apps, workflows, configs, prompts)
         assert len(cases) == 2
@@ -247,7 +241,7 @@ class TestMatchCases:
     def test_cross_product_with_prompts(self):
         apps = [AppFixture(Path("a/myapp"), "myapp")]
         workflows = [WorkflowFixture(Path("f"), "cm", "plain-text")]
-        configs = [TestConfigPath(Path("c"), "cm", "plain-text")]
+        configs = [TestConfigPath(Path("c"), "cm")]
         prompts = [
             PromptPath(Path("p1"), "bug"),
             PromptPath(Path("p2"), "refactor"),
@@ -261,7 +255,7 @@ class TestMatchCases:
             AppFixture(Path("a/app2"), "app2"),
         ]
         workflows = [WorkflowFixture(Path("f"), "cm", "plain-text")]
-        configs = [TestConfigPath(Path("c"), "cm", "plain-text")]
+        configs = [TestConfigPath(Path("c"), "cm")]
         prompts = [PromptPath(Path("p"), "bug")]
         cases = match_cases(apps, workflows, configs, prompts)
         assert len(cases) == 2
@@ -269,15 +263,7 @@ class TestMatchCases:
     def test_unmatched_workflow_skipped(self):
         apps = [AppFixture(Path("a/myapp"), "myapp")]
         workflows = [WorkflowFixture(Path("f"), "cm", "plain-text")]
-        configs = [TestConfigPath(Path("c"), "other", "plain-text")]
-        prompts = [PromptPath(Path("p"), "bug")]
-        cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 0
-
-    def test_unmatched_format_skipped(self):
-        apps = [AppFixture(Path("a/myapp"), "myapp")]
-        workflows = [WorkflowFixture(Path("f"), "cm", "plain-text")]
-        configs = [TestConfigPath(Path("c"), "cm", "ape")]
+        configs = [TestConfigPath(Path("c"), "other")]
         prompts = [PromptPath(Path("p"), "bug")]
         cases = match_cases(apps, workflows, configs, prompts)
         assert len(cases) == 0
@@ -287,12 +273,13 @@ class TestMatchCases:
         assert match_cases(
             [AppFixture(Path("a"), "myapp")],
             [WorkflowFixture(Path("f"), "cm", "pt")],
-            [TestConfigPath(Path("c"), "cm", "pt")],
+            [TestConfigPath(Path("c"), "cm")],
             [],
         ) == []
 
     def test_full_cross_product(self):
         # 2 apps × 2 workflows × 3 prompts = 12 cases
+        # (1 config shared across both formats)
         apps = [
             AppFixture(Path("a/app1"), "app1"),
             AppFixture(Path("a/app2"), "app2"),
@@ -301,17 +288,14 @@ class TestMatchCases:
             WorkflowFixture(Path("f"), "cm", "plain-text"),
             WorkflowFixture(Path("f"), "cm", "ape"),
         ]
-        configs = [
-            TestConfigPath(Path("c"), "cm", "plain-text"),
-            TestConfigPath(Path("c"), "cm", "ape"),
-        ]
+        configs = [TestConfigPath(Path("c"), "cm")]
         prompts = [
             PromptPath(Path("p"), "p1"),
             PromptPath(Path("p"), "p2"),
             PromptPath(Path("p"), "p3"),
         ]
         cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 12  # 2 apps × 2 matched pairs × 3 prompts
+        assert len(cases) == 12  # 2 apps × 2 workflows × 3 prompts
 
 
 # ===========================================================================
@@ -327,7 +311,7 @@ class TestLoadTestConfig:
         assert len(data["checks"]) == 1
 
     def test_loads_real_config(self):
-        real = Path(__file__).resolve().parent.parent.parent / "test-configs" / "plain-text" / "centminmod.yml"
+        real = Path(__file__).resolve().parent.parent.parent / "test-configs" / "centminmod.yml"
         if real.exists():
             data = load_test_config(real)
             assert data["fixture_id"] == "centminmod"

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
+
+  <meta>
+    <name>Trail of Bits Security Development Standards</name>
+    <description>Enforces security-focused development standards across every project and every change. Covers principles, code quality requirements, review workflow, testing workflow, development guardrails, and a day-to-day working workflow from change to PR. Use specialized skills and tools proactively when they match the task; suggest them instead of blocking on them.</description>
+
+    <actors>
+      <actor id="claude" type="agent">
+        <description>Primary AI agent that applies these standards, executes workflows, and reviews code.</description>
+        <responsibilities>
+          <responsibility>Apply all standards to every project and every change</responsibility>
+          <responsibility>Use specialized skills and tools proactively when they match the task</responsibility>
+          <responsibility>Suggest tools instead of blocking on them</responsibility>
+          <responsibility>Review own output critically at every layer</responsibility>
+        </responsibilities>
+      </actor>
+      <actor id="developer" type="human">
+        <description>Human developer who owns the project, approves architectural decisions, and merges PRs.</description>
+      </actor>
+    </actors>
+
+    <variables>
+      <var name="max-lines-per-function" type="number" default="100" />
+      <var name="max-cyclomatic-complexity" type="number" default="8" />
+      <var name="max-positional-params" type="number" default="5" />
+      <var name="max-line-length" type="number" default="100" />
+      <var name="max-commit-subject-length" type="number" default="72" />
+    </variables>
+
+    <resources>
+      <resource id="git" type="executable" />
+      <resource id="linter" type="executable" required="false">
+        <description>Project-specific linter (e.g., eslint, clippy, flake8). Determined at runtime based on project language.</description>
+      </resource>
+      <resource id="type-checker" type="executable" required="false">
+        <description>Project-specific type checker (e.g., mypy, tsc). Determined at runtime based on project language.</description>
+      </resource>
+      <resource id="test-runner" type="executable" required="false">
+        <description>Project-specific test runner (e.g., pytest, cargo test, jest). Determined at runtime based on project language.</description>
+      </resource>
+      <resource id="pre-commit-hooks" type="executable" required="false">
+        <description>Pre-commit hook runner if configured in the project.</description>
+      </resource>
+    </resources>
+
+    <commands>
+      <command id="git-fetch" actor="claude">git fetch origin</command>
+      <command id="run-linter" actor="claude" note="Project-specific linter; determine from project config">lint</command>
+      <command id="run-type-checker" actor="claude" note="Project-specific type checker; determine from project config">typecheck</command>
+      <command id="run-tests" actor="claude" note="Run relevant tests covering the change and its edges, not necessarily the full suite">test</command>
+    </commands>
+  </meta>
+
+  <!-- ============================================================
+       Section A: Principles (Decision Filters)
+       These apply at all times to every decision.
+       ============================================================ -->
+
+  <principles>
+    <principle name="No Speculative Features">Do not add features, flags, or configuration unless users actively need them.</principle>
+    <principle name="No Premature Abstraction">Do not create utilities until you have written the same code three times.</principle>
+    <principle name="Clarity Over Cleverness">Prefer explicit, readable code over dense one-liners.</principle>
+    <principle name="Justify New Dependencies">Treat every dependency as attack surface and maintenance burden. Add only with a clear reason.</principle>
+    <principle name="No Phantom Features">Do not document or validate features that are not implemented.</principle>
+    <principle name="Replace Don't Deprecate">When a new implementation replaces an old one, remove the old one entirely. Do not add shims, dual config formats, or migration paths. Proactively flag dead code.</principle>
+    <principle name="Verify At Every Level">Add automated guardrails first (linters, type checkers, pre-commit hooks, tests). Prefer structure-aware tools (AST/LSP/compilers) over text pattern matching. Review your own output critically; assume every layer will miss something.</principle>
+    <principle name="Bias Toward Action">Decide and move on anything easily reversible; state your assumption. Ask before committing to interfaces, data models, architecture, or destructive/write ops on external services.</principle>
+    <principle name="Finish The Job">Do not stop at the minimum that technically satisfies the request. Handle visible edge cases, clean up what you touched, and flag adjacent breakage. Do not gold-plate or create new scope.</principle>
+    <principle name="Agent-Native By Default">Design so agents can achieve any outcome users can. Tools are atomic primitives; features are outcomes described in prompts. Prefer file-based state for transparency and portability. For any UI capability, ensure an agent can achieve the same outcome.</principle>
+  </principles>
+
+  <!-- ============================================================
+       Section B: Code Quality Requirements (Non-Negotiables)
+       These are hard constraints that apply to all code at all times.
+       ============================================================ -->
+
+  <constraint>Functions must be &lt;= {{ max-lines-per-function }} lines.</constraint>
+  <constraint>Cyclomatic complexity must be &lt;= {{ max-cyclomatic-complexity }}.</constraint>
+  <constraint>&lt;= {{ max-positional-params }} positional parameters per function.</constraint>
+  <constraint>{{ max-line-length }}-character line length maximum.</constraint>
+  <constraint>Absolute imports only. No relative ".." paths.</constraint>
+  <constraint>Google-style docstrings for non-trivial public APIs.</constraint>
+  <constraint>Fix every warning from every tool (linters, type checkers, compilers, tests). If a warning truly cannot be fixed: add an inline ignore with a justification comment. Never leave warnings unaddressed.</constraint>
+  <constraint>No commented-out code. Delete it.</constraint>
+  <constraint>If you need a comment to explain WHAT the code does, refactor for clarity. Code should be self-documenting.</constraint>
+  <constraint>Fail fast with clear, actionable error messages. Never swallow exceptions silently. Include context: operation, input, and suggested fix.</constraint>
+
+  <!-- ============================================================
+       Section E: Development Guardrails (Setup and Maintenance)
+       ============================================================ -->
+
+  <rules>
+    <rule>When adding dependencies, CI actions, or tool versions: look up the current stable version. Do not assume versions from memory unless the user provides one.</rule>
+    <rule>Every bash script must start with: set -euo pipefail</rule>
+    <rule>Pin GitHub Actions to full SHA with a version comment: actions/checkout@&lt;full-sha&gt;  # vX.Y.Z</rule>
+    <rule>Use persist-credentials: false in GitHub Actions checkout steps.</rule>
+    <rule>Configure Dependabot: 7-day cooldowns + grouped updates.</rule>
+  </rules>
+
+  <!-- ============================================================
+       Section C: Review Workflow
+       ============================================================ -->
+
+  <steps>
+
+    <step number="1" id="review-sync" uses="git" actor="claude">
+      <title>Review Sync</title>
+      <goal>Ensure you are evaluating the latest code before reviewing.</goal>
+
+      <instruction>
+        Sync to the latest remote before starting any code review.
+        <action>
+          <command ref="git-fetch" />
+        </action>
+      </instruction>
+    </step>
+
+    <step number="2" id="review-evaluate" actor="claude">
+      <title>Evaluate Code</title>
+      <goal>Systematically review code in priority order: architecture, then code quality, then tests, then performance.</goal>
+      <prerequisite ref="review-sync">Must have synced to latest remote</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>Evaluate in this order: Architecture, then Code quality, then Tests, then Performance.</action>
+        </instruction>
+        <instruction>
+          For each issue found:
+          <action>Describe concretely with file:line references.</action>
+        </instruction>
+        <instruction>
+          <action>Provide options with tradeoffs when the fix is not obvious. Recommend one option.</action>
+        </instruction>
+        <instruction>
+          <action>
+            <ask-user-question var="review-proceed" type="confirm">Issues described above. Proceed with recommended fix?</ask-user-question>
+          </action>
+        </instruction>
+      </instructions>
+
+      <rules>
+        <rule>Evaluate in strict order: Architecture -> Code quality -> Tests -> Performance</rule>
+        <rule>Every issue must include file:line references</rule>
+        <rule>Always provide options with tradeoffs when the fix is not obvious</rule>
+        <rule>Always recommend one option</rule>
+        <rule>Always ask before proceeding with a fix</rule>
+      </rules>
+    </step>
+
+    <!-- ============================================================
+         Section D: Testing Workflow
+         ============================================================ -->
+
+    <step number="3" id="testing" uses="test-runner" actor="claude">
+      <title>Testing</title>
+      <goal>Write and validate tests that verify behavior and cover edge cases and error paths.</goal>
+
+      <instructions>
+        <instruction>
+          <action>Test behavior, not implementation. Tests should verify what code does, not how. If a refactor breaks tests but behavior is unchanged, the tests were wrong.</action>
+        </instruction>
+        <instruction>
+          <action>Test edges and errors, not only the happy path. Include empty inputs, boundaries, malformed data, missing files, and network failures. Every handled error path must have a test that triggers it.</action>
+        </instruction>
+        <instruction>
+          <action>Mock boundaries, not logic. Mock only: slow (network/filesystem), non-deterministic (time/randomness), or external services you do not control.</action>
+        </instruction>
+        <instruction>
+          <action>Verify tests catch failures: break the code, confirm the test fails, then fix.</action>
+        </instruction>
+      </instructions>
+
+      <anti-patterns>
+        <anti-pattern>Testing implementation details instead of behavior</anti-pattern>
+        <anti-pattern>Testing only the happy path</anti-pattern>
+        <anti-pattern>Mocking internal logic instead of external boundaries</anti-pattern>
+        <anti-pattern>Skipping mutation-style verification (break code, confirm test fails)</anti-pattern>
+      </anti-patterns>
+    </step>
+
+    <!-- ============================================================
+         Section F: Day-to-Day Working Workflow (Change to PR)
+         ============================================================ -->
+
+    <step number="4" id="plan" actor="claude">
+      <title>Plan</title>
+      <goal>Establish a lightweight plan before touching code. Identify what is reversible and what requires approval.</goal>
+
+      <instructions>
+        <instruction>
+          <action>Restate the goal and constraints for the current change.</action>
+        </instruction>
+        <instruction>
+          <action>Identify what is reversible vs. what commits you to an interface, data model, or architecture.</action>
+        </instruction>
+        <instruction>
+          <when>
+            <if test="{{ commits-to-interface-or-architecture }} == true">
+              <ask-user-question var="plan-approval" type="confirm">This change commits to an interface, data model, architecture, or touches external services destructively. Proceed?</ask-user-question>
+            </if>
+          </when>
+        </instruction>
+      </instructions>
+
+      <constraint>If the change commits to an interface, data model, or architecture, or touches external services destructively: ask the developer before proceeding.</constraint>
+
+      <gate>
+        <criteria>Goal and constraints are clearly stated. Reversibility is identified. Approval obtained for any non-reversible decisions.</criteria>
+        <on-fail retry="true" max="2" then="halt">Plan unclear or approval not obtained for non-reversible decisions</on-fail>
+      </gate>
+    </step>
+
+    <step number="5" id="implement" actor="claude">
+      <title>Implement</title>
+      <goal>Make the change with minimal scope, adhering to all code quality requirements.</goal>
+      <prerequisite ref="plan">Planning phase complete</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>Keep changes minimal and directly tied to the request. Avoid speculative features and premature abstractions. Prefer readability and explicitness.</action>
+        </instruction>
+        <instruction>
+          <action>Keep within hard limits; refactor if you exceed them.</action>
+          <constraint>Functions &lt;= {{ max-lines-per-function }} lines, cyclomatic complexity &lt;= {{ max-cyclomatic-complexity }}, &lt;= {{ max-positional-params }} positional params, {{ max-line-length }}-char line length, absolute imports only.</constraint>
+        </instruction>
+        <instruction>
+          <action>Add or adjust tests that validate behavior and error paths.</action>
+        </instruction>
+        <instruction>
+          <action>Ensure error handling is actionable and contextual. Fail fast with clear messages including operation, input, and suggested fix.</action>
+        </instruction>
+      </instructions>
+
+      <anti-patterns>
+        <anti-pattern>Adding speculative features not tied to the request</anti-pattern>
+        <anti-pattern>Premature abstraction before three repetitions</anti-pattern>
+        <anti-pattern>Dense one-liners that sacrifice readability</anti-pattern>
+        <anti-pattern>Swallowing exceptions silently</anti-pattern>
+        <anti-pattern>Leaving commented-out code</anti-pattern>
+      </anti-patterns>
+
+      <gate>
+        <criteria>Implementation is complete, minimal, and directly tied to the request. Tests are added or adjusted. Error handling is actionable. All hard limits are respected.</criteria>
+        <on-fail goto="implement">Rework implementation to meet requirements</on-fail>
+      </gate>
+    </step>
+
+    <step number="6" id="verify" uses="linter, type-checker, test-runner" actor="claude">
+      <title>Verify</title>
+      <goal>Multi-layer verification: linters, type checkers, tests, and self-review of the diff.</goal>
+      <prerequisite ref="implement">Implementation complete</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>
+            Run the relevant linters and type checker. Fix all warnings.
+            <command ref="run-linter" />
+            <command ref="run-type-checker" />
+          </action>
+        </instruction>
+        <instruction>
+          <action>
+            Run relevant tests covering your change and its edges (not necessarily the full suite).
+            <command ref="run-tests" />
+          </action>
+        </instruction>
+        <instruction>
+          <action>Review your own diff for unnecessary complexity, redundancy, and naming clarity.</action>
+        </instruction>
+      </instructions>
+
+      <constraint>Fix every warning from every tool. If a warning truly cannot be fixed, add an inline ignore with a justification comment.</constraint>
+
+      <gate>
+        <criteria>All linters pass with zero warnings. Type checker passes. Relevant tests pass. Diff reviewed for unnecessary complexity, redundancy, and naming clarity.</criteria>
+        <on-fail goto="implement">Linter, type checker, or test failures require implementation fixes</on-fail>
+        <on-fail retry="true" max="3" then="halt">Flaky test or transient tool failure</on-fail>
+      </gate>
+    </step>
+
+    <step number="7" id="pre-commit-check" actor="claude">
+      <title>Pre-Commit Check</title>
+      <goal>Final checklist before committing: re-read changes, run tests, run linters, fix everything.</goal>
+      <prerequisite ref="verify">Verification passed</prerequisite>
+
+      <instructions>
+        <instruction>
+          <action>Re-read changes for unnecessary complexity, redundant code, and unclear naming.</action>
+        </instruction>
+        <instruction>
+          <action>
+            Run relevant tests (not the full suite).
+            <command ref="run-tests" />
+          </action>
+        </instruction>
+        <instruction>
+          <action>
+            Run linters and type checker. Fix everything.
+            <command ref="run-linter" />
+            <command ref="run-type-checker" />
+          </action>
+        </instruction>
+      </instructions>
+
+      <gate>
+        <criteria>All checks pass. No unnecessary complexity, redundant code, or unclear naming remains.</criteria>
+        <on-fail goto="implement">Issues found in pre-commit review require rework</on-fail>
+      </gate>
+    </step>
+
+    <step number="8" id="commit" uses="git" actor="claude">
+      <title>Commit</title>
+      <goal>Create a clean, well-formed commit on a feature branch.</goal>
+      <prerequisite ref="pre-commit-check">Pre-commit checks passed</prerequisite>
+
+      <instruction>
+        Create a commit following all commit rules.
+        <action>Stage and commit the change with an imperative mood subject line &lt;= {{ max-commit-subject-length }} characters. One logical change per commit.</action>
+      </instruction>
+
+      <constraint>Imperative mood subject line, &lt;= {{ max-commit-subject-length }} characters.</constraint>
+      <constraint>One logical change per commit.</constraint>
+      <constraint>Never amend or rebase commits already pushed to shared branches.</constraint>
+      <constraint>Never push directly to main; use feature branches and PRs.</constraint>
+      <constraint>Never commit secrets or credentials; use .env (gitignored) and environment variables.</constraint>
+
+      <rules>
+        <rule>If using parallel subagents: each subagent must use its own worktree (wt switch &lt;branch&gt;).</rule>
+        <rule>Never share working directories with parallel subagents.</rule>
+      </rules>
+
+      <gate>
+        <criteria>Commit is created on a feature branch with proper subject line format. No secrets committed. One logical change only.</criteria>
+        <on-fail goto="commit">Fix commit message or split into separate commits</on-fail>
+        <on-fail halt="true">Secrets detected in commit</on-fail>
+      </gate>
+    </step>
+
+    <step number="9" id="pull-request" uses="git" actor="claude">
+      <title>Pull Request</title>
+      <goal>Open a PR with a factual description of the current diff.</goal>
+      <prerequisite ref="commit">Commit is ready on feature branch</prerequisite>
+
+      <instruction>
+        <action>Create a pull request describing what the code does now (what is in the diff). Use plain, factual language.</action>
+      </instruction>
+
+      <constraint>Describe what the code does now (what is in the diff). Do not include discarded approaches or prior iterations.</constraint>
+      <constraint>Use plain, factual language.</constraint>
+
+      <anti-patterns>
+        <anti-pattern>Including discarded approaches or prior iterations in PR description</anti-pattern>
+        <anti-pattern>Using hype words: critical, crucial, essential, significant, comprehensive, robust, elegant</anti-pattern>
+      </anti-patterns>
+
+      <gate>
+        <criteria>PR is opened with a factual description of the current diff. No hype words. No references to discarded approaches.</criteria>
+        <on-fail retry="true" max="2" then="halt">PR description does not meet standards</on-fail>
+      </gate>
+    </step>
+
+  </steps>
+
+</ape>

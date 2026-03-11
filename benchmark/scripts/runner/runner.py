@@ -10,12 +10,13 @@ Public API
 build_command(prompt_text, model, max_turns) -> list[str]
 run_case(case, model, timeout, max_turns, environment) -> CaseResult
 run_all(cases, ...) -> list[CaseResult]
-run_parallel(cases, ...) -> list[CaseResult]
+run_parallel(cases, ...) -> Iterator[CaseResult]
 """
 
 from __future__ import annotations
 
 import logging
+import signal
 import subprocess
 import sys
 import os
@@ -24,9 +25,35 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Iterator, Optional
 
 logger = logging.getLogger("bench.runner")
+
+# ---------------------------------------------------------------------------
+# Subprocess tracking for graceful shutdown
+# ---------------------------------------------------------------------------
+
+_active_processes: set[subprocess.Popen] = set()
+_process_lock = threading.Lock()
+_shutting_down = False
+
+
+def _kill_process_group(proc: subprocess.Popen) -> None:
+    """Send SIGTERM to a process's entire process group."""
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+    except (ProcessLookupError, OSError):
+        pass
+
+
+def shutdown_all() -> None:
+    """Kill all running subprocess trees. Safe to call from signal handlers."""
+    global _shutting_down
+    _shutting_down = True
+    with _process_lock:
+        procs = list(_active_processes)
+    for proc in procs:
+        _kill_process_group(proc)
 
 # Wire up sibling modules
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +101,7 @@ class CaseResult:
 # Command building
 # ---------------------------------------------------------------------------
 
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-opus-4-6"
 
 
 def build_command(
@@ -119,18 +146,47 @@ def execute_cli(
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess:
-    """Run a Claude Code CLI command as a subprocess."""
+    """Run a Claude Code CLI command as a subprocess.
+
+    Uses Popen with start_new_session=True so each child gets its own
+    process group, allowing clean shutdown of the entire tree on
+    Ctrl+C / SIGTERM.
+    """
+    if _shutting_down:
+        raise KeyboardInterrupt("Shutdown in progress")
     if env is None:
         env = os.environ.copy()
         env.pop("CLAUDECODE", None)
-    return subprocess.run(
+    proc = subprocess.Popen(
         command,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=timeout,
         cwd=cwd,
         env=env,
+        start_new_session=True,
     )
+    with _process_lock:
+        _active_processes.add(proc)
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=proc.returncode,
+            stdout=stdout,
+            stderr=stderr,
+        )
+    except subprocess.TimeoutExpired:
+        _kill_process_group(proc)
+        proc.wait()
+        raise
+    except KeyboardInterrupt:
+        _kill_process_group(proc)
+        proc.wait()
+        raise
+    finally:
+        with _process_lock:
+            _active_processes.discard(proc)
 
 
 def check_results_to_outcomes(results: list[CheckResult]) -> list[CheckOutcome]:
@@ -277,6 +333,7 @@ def _run_in_workspace(
 
     # 7. Evaluate
     context["workspace_state"] = workspace_state
+    context["workspace_path"] = str(workspace_path)
     try:
         check_results = evaluate(trace, checks, context)
     except Exception as exc:
@@ -327,7 +384,7 @@ def run_case(
     Steps:
     1. Load prompt and test-config.
     2. Set up isolated workspace (copy app, inject workflow, git init, scrub env).
-    3. Build CLI command — prepend workflow for plain-text, otherwise just the prompt.
+    3. Build CLI command — prepend workflow for plain-text; otherwise (markdown, adhoc-xml, structured-md, ape) just the prompt.
     4. Execute CLI with cwd=workspace and scrubbed env.
     5. Capture workspace state.
     6. Find and parse the session trace.
@@ -417,10 +474,15 @@ def run_parallel(
     delay_s: float = 10.0,
     environment: BenchmarkEnvironment | None = None,
     _execute: Any = None,
-) -> list[CaseResult]:
-    """Run multiple cases concurrently with rate limiting."""
+) -> Iterator[CaseResult]:
+    """Run multiple cases concurrently with rate limiting.
+
+    Yields each CaseResult as it completes so callers can persist
+    results incrementally instead of waiting for the entire suite.
+    """
     if workers <= 1:
-        return run_all(cases, model, timeout, max_turns, environment, _execute)
+        yield from run_all(cases, model, timeout, max_turns, environment, _execute)
+        return
 
     logger.info(
         "Starting parallel execution: %d cases, %d workers, %.1fs delay",
@@ -439,7 +501,6 @@ def run_parallel(
             last_launch[0] = time.monotonic()
         return run_case(case, model, timeout, max_turns, environment, _execute)
 
-    results: list[CaseResult | None] = [None] * len(cases)
     completed = 0
     total = len(cases)
 
@@ -454,7 +515,6 @@ def run_parallel(
                 completed += 1
                 try:
                     result = future.result()
-                    results[idx] = result
                     if result.error:
                         status = f"ERROR: {result.error}"
                     elif result.summary:
@@ -466,22 +526,15 @@ def run_parallel(
                         "[%d/%d] DONE %s  %s",
                         completed, total, cases[idx].case_id, status,
                     )
+                    yield result
                 except Exception as exc:
                     logger.exception(
                         "[%d/%d] FAILED %s",
                         completed, total, cases[idx].case_id,
                     )
-                    results[idx] = CaseResult(
+                    yield CaseResult(
                         case=cases[idx], summary=None, trace_path=None,
                         error=f"Parallel execution error: {exc}",
                     )
     except KeyboardInterrupt:
-        logger.info("Interrupted — cancelling %d pending cases", total - completed)
-        for i, r in enumerate(results):
-            if r is None:
-                results[i] = CaseResult(
-                    case=cases[i], summary=None, trace_path=None,
-                    error="Cancelled by user",
-                )
-
-    return results  # type: ignore[return-value]
+        logger.info("Interrupted — %d/%d cases completed before cancellation", completed, total)

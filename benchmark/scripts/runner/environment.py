@@ -5,7 +5,7 @@ Each benchmark run gets an isolated workspace containing:
 - A copy of the app fixture (the codebase Claude works in)
 - The workflow document injected based on format:
     - plain-text: not placed in workspace (prepended to prompt by the runner)
-    - markdown, adhoc-xml, ape: placed as CLAUDE.md in the workspace root
+    - markdown, adhoc-xml, structured-md, ape: placed as CLAUDE.md in the workspace root
 - A clean git repo with one initial commit
 - A scrubbed environment preventing context leakage
 
@@ -61,7 +61,7 @@ _EXCLUDED_VARS = {
 
 # Workflow formats that get placed as CLAUDE.md in the workspace.
 # plain-text is excluded because it gets prepended to the prompt instead.
-_CLAUDE_MD_FORMATS = {"markdown", "adhoc-xml", "ape"}
+_CLAUDE_MD_FORMATS = {"markdown", "adhoc-xml", "structured-md", "ape"}
 
 
 @dataclass(frozen=True)

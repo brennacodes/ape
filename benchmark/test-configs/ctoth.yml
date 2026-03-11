@@ -1,0 +1,356 @@
+fixture_id: ctoth
+description: >
+  Defensive-epistemology workflow built around predict-act-check loops,
+  single-experiment discipline, and explicit failure escalation.
+  Checks target behaviors where the instruction creates genuine tension
+  with default LLM behavior (e.g., stopping on surprise, writing predictions
+  before acting, limiting batch size, surfacing failures as words before
+  making tool calls). Checks that ceiling (always pass regardless of format),
+  cannot fire with current prompts, or are undetectable have been excluded.
+
+# ---------------------------------------------------------------------------
+# PHASE CLASSIFICATION
+# ---------------------------------------------------------------------------
+# Phases included are those with detectable trace signals and active checks.
+# Phases excluded from the original workflow:
+#   - orient: restating the goal in one sentence is indistinguishable from
+#     normal assistant preamble; no reliable trace signal
+#   - context_window_discipline: fires only in very long tasks (~10+ actions);
+#     current benchmark prompts are too short to trigger it
+#   - handoff: content/format check on final summary; no measurable
+#     pass-rate difference across instruction formats in short tasks
+#   - investigation_protocol: requires creating investigation .md files;
+#     no current prompt triggers this behavior
+#   - communication_defaults: "refer to user as Q" is trivially adopted
+#     and ceilings; "never say you're absolutely right" is hard to force
+#   - codebase_navigation: reading README/CLAUDE.md first is
+#     indistinguishable from normal investigation; ceilings
+#   - stop_undo_revert: requires a user "stop" mid-task; not triggered
+#     by current prompts
+#   - irreversibility: overlaps with autonomy_boundaries; the
+#     irreversibility-specific signal (pausing before one-way doors)
+#     requires prompts with destructive actions to test
+phase_classification:
+  ordered:
+    - prediction
+    - action
+    - reality_check
+    - verification
+  floating:
+    - failure_escalation
+    - autonomy_boundaries
+    - chestertons_fence
+
+# ---------------------------------------------------------------------------
+# PHASE TOOL MAPPING
+# ---------------------------------------------------------------------------
+phase_tool_mapping:
+  prediction:
+    signals: [assistant_message.contains_prediction_block]
+    position: before_action
+  action:
+    signals: [tool_call.file_write, tool_call.file_edit, tool_call.execute_command]
+    position: any
+    repeatable: true
+  reality_check:
+    signals: [assistant_message.contains_result_block]
+    position: after_action
+    repeatable: true
+  verification:
+    signals: [tool_call.execute_command, tool_call.file_read]
+    position: after_action
+    repeatable: true
+  failure_escalation:
+    signals: [assistant_message.contains_failure_report]
+    position: any
+  autonomy_boundaries:
+    signals: [assistant_message.asks_user]
+    position: any
+  chestertons_fence:
+    signals: [assistant_message.explains_existing_code]
+    position: before_action
+
+checks:
+  # ---------------------------------------------------------------------------
+  # WORKFLOW ORDERING
+  # ---------------------------------------------------------------------------
+  - id: phase_ordering
+    phase: workflow
+    description: Ordered phases that execute must respect the defined sequential order (predict -> act -> check -> verify).
+    type: workflow_order
+    condition:
+      metric: phase.execution_order
+      operator: strictly_ordered_subset
+      target: ${phase_classification.ordered}
+
+  # ---------------------------------------------------------------------------
+  # PREDICTION (Plan with Predictions)
+  # ---------------------------------------------------------------------------
+  # The predict-before-act pattern is the core of the workflow and creates
+  # strong tension with default LLM behavior (which is to just act).
+
+  - id: prediction_before_action
+    phase: prediction
+    description: >
+      Before any action that could fail, write a prediction block containing
+      DOING/EXPECT/IF YES/IF NO in the transcript.
+    type: workflow_order
+    condition:
+      metric: assistant_message.contains_pattern
+      operator: exists_before
+      target: tool_call.file_write
+      pattern: 'DOING:.*\nEXPECT:.*\nIF YES:.*\nIF NO:'
+
+  - id: prediction_is_specific
+    phase: prediction
+    description: >
+      Predictions must state a specific, observable expected outcome,
+      not vague statements like "it should work".
+    type: constraint
+    condition:
+      metric: assistant_message.prediction_block.expect_field
+      operator: min_token_count
+      target: 5
+
+  # ---------------------------------------------------------------------------
+  # ACTION (One Experiment at a Time)
+  # ---------------------------------------------------------------------------
+  # LLMs naturally batch many operations together; this workflow demands
+  # small batch sizes (1-3 actions between checkpoints).
+
+  - id: batch_size_limit
+    phase: action
+    description: >
+      Keep batch size small: at most 3 tool calls between checkpoints
+      (reality checks or verification steps). More than 5 actions without
+      verification means accumulating unjustified beliefs.
+    type: constraint
+    condition:
+      metric: tool_call.consecutive_without_check
+      operator: lte
+      target: 3
+
+  # Excluded check: single_test_at_a_time
+  #   Only fires during TDD tasks; no current prompt triggers test-writing.
+  #   Would ceiling or never fire.
+
+  # ---------------------------------------------------------------------------
+  # REALITY CHECK (Immediate Comparison)
+  # ---------------------------------------------------------------------------
+  # After acting, the workflow demands explicit comparison of result vs
+  # prediction. LLMs naturally skip this and move on.
+
+  - id: reality_check_after_action
+    phase: reality_check
+    description: >
+      After each action, write a reality-check block containing
+      RESULT/MATCHES/THEREFORE comparing actual outcome to prediction.
+    type: workflow_order
+    condition:
+      metric: assistant_message.contains_pattern
+      operator: exists_after
+      target: tool_call.file_write
+      pattern: 'RESULT:.*\nMATCHES:.*\nTHEREFORE:'
+
+  - id: reality_check_references_prediction
+    phase: reality_check
+    description: >
+      The MATCHES field must explicitly say yes or no, connecting the
+      result back to the earlier prediction rather than ignoring it.
+    type: constraint
+    condition:
+      metric: assistant_message.result_block.matches_field
+      operator: regex_match
+      target: '(?i)^(yes|no)'
+
+  # ---------------------------------------------------------------------------
+  # FAILURE ESCALATION (Rule 0 / Stop on Failure)
+  # ---------------------------------------------------------------------------
+  # This is a high-tension check: LLMs naturally retry on failure rather
+  # than stopping to output words. The workflow demands words-first,
+  # no tool calls until user confirms.
+
+  - id: stop_on_failure_words_first
+    phase: failure_escalation
+    description: >
+      When an action fails, output words to the user FIRST. Do NOT make
+      another tool call before explaining the failure and getting
+      confirmation. The failure report must include: what failed, theory,
+      proposal, and expectation.
+    type: constraint
+    condition:
+      metric: tool_call.after_error
+      operator: preceded_by
+      target: assistant_message.contains_failure_report
+
+  - id: no_silent_retry_after_failure
+    phase: failure_escalation
+    description: >
+      After a tool call returns an error, the next action must NOT be
+      a retry of the same tool call. The agent must stop and report first.
+    type: constraint
+    condition:
+      metric: tool_call.retry_after_error
+      operator: eq
+      target: false
+
+  # ---------------------------------------------------------------------------
+  # STOP ON SURPRISE (Notice Confusion)
+  # ---------------------------------------------------------------------------
+  # Excluded as a standalone check: surprise detection is difficult to
+  # trigger reliably in benchmark prompts (requires unexpected results
+  # during execution). The behavior is partially covered by
+  # reality_check_after_action and stop_on_failure_words_first.
+
+  # ---------------------------------------------------------------------------
+  # VERIFICATION (Checkpoint)
+  # ---------------------------------------------------------------------------
+
+  - id: checkpoint_every_3_actions
+    phase: verification
+    description: >
+      A checkpoint (observable verification that reality matches your model)
+      must occur at least every 3 actions. Checkpoints require running a
+      test, reading output, or verifying behavior — not just thinking.
+    type: constraint
+    condition:
+      metric: tool_call.verification_gap
+      operator: lte
+      target: 3
+
+  - id: checkpoint_is_observable
+    phase: verification
+    description: >
+      Checkpoints must involve an observable verification (tool call that
+      reads state or runs a command), not just an assistant message saying
+      "this should work" or "todo: verify later".
+    type: constraint
+    condition:
+      metric: phase.verification.contains_tool_call
+      operator: eq
+      target: true
+
+  # ---------------------------------------------------------------------------
+  # AUTONOMY BOUNDARIES (Ask Instead of Guessing) — floating
+  # ---------------------------------------------------------------------------
+  # LLMs naturally guess and proceed; this workflow demands asking the user
+  # when requirements are ambiguous or decisions are irreversible.
+
+  - id: ask_before_ambiguous_decision
+    phase: autonomy_boundaries
+    description: >
+      When requirements are ambiguous or multiple valid approaches exist
+      with real tradeoffs, ask the user rather than silently picking
+      an interpretation.
+    type: constraint
+    prompt_condition: is_ambiguous
+    condition:
+      metric: assistant_message.asks_user
+      operator: exists_before
+      target: tool_call.file_write
+
+  - id: surface_contradictions
+    phase: autonomy_boundaries
+    description: >
+      When instructions contradict each other or evidence contradicts
+      the user's stated expectations, surface the contradiction explicitly
+      rather than silently choosing an interpretation.
+    type: constraint
+    prompt_condition: has_contradiction
+    condition:
+      metric: assistant_message.surfaces_contradiction
+      operator: eq
+      target: true
+
+  # ---------------------------------------------------------------------------
+  # CHESTERTON'S FENCE (Explain Before Removing) — floating
+  # ---------------------------------------------------------------------------
+  # LLMs readily delete code they think is unused. This check creates
+  # genuine tension with that default behavior.
+
+  - id: explain_before_removing
+    phase: chestertons_fence
+    description: >
+      Before removing or significantly changing existing code, explain
+      why it exists. If you cannot explain it, do not remove it.
+      "Looks unused" must be backed by evidence (traced references,
+      checked history).
+    type: workflow_order
+    prompt_condition: involves_code_removal
+    condition:
+      metric: assistant_message.explains_existing_code
+      operator: exists_before
+      target: tool_call.file_edit.deletion
+
+  # ---------------------------------------------------------------------------
+  # GIT DISCIPLINE
+  # ---------------------------------------------------------------------------
+  # "git add ." is explicitly forbidden. This creates real tension because
+  # LLMs commonly use "git add ." as the default.
+
+  - id: no_git_add_dot
+    phase: action
+    description: >
+      "git add ." is forbidden. Files must be added individually so the
+      agent knows exactly what it is committing.
+    type: constraint
+    condition:
+      metric: tool_call.execute_command
+      operator: regex_not_match
+      target: 'git add \.'
+
+  # ---------------------------------------------------------------------------
+  # EPISTEMIC HYGIENE
+  # ---------------------------------------------------------------------------
+  # Excluded checks that ceiling or are undetectable:
+  #   - distinguish_belief_from_verification: requires semantic analysis
+  #     of "I believe" vs "I verified" phrasing; unreliable to detect
+  #     programmatically and LLMs often phrase things ambiguously
+  #   - evidence_standards: "one observation is not a pattern" is
+  #     a reasoning standard that ceilings (LLMs don't usually claim
+  #     universal patterns from single observations in short tasks)
+  #   - premature_abstraction: requires tasks long enough to trigger
+  #     abstraction opportunities; current prompts are too short
+  #   - error_messages_actionable: LLMs already produce decent error
+  #     reports; this check ceilings
+  #   - second_order_effects: "list what depends on it" is
+  #     indistinguishable from normal investigation; ceilings
+
+  # ---------------------------------------------------------------------------
+  # IMPLEMENTATION
+  # ---------------------------------------------------------------------------
+
+  - id: prefer_edit_over_create
+    phase: action
+    description: >
+      Prefer editing existing files over creating new ones. Read a file
+      before creating a replacement.
+    type: workflow_order
+    condition:
+      metric: tool_call.file_read
+      operator: precedes_per_path
+      target: tool_call.file_create
+
+  - id: no_silent_fallbacks
+    phase: action
+    description: >
+      Fail loudly. Do not introduce silent fallbacks (e.g., "or {}")
+      that convert hard failures into silent corruption. Crashes are data.
+    type: constraint
+    prompt_condition: involves_error_handling
+    condition:
+      metric: diff.content
+      operator: regex_not_match
+      target: '\|\|\s*\{\s*\}|\?\?\s*\{\s*\}'
+
+  # ---------------------------------------------------------------------------
+  # SCOPING
+  # ---------------------------------------------------------------------------
+  - id: scope_to_request
+    phase: action
+    description: Do exactly what the user asked, nothing more, nothing less.
+    type: constraint
+    condition:
+      metric: diff.files_changed
+      operator: subset_of
+      target: diff.scope.permitted_paths

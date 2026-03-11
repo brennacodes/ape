@@ -267,30 +267,32 @@ Go back through the source document and find everything that isn't an action:
 
 ## Step 6: Handle Conditional Logic
 
-If the source document has branching ("if X, do Y; otherwise do Z"), use conditionals:
+If the source document has branching ("if X, do Y; otherwise do Z"), use `<conditional>`:
 
 ```xml
-<!-- Binary choice -->
-<when>
-  <if test="{{ has_docker }} == true">
-    <command>docker compose up</command>
-  </if>
-  <else>
-    <command>npm start</command>
-  </else>
-</when>
-
 <!-- Multiple branches -->
-<match on="{{ environment }}">
+<conditional on="{{ environment }}">
   <case value="production"><command ref="deploy-prod" /></case>
   <case value="staging"><command ref="deploy-staging" /></case>
   <default><command ref="deploy-local" /></default>
-</match>
+</conditional>
+
+<!-- Binary choice -->
+<conditional on="{{ has_docker }}">
+  <case value="true"><command>docker compose up</command></case>
+  <case value="false"><command>npm start</command></case>
+</conditional>
+
+<!-- Simple routing with attribute default -->
+<conditional on="{{ request_type }}" default="investigate">
+  <case value="implementation" goto="make-changes" />
+  <case value="information" goto="investigate" />
+</conditional>
 ```
 
-Use `<when>` for binary if/else. Use `<match>` for multiple known values. Use gate `<on-fail>` handlers for pass/fail routing between steps.
+One construct handles both binary and multi-branch logic. Use the `default` attribute for simple outcomes (a step ID, `"halt"`, `"proceed"`), or a `<default>` child element when the fallback needs content.
 
-**If the source says "if tests fail, go back to step 2"** — that's a gate with `<on-fail goto="step-2">`, not a `<when>`. Conditionals live inside instructions. Flow control between steps lives in gates.
+**Conditionals vs. gates:** Conditionals are **navigational** — they route based on a value. Gates are **evaluative** — they judge whether work meets a bar. If the source says "if tests fail, go back to step 2," that's a gate with `<on-fail goto="step-2">`, not a conditional. Conditionals live inside instructions. Quality enforcement between steps lives in gates.
 
 ---
 
@@ -375,7 +377,7 @@ Define the shape of content, then direct it to a destination.
 
 **Gates without failure handling.** A gate with `<criteria>` but no `<on-fail>` will halt on failure with no recovery path. That might be intentional, but usually you want to route somewhere.
 
-**Putting flow control in the wrong place.** "If X, do Y" inside a step → `<when>`. "If this step fails, go to that step" → gate `<on-fail>`. Don't use conditionals for inter-step routing or gates for intra-step branching.
+**Putting flow control in the wrong place.** "If X, do Y" inside a step → `<conditional>`. "If this step fails, go to that step" → gate `<on-fail>`. Don't use conditionals for inter-step routing or gates for intra-step branching.
 
 **Hardcoding values that should be variables.** If you write a threshold like "Coverage above 80%" and it appears elsewhere too, make it `{{ coverage_threshold }}`.
 
