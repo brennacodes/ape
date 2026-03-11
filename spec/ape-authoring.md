@@ -1,7 +1,7 @@
 # APE Authoring Guide
 
-> This file teaches you how to **write** APE workflows — especially how to convert existing documents, process descriptions, or runbooks into valid APE.
-> For executing APE, see `ape-llms.md`. For the full language reference, see `ape-spec.md`.
+> This file teaches you how to **write** APE workflows from scratch.
+> For converting existing documents into APE, see `ape-conversions.md`. For executing APE, see `ape-llms.md`. For the full language reference, see `ape-spec.md`.
 
 ---
 
@@ -20,11 +20,12 @@ Everything else in APE is flow control (steps, gates, conditionals), metadata (a
 
 Before writing any XML, read the entire source and answer these questions:
 
-**Who is involved?** Every person, system, or agent mentioned becomes an `<actor>`. Look for:
+**Who is involved?** If multiple participants interact and you need to specify who does what, each becomes an `<actor>`. Look for:
 - Role names ("the developer," "the reviewer," "CI")
 - Implied agents ("run this command" implies someone runs it; "the bot will check" implies an agent)
-- If an LLM is expected to orchestrate the workflow, it's an actor with `type="agent"`
-- If a human does things, they're an actor with `type="human"`
+- Handoffs between participants
+
+If a single LLM agent does everything with no human interaction, skip actors entirely — they add noise without value.
 
 **What do they need?** Every tool, file, service, or prerequisite becomes a `<resource>`:
 - "Make sure X is installed" → `<resource type="executable" />`
@@ -106,8 +107,9 @@ When reading the source document, classify each instruction:
 
 ```xml
 <!-- Simple: no steps needed -->
-<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
-  <meta><n>List Files</n></meta>
+<ape version="0.2.2" xmlns="https://ape-lang.dev/schema/0">
+
+  <meta><name>List Files</name></meta>
   <command>ls -la</command>
 </ape>
 ```
@@ -116,43 +118,21 @@ For multi-phase workflows, start with this structure and fill in:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<ape version="0.2.2" xmlns="https://ape-lang.dev/schema/2">
+<ape version="0.2.2" xmlns="https://ape-lang.dev/schema/0">
 
   <meta>
-    <n>Workflow Name</n>
+    <name>Workflow Name</name>
     <description>What this workflow does and why.</description>
-
-    <actors>
-      <!-- Who's involved? -->
-    </actors>
-
-    <params>
-      <!-- Cross-document dependencies? Things the caller must provide? -->
-    </params>
-
-    <variables>
-      <!-- Configurable values? Thresholds? Feature flags? -->
-    </variables>
-
-    <resources>
-      <!-- What tools, files, services are needed? -->
-    </resources>
-
-    <commands>
-      <!-- Reusable commands (declare once, ref many times) -->
-    </commands>
   </meta>
 
   <steps>
-    <!-- The workflow -->
+    ...
   </steps>
-
-  <principles>
-    <!-- Overarching values (optional) -->
-  </principles>
 
 </ape>
 ```
+
+Add declarations to `<meta>` only when needed: `<actors>` when multiple participants interact, `<variables>` when there are two or more configurable values, `<resources>` when tools or files are consumed, `<commands>` when commands are reused across steps. Omit any section that would be empty or contain a single item (use the inline singular form for single declarations).
 
 ### Declaration Placement
 
@@ -168,17 +148,12 @@ For each phase you identified, build a step:
 
 ```xml
 <step number="1" id="short-kebab-id" uses="resource-a, resource-b">
+  <prerequisite ref="previous-step-id">What must be true and what to do if not met.</prerequisite>
+
   <title>Human-Readable Phase Name</title>
   <goal>One sentence: why this phase exists.</goal>
 
-  <!-- What must be true before this step starts? -->
-  <prerequisite ref="previous-step-id">Why this dependency exists</prerequisite>
-
-  <instruction>...</instruction>           <!-- single instruction -->
-  <instructions>                           <!-- or multiple: -->
-    <instruction>...</instruction>
-    <instruction>...</instruction>
-  </instructions>
+  <instruction>...</instruction>
 
   <gate>
     <criteria>What must be true to proceed</criteria>
@@ -187,9 +162,13 @@ For each phase you identified, build a step:
 </step>
 ```
 
+**Prerequisites come first.** If a step has a prerequisite, it must be the first child element. Prerequisites are entry conditions — the LLM evaluates them before reading anything else in the step. The text should describe both what must be true and what happens if it is not.
+
+**Titles are optional.** If the step `id` is descriptive enough (e.g., `id="verify"`, `id="plan"`), omit the `<title>`. Use `<title>` only when the step needs a human-readable name that the `id` cannot convey.
+
 ### Writing Good Gates
 
-Every gate needs a `<criteria>` and at least one `<on-fail>`. Think about *what could go wrong* and *where to route each failure*:
+Every gate needs a `<criteria>` and exactly one `<on-fail>`. Think about *what could go wrong* and *where to route the failure*:
 
 ```xml
 <!-- Simple: retry then give up -->
@@ -198,18 +177,17 @@ Every gate needs a `<criteria>` and at least one `<on-fail>`. Think about *what 
   <on-fail retry="true" max="3" then="halt">Tests still failing</on-fail>
 </gate>
 
-<!-- Routed: different failures go different places -->
+<!-- Route back to fix -->
 <gate>
   <criteria>Build succeeds with no warnings</criteria>
-  <on-fail goto="linting">Formatting issues (auto-fixable)</on-fail>
-  <on-fail goto="implementation">Code errors</on-fail>
-  <on-fail halt="true">Unrecoverable failure</on-fail>
+  <on-fail goto="implementation">Build failed — fix and retry</on-fail>
 </gate>
 
 <!-- Cyclic: on-pass loops back to the beginning -->
 <gate>
   <criteria>Ready for next iteration</criteria>
   <on-pass goto="first-step">Start the next cycle</on-pass>
+  <on-fail halt="true">Cannot continue</on-fail>
 </gate>
 ```
 
@@ -220,7 +198,6 @@ Every gate needs a `<criteria>` and at least one `<on-fail>`. Think about *what 
 Each `<instruction>` is one coherent unit. Use `<instruction>` standalone for single instructions, or wrap multiple in `<instructions>`:
 
 ```xml
-<!-- Single instruction: standalone -->
 <instruction>
   <action>
     What to do, specifically.
@@ -228,7 +205,6 @@ Each `<instruction>` is one coherent unit. Use `<instruction>` standalone for si
   </action>
 </instruction>
 
-<!-- Multiple instructions: plural wrapper -->
 <instructions>
   <instruction>
     <note>Context that helps the executor understand what's about to happen.</note>
@@ -262,6 +238,8 @@ Go back through the source document and find everything that isn't an action:
 | "Write the result to X" | `<output to="file" target="X">...</output>` | Inside the action that produces it |
 
 **Place decorators as close to their subject as possible.** A constraint about a specific command goes inside the instruction containing that command, not at the step level.
+
+**Constraints come first inside instructions.** When a `<constraint>` appears inside an `<instruction>`, place it before prose and executable content. The LLM must read restrictions before executing work.
 
 ---
 
@@ -298,16 +276,21 @@ One construct handles both binary and multi-branch logic. Use the `default` attr
 
 ## Step 7: Identify Variables
 
-Anything that might change between runs or that the user might want to configure becomes a `<var>`:
+Anything that might change between runs or that the user might want to configure becomes a `<var>`. A `<var>` declaration must carry a value — via element content, `value` attribute, or `default` attribute:
 
 - Thresholds ("80% coverage") → `<var name="coverage_threshold" type="number" default="80" />`
 - Feature flags ("if coverage tool is installed") → `<var name="has_coverage" type="boolean" default="false" />`
-- User input collected during the workflow → captured by `<ask-user-question var="name">`
-- Command output → captured by `<command set="result">...</command>`
 
-**If a value appears in more than one place, make it a variable.** If a value might change between environments or users, make it a variable.
+Values captured at runtime do not need `<var>` declarations — they are created implicitly:
 
-**Params vs. vars:** Variables are internal state — values this document owns and controls. Parameters are inputs from the caller — values this document *needs* but doesn't define. If another document imports yours and must provide a value for it to work, that's a `<param ref="..." />`. If you're declaring a configurable default within your own document, that's a `<var>`.
+- User input collected during the workflow → `<ask-user-question var="name">` creates the variable
+- Command output → `<command set="result">...</command>` creates the variable
+
+**Do not declare empty variables.** If a value has no default, no content, and no `value` attribute, it should not be a `<var>`. Either give it a default or let it be created implicitly when its value becomes available.
+
+**If a value appears in more than one place, make it a variable.** If a value might change between environments or users, make it a variable. Use inline `<var>` for a single variable; use `<variables>` only when declaring two or more.
+
+**Params vs. vars:** Variables are internal state — values this document owns and controls. Parameters are inputs from the caller — values this document *needs* but doesn't define. If an external system invokes your document and must provide a value, that's a `<param ref="..." />`. If you're declaring a configurable default within your own document, that's a `<var>`.
 
 ---
 
@@ -329,12 +312,13 @@ The last step loops back to the first. The workflow repeats until the user stops
 ```
 
 ### Tiered Failure Recovery
-Different failure types route to different recovery points.
+A single `<on-fail>` with retry handles escalation within one gate. For different recovery routes, use a conditional inside the on-fail or split into separate gates at different steps.
 ```
+[Lint] gate:
+  on-fail → goto implementation
+
 [Build] gate:
-  on-fail (warnings)  → goto linting
-  on-fail (errors)    → goto implementation
-  on-fail (fatal)     → halt
+  on-fail retry="true" max="3" then="halt"
 ```
 
 ### Interview-Driven Setup
@@ -373,9 +357,9 @@ Define the shape of content, then direct it to a destination.
 
 **Making everything a step.** If your workflow has 20 steps and most have no gates, you probably have 5 steps with 4 actions each.
 
-**Forgetting actors.** If you don't declare actors, the LLM doesn't know what it should execute vs. present to a human.
+**Declaring actors when none are needed.** If a single LLM agent does everything, actors add noise. Only declare actors when multiple participants interact and you need to specify who does what.
 
-**Gates without failure handling.** A gate with `<criteria>` but no `<on-fail>` will halt on failure with no recovery path. That might be intentional, but usually you want to route somewhere.
+**Gates without explicit failure handling.** Every `<on-fail>` must carry a flow-control attribute (`goto`, `retry`, `halt`, `proceed`). There is no default — the author must be explicit about what happens on failure.
 
 **Putting flow control in the wrong place.** "If X, do Y" inside a step → `<conditional>`. "If this step fails, go to that step" → gate `<on-fail>`. Don't use conditionals for inter-step routing or gates for intra-step branching.
 
@@ -391,17 +375,22 @@ Define the shape of content, then direct it to a destination.
 
 Before you're done, verify:
 
-- [ ] Every actor is declared with an `id` and `type`
+- [ ] Actors are declared only when multiple participants interact — omit for single-agent workflows
 - [ ] Every reusable command has an `id` and is referenced with `ref`
 - [ ] Every tool/file/service mentioned is declared as a `<resource>`
-- [ ] Every step has a `<title>` and an `<instruction>` or `<instructions>`
-- [ ] Every step that can fail has a `<gate>` with `<criteria>` and `<on-fail>`
+- [ ] `<title>` is present only when the step `id` is not descriptive enough
+- [ ] Steps with work to do have an `<instruction>` or `<instructions>` (not both)
+- [ ] Every step that can fail has a `<gate>` with `<criteria>` and a single `<on-fail>`
+- [ ] Prerequisites are the first children in their step
+- [ ] Prerequisites describe the condition and the consequence of it not being met
+- [ ] Constraints inside instructions appear before prose and executable content
 - [ ] Every `goto` points to a real step `id`
 - [ ] Every `ref` points to a real command `id`
 - [ ] Every `uses` lists real resource `id`s
 - [ ] Hard constraints are in `<constraint>`, not just prose
-- [ ] Values that change between runs are `<var>` with defaults
+- [ ] Every `<var>` has a value (content, `value` attr, or `default` attr) — no empty declarations
+- [ ] `<variables>` wrapper is used only with 2+ variables; single variables use inline `<var>`
+- [ ] No XML comments anywhere in the document
 - [ ] The workflow has a clear start and end (or an explicit loop via `<on-pass goto>`)
 - [ ] Structured outputs use `<template>` for shape and `<output>` for destination
 - [ ] Output format hints (`format="md"`, etc.) are specified where content has a known format
-- [ ] Every cross-document dependency is declared as a `<param>`

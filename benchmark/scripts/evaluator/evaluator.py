@@ -49,7 +49,7 @@ from operators import (  # noqa: E402
     op_eq, op_neq, op_gt, op_gte, op_lt, op_lte,
     op_exists_before, op_exists_after, op_exists_between,
     op_strictly_precedes, op_strictly_ordered_subset,
-    op_subset_of, op_each_preceded_by_within_N_steps,
+    op_subset_of, op_only_via, op_each_preceded_by_within_N_steps,
     op_precedes_per_path, op_not_contains, op_regex_not_match,
     op_has_key, op_has_key_any, op_contains, op_contains_count_gte,
     op_first_search_broader_than_final,
@@ -73,6 +73,7 @@ TOOL_NAME_MAP: dict[str, str] = {
     "tool_call.glob": "Glob",
     "tool_call.ask_user": "AskUserQuestion",
     "tool_call.skill": "Skill",
+    "tool_call.subagent_dispatch": "Agent",
 }
 
 # Sentinel used as the "target" index for task_completed (always after all events)
@@ -89,6 +90,7 @@ _METRIC_LABELS: dict[str, str] = {
     "tool_call.glob": "a file search (Glob)",
     "tool_call.ask_user": "a clarifying question",
     "tool_call.skill": "a skill invocation",
+    "tool_call.subagent_dispatch": "a subagent dispatch (Agent)",
     "task_completed": "task completion",
 }
 
@@ -838,6 +840,33 @@ def _build_detail(
             return f"{metric_value} {sym} {target_value}"
         return f"got {metric_value}, expected {sym} {target_value}"
 
+    # --- only_via (delegation coverage) ------------------------------------
+    if operator == "only_via":
+        metric_label = _METRIC_LABELS.get(metric_name, metric_name)
+        target_label = _METRIC_LABELS.get(
+            target_raw, target_raw
+        ) if isinstance(target_raw, str) else str(target_raw)
+        if passed:
+            if isinstance(metric_value, list) and len(metric_value) == 0:
+                return f"no direct {metric_label} found (all via delegation)"
+            return f"all {metric_label} calls preceded by {target_label}"
+        # Failed
+        if isinstance(metric_value, list) and isinstance(target_value, list):
+            uncovered = [
+                a for a in metric_value
+                if not any(b <= a for b in target_value)
+            ]
+            if not target_value:
+                return (
+                    f"found {len(metric_value)} {metric_label} call(s) "
+                    f"but no {target_label} — all writes are direct"
+                )
+            return (
+                f"{len(uncovered)} {metric_label} call(s) at indices {uncovered} "
+                f"not covered by a preceding {target_label}"
+            )
+        return f"{metric_label} not covered by {target_label}"
+
     # --- Ordering ----------------------------------------------------------
     if operator in ("exists_before", "exists_after", "strictly_precedes"):
         metric_label = _METRIC_LABELS.get(metric_name, metric_name)
@@ -894,8 +923,8 @@ def evaluate_condition(
     operator = condition["operator"]
     transform = condition.get("transform")
     target_raw = condition.get("target")
-    target_args = condition.get("target_args")
-    metric_args = condition.get("metric_args")
+    target_args = condition.get("target_args") or condition.get("target_filter")
+    metric_args = condition.get("metric_args") or condition.get("filter")
     window = condition.get("window", 10)
 
     variables = context.get("variables", {})
@@ -917,8 +946,20 @@ def evaluate_condition(
         metric_value = apply_transform(transform, metric_value)
 
     # Resolve target (may itself be a metric reference or literal)
+    # exists_between supports target_before / target_after as an alternative to target
     if target_raw is not None:
         target_value = resolve_target(target_raw, trace, context, target_args)
+    elif operator == "exists_between":
+        tb = condition.get("target_before")
+        ta = condition.get("target_after")
+        if tb is not None and ta is not None:
+            tb_args = condition.get("target_before_args") or condition.get("target_before_filter")
+            ta_args = condition.get("target_after_args") or condition.get("target_after_filter")
+            start = resolve_target(tb, trace, context, tb_args)
+            end = resolve_target(ta, trace, context, ta_args)
+            target_value = (start, end)
+        else:
+            target_value = None
     else:
         target_value = None
 
@@ -962,6 +1003,8 @@ def _apply_operator(
         return op_exists_after(a, b)
     if operator == "exists_between":
         # b is a (start_indices, end_indices) tuple
+        if b is None:
+            return False
         start, end = b
         return op_exists_between(a, start, end)
     if operator == "strictly_precedes":
@@ -970,6 +1013,10 @@ def _apply_operator(
     # Phase ordering — a is list[str], b is list[str]
     if operator == "strictly_ordered_subset":
         return op_strictly_ordered_subset(a, b)
+
+    # Delegation coverage — a is list[int] (metric indices), b is list[int] (target indices)
+    if operator == "only_via":
+        return op_only_via(a, b)
 
     # Set membership
     if operator == "subset_of":
@@ -1076,6 +1123,22 @@ def evaluate_check(
             description=description,
             passed=None,
             skip_reason=str(exc),
+        )
+    except (UnknownOperator, ValueError) as exc:
+        return CheckResult(
+            check_id=check_id,
+            phase=phase,
+            description=description,
+            passed=None,
+            skip_reason=str(exc),
+        )
+    except Exception as exc:
+        return CheckResult(
+            check_id=check_id,
+            phase=phase,
+            description=description,
+            passed=None,
+            skip_reason=f"Unexpected error: {type(exc).__name__}: {exc}",
         )
 
     return CheckResult(

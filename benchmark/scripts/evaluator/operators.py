@@ -63,8 +63,21 @@ def transform_max(value: list) -> Any:
     return max(value)
 
 
+def transform_count_direct(value: Any) -> int:
+    """Count tool call indices that are 'direct' (top-level, not via subagent).
+
+    In a flat trace all visible tool calls are direct — subagent internal calls
+    don't appear.  This is semantically identical to ``count`` for now but
+    exists as a distinct transform so configs can express the intent.
+    """
+    if value is None:
+        return 0
+    return len(value)
+
+
 TRANSFORMS: dict[str, Any] = {
     "count": transform_count,
+    "count_direct": transform_count_direct,
     "length": transform_length,
     "first": transform_first,
     "last": transform_last,
@@ -241,6 +254,27 @@ def op_precedes_per_path(
     return True
 
 
+def op_only_via(a_indices: list[int], b_indices: list[int]) -> bool:
+    """
+    True if every occurrence of A is "covered" by a preceding occurrence of B.
+
+    In the delegation use-case A = file_write indices, B = subagent_dispatch
+    indices.  The check ensures every direct write was preceded by at least
+    one subagent dispatch (i.e. writes only happen in a delegation context).
+
+    Vacuously true when A is empty (no writes → nothing to violate).
+    False when A is non-empty and B is empty (writes without any dispatch).
+    """
+    if not a_indices:
+        return True
+    if not b_indices:
+        return False
+    for a in a_indices:
+        if not any(b <= a for b in b_indices):
+            return False
+    return True
+
+
 def op_not_contains(collection: Any, value: Any) -> bool:
     """True if value is not in collection."""
     return value not in collection
@@ -327,6 +361,7 @@ COLLECTION_OPERATORS: dict[str, Any] = {
     "strictly_precedes": op_strictly_precedes,
     "strictly_ordered_subset": op_strictly_ordered_subset,
     "subset_of": op_subset_of,
+    "only_via": op_only_via,
     "each_preceded_by_within_N_steps": op_each_preceded_by_within_N_steps,
     "precedes_per_path": op_precedes_per_path,
     "not_contains": op_not_contains,

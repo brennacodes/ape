@@ -1,10 +1,11 @@
 # APE Language Specification
 
-**Version:** 0.2.4-draft
+**Version:** 0.2.2
 **Status:** Draft
 **Schema:** See `ape.xsd`
 **LLM Execution Contract:** See `ape-llms.md`
 **Authoring Guide:** See `ape-authoring.md`
+**Conversion Guide:** See `ape-conversions.md`
 
 ---
 
@@ -38,7 +39,7 @@ This is the fundamental structural unit. If it has open and close tags with spac
 
 ### 2.2 Declarations
 
-Declarations define reusable identifiers: `<var>`, `<resource>`, `<command>`, `<actor>`, `<tool-tag>`, `<param>`.
+Declarations define reusable identifiers: `<var>`, `<resource>`, `<command>`, `<actor>`, `<param>`.
 
 Declarations can appear:
 - Inside `<meta>` (global, available throughout the document)
@@ -57,8 +58,9 @@ APE has two classes of identifiers with different uniqueness rules:
 - `command/@id`
 - `sequence/@id`
 - `reference/@id`
-- `tool-tag/@name`
 - `step/@id`
+- `template/@id`
+- `output/@id`
 
 **Scoped names** — must be unique within their scope, but may shadow a parent scope's declaration of the same name:
 - `var/@name`
@@ -79,15 +81,17 @@ APE uses a two-pass model:
 
 Containers do not enforce child ordering. A `<step>` can have its `<constraint>` before its `<instruction>`, or its `<variables>` after its `<gate>`. The schema allows interleaving; the validator enforces required children exist; `ape fmt` outputs canonical order.
 
+**Exception:** `<prerequisite>` and `<prerequisites>` must appear before all other children in a `<step>`. Prerequisites are entry conditions — they must be evaluated before any work begins.
+
 ### 2.6 Decorators
 
-Decorators are elements that annotate but don't alter execution: `<constraint>`, `<rules>`, `<anti-patterns>`, `<note>`, `<rationale>`. They can appear inside any block.
+Decorators are elements that annotate but don't alter execution: `<goal>`, `<constraint>`, `<rules>`, `<anti-patterns>`, `<note>`, `<rationale>`. They can appear inside any block.
 
 ### 2.7 Mixed Content
 
-**Structural elements** — `<ape>`, `<meta>`, `<gate>`, `<steps>`, `<actors>`, `<variables>`, `<resources>`, `<commands>`, `<tool-tags>`, `<params>`, `<sequence>`, `<prerequisites>` — do **not** allow mixed content. Children only, no interleaved text.
+**Structural elements** — `<ape>`, `<meta>`, `<gate>`, `<steps>`, `<actors>`, `<variables>`, `<resources>`, `<commands>`, `<instructions>`, `<params>`, `<sequence>`, `<prerequisites>` — do **not** allow mixed content. Children only, no interleaved text.
 
-**Instruction-level elements** — `<instruction>`, `<instructions>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` — **do** allow mixed content. Plain text serves as narrative guidance; child tags serve as concrete anchors to execute.
+**Instruction-level elements** — `<instruction>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` — **do** allow mixed content. Plain text serves as narrative guidance; child tags serve as concrete anchors to execute.
 
 This is the one structural distinction to internalize: *above* the instruction layer, structure is strict. *At* the instruction layer, prose and tags intermix freely.
 
@@ -100,8 +104,6 @@ This is the one structural distinction to internalize: *above* the instruction l
 <ape version="0.2.2" xmlns="https://ape-lang.dev/schema/0">
 
   <meta>
-    <!-- Always first. Contains metadata and declarations.
-         No tool tags. No instructions. -->
     <name>My Workflow</name>
     <description>What this workflow does and why.</description>
 
@@ -110,16 +112,10 @@ This is the one structural distinction to internalize: *above* the instruction l
     <variables>...</variables>
     <resources>...</resources>
     <commands>...</commands>
-    <tool-tags>...</tool-tags>
   </meta>
 
-  <!-- Any of these can also appear here at root level, or inside steps -->
-  <variables>...</variables>
-  <resources>...</resources>
-  <commands>...</commands>
-
   <steps>
-    <!-- Optional: the workflow (required if document has multi-step logic) -->
+    ...
   </steps>
 
   <principles>...</principles>
@@ -134,9 +130,9 @@ This is the one structural distinction to internalize: *above* the instruction l
 | `version` | Yes | Spec version (e.g., `0.2.2`) |
 | `xmlns` | Yes | Namespace URI, pinned to major version |
 
-**Versioning:** The namespace is pinned to the major version (`https://ape-lang.dev/schema/0.2`). The `version` attribute carries the full version (`0.2.2`, `0.2.3`, etc.). Documents with different minor versions share the same namespace and are expected to be broadly compatible within a major version. Breaking changes increment the major version and the namespace.
+**Versioning:** The namespace is pinned to the major version (`https://ape-lang.dev/schema/0`). The `version` attribute carries the full version (`0.2.2`, `0.2.3`, etc.). Documents with different minor versions share the same namespace and are expected to be broadly compatible within a major version. Breaking changes increment the major version and the namespace.
 
-`<meta>` must be first if present. Everything else — `<steps>`, declarations, `<principles>`, `<reference>` — is optional and can appear in any order. If `<steps>` is present, it must contain at least one `<step>`.
+`<meta>` must be first if present. Everything else — `<steps>`, declarations, tool tags, `<principles>`, `<reference>` — is optional and can appear in any order. Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. In stepless documents, tool tags and commands at root level are executed in document order.
 
 ### 3.2 `<meta>`
 
@@ -146,7 +142,7 @@ If present, `<meta>` is the first child of `<ape>`. It contains document metadat
 |-------|----------|-------------|
 | `<name>` | No | APE document name |
 | `<description>` | No | Purpose and context |
-| Any declaration | No | `<actors>`, `<params>`, `<variables>`, `<resources>`, `<commands>`, `<tool-tags>` |
+| Any declaration | No | `<actors>`, `<params>`, `<variables>`, `<resources>`, `<commands>` |
 
 ---
 
@@ -183,6 +179,8 @@ Actors are anything that participates: humans, AI agents, subagents, CI runners,
 | `<description>` | No | What this actor is |
 | `<responsibilities>` | No | Contains `<responsibility>` children |
 
+Can appear inside `<actors>` wrapper, inside `<meta>`, or inline in any block.
+
 Referenced via `actor` attribute on commands, actions, gates, steps, tool tags. Default actor is the first one declared.
 
 ## 5. Variables
@@ -194,10 +192,7 @@ the validator should at least ensure referenced identifiers can resolve in-scope
 ```xml
 <var name="project_name" default="my-app" />
 <var name="coverage_threshold" type="number" default="90" />
-<var name="features" type="list">
-  <item>feature-a</item>
-  <item>feature-b</item>
-</var>
+<var name="features" type="list" value="feature-a, feature-b" />
 ```
 
 | Attribute | Required | Description |
@@ -209,14 +204,13 @@ the validator should at least ensure referenced identifiers can resolve in-scope
 
 Can appear inside `<variables>` wrapper, inside `<meta>`, or inline in any block. Scoped to the block where declared.
 
-Variables must have a value. Values are resolved in the following order:
+A `<var>` declaration must carry a value. Values are resolved in the following order:
 
 1. Whatever value is found between the opening and closing tags
 2. `value` attribute
 3. `default` attribute
-4. Runtime resolution
 
-**List variables:** If `type="list"`, values are specified with `<item>` children.
+Variables created implicitly by `<ask-user-question var="...">` or `<command set="...">` do not need a `<var>` declaration. Only declare a `<var>` when you have a value to give it.
 
 ---
 
@@ -251,9 +245,7 @@ The "things you need" primitive.
 ```xml
 <resource id="cargo" type="executable" />
 <resource id="config" type="file" path="./Cargo.toml" access="read,write" />
-<resource id="app-root" type="file-path" path="/path/to/app" access="read,write,edit,grep">
-  <description>Application root directory</description>
-</resource>
+<resource id="app-root" type="file-path" path="/path/to/app" access="read,write,edit,grep" />
 ```
 
 | Attribute | Required | Description |
@@ -334,29 +326,39 @@ Can appear inside `<commands>` wrapper, inside `<meta>`, or inline in any block.
 
 ---
 
-## 8. Tool Tags
+## 8. Tool Tags and Behavioral Tags
 
-Tool tags map directly to LLM tool interfaces. Core set below; custom tags via `<tool-tag>` declarations.
+Tags in this section can appear inside any block **except** `<meta>` (which is configuration, not execution). They can also appear at root level in stepless documents.
 
-Tool tags can appear inside any block **except** `<meta>` (which is configuration, not execution).
+There are two categories:
 
-### `<read>`
+- **Tool tags** map to specific LLM tools. Each tag invokes a tool directly.
+- **Behavioral tags** invoke execution patterns — they change *how* the LLM operates rather than calling a specific tool.
+
+### 8.1 Tool Tags
+
+Tool tags are an exhaustive mapping to the LLM's tool interfaces. Each tag corresponds to one tool.
+
+#### `<read>`
 
 ```xml
 <read path="./src/main.rs" />
+<read path="./config.yaml" var="config_content" />
 ```
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `path` | Yes | File to read |
+| `var` | No | Variable to store file content |
 | `actor` | No | Who reads |
 
-### `<write>`
+#### `<write>`
 
 Direct tool invocation — triggers the Write tool on a specific path. For structured output with format and destination control, use `<output>` instead.
 
 ```xml
 <write path="./output/report.md">Content here</write>
+<write path="./log.txt" mode="append">New log entry</write>
 <write ref="config" />
 ```
 
@@ -364,11 +366,83 @@ Direct tool invocation — triggers the Write tool on a specific path. For struc
 |-----------|----------|-------------|
 | `path` | No | File to write (required if no `ref`) |
 | `ref` | No | Reference to a resource with write access (required if no `path`) |
+| `mode` | No | `create` (default), `append`, `overwrite` |
 | `actor` | No | Who writes |
 
-The `path` or `ref` target should have write permission declared via a `<resource>` with `access` including `write`. The LLM determines how to apply the write (create, append, overwrite) based on context.
+The `path` or `ref` target should have write permission declared via a `<resource>` with `access` including `write`.
 
-### `<ask-user-question>`
+#### `<edit>`
+
+In-place file modification.
+
+```xml
+<edit path="./src/config.rs">Replace the hardcoded URL with {{ api_url }}</edit>
+<edit path="./README.md" />
+```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `path` | Yes | File to edit |
+| `actor` | No | Who edits |
+
+The body describes the edit to perform. The LLM uses the Edit tool to apply it based on context.
+
+#### `<glob>`
+
+File pattern search.
+
+```xml
+<glob pattern="src/**/*.ts" var="ts_files" />
+```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `pattern` | Yes | Glob pattern to match |
+| `var` | No | Variable to store matched file paths |
+| `path` | No | Directory to search in (default: working directory) |
+| `actor` | No | Who searches |
+
+#### `<grep>`
+
+Content search across files.
+
+```xml
+<grep pattern="TODO|FIXME" var="todos" />
+<grep pattern="import.*from" path="./src" var="imports" />
+```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `pattern` | Yes | Search pattern (regex) |
+| `var` | No | Variable to store results |
+| `path` | No | File or directory to search (default: working directory) |
+| `actor` | No | Who searches |
+
+#### `<web-search>`
+
+```xml
+<web-search query="rust testing best practices" var="results" />
+```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `query` | Yes | Search query |
+| `var` | No | Variable to store results |
+| `actor` | No | Who searches |
+
+#### `<web-fetch>`
+
+```xml
+<web-fetch url="https://example.com/api/status" var="response" />
+```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `url` | Yes | URL to fetch |
+| `var` | No | Variable to store response content |
+| `actor` | No | Who fetches |
+
+#### `<ask-user-question>`
 
 **Blocking** — execution pauses until response.
 
@@ -387,7 +461,11 @@ The `path` or `ref` target should have write permission declared via a `<resourc
 | `type` | No | `text` (default), `confirm`, `choice` |
 | `actor` | No | Who is asked (default: first `human` actor) |
 
-### `<interview-mode>`
+### 8.2 Behavioral Tags
+
+Behavioral tags change how the LLM executes rather than invoking a specific tool.
+
+#### `<interview-mode>`
 
 Sequential Q&A. One question at a time, wait for each answer.
 
@@ -401,13 +479,34 @@ Sequential Q&A. One question at a time, wait for each answer.
 </interview-mode>
 ```
 
-### `<search>`
+#### `<plan-mode>`
+
+The LLM enters planning mode — exploring, designing, and presenting an approach for approval before executing.
 
 ```xml
-<search query="rust testing best practices" var="results" />
+<plan-mode>
+  Design the database migration strategy before making changes.
+</plan-mode>
 ```
 
-### `<stop>`
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `actor` | No | Who plans |
+
+#### `<agents-in-parallel>`
+
+Run multiple actions concurrently using subagents.
+
+```xml
+<agents-in-parallel>
+  <action actor="code-reviewer">Review the code changes</action>
+  <action actor="test-writer">Write unit tests for the new module</action>
+</agents-in-parallel>
+```
+
+Each `<action>` child is dispatched to its actor concurrently. Execution resumes after all complete.
+
+#### `<stop>`
 
 Unconditional halt. Can appear anywhere inside a block.
 
@@ -416,28 +515,12 @@ Unconditional halt. Can appear anywhere inside a block.
 <stop />
 ```
 
-### `<subagent-stop>`
+#### `<subagent-stop>`
 
 Return control from a subagent.
 
 ```xml
 <subagent-stop actor="code-reviewer">Review complete.</subagent-stop>
-```
-
-### Custom Tool Tags
-
-```xml
-<tool-tags>
-  <tool-tag name="deploy" maps-to="custom_deploy_tool">
-    <description>Deploy to environment.</description>
-    <attributes>
-      <attribute name="env" required="true">Target environment</attribute>
-    </attributes>
-  </tool-tag>
-</tool-tags>
-
-<!-- Then use: -->
-<deploy env="staging" />
 ```
 
 ---
@@ -446,23 +529,15 @@ Return control from a subagent.
 
 ```xml
 <step number="1" id="specification" uses="cargo" actor="developer">
+  <prerequisite ref="previous-step">What must be true and what to do if it is not.</prerequisite>
+
   <title>Specification</title>
   <goal>Define the contract your code must fulfill.</goal>
 
-  <description>What this step is about.</description>
+  <instruction>...</instruction>
+  <instructions>...</instructions>
 
-  <!-- Any of these in any order: -->
-  <prerequisite ref="previous-step">...</prerequisite>  <!-- singular: one dependency -->
-  <prerequisites>...</prerequisites>                    <!-- plural: two or more -->
-  <variables>...</variables>
-  <resources>...</resources>
-  <commands>...</commands>
-  <instruction>...</instruction>     <!-- singular: one instruction -->
-  <instructions>...</instructions>   <!-- plural: two or more -->
   <gate>...</gate>
-  <constraint>...</constraint>
-  <rules>...</rules>
-  <anti-patterns>...</anti-patterns>
 </step>
 ```
 
@@ -473,26 +548,35 @@ Return control from a subagent.
 | `uses` | No | Comma-separated resource IDs (each must resolve) |
 | `actor` | No | Default actor for this step |
 
-`<title>` and either `<instruction>` or `<instructions>` are required children (validator-enforced, not order-enforced). `<description>` is an optional child (at most one per step).
+`<title>` is optional. When the step `id` is descriptive (e.g., `id="verify"`, `id="red-phase"`), a title that restates it adds noise — omit it. Use `<title>` only when the step needs a human-readable name that the `id` cannot convey.
+
+`<prerequisite>` or `<prerequisites>`, if present, must appear before all other children. Prerequisites are entry conditions and must be evaluated first.
+
+`<description>`, `<instruction>`, and `<instructions>` are all optional children (at most one of each per step). A step must not contain both `<instruction>` and `<instructions>`. `<goal>` is a decorator and can appear inside any block.
 
 ---
 
 ## 10. Prerequisites
 
-Singular for one dependency (directly inside `<step>`), plural wrapper for two or more — same pattern as `<instruction>` / `<instructions>`:
+Singular for one dependency (directly inside `<step>`), plural wrapper for two or more — same pattern as `<instruction>` / `<instructions>`.
+
+**Ordering:** Prerequisites must appear before all other children in a `<step>`. They are entry conditions — the LLM evaluates them first, before reading the step's instructions or goal.
+
+**Content:** A prerequisite should describe what must be true *and* what happens if the condition is not met. The text content is not decorative — it tells the LLM how to handle an unmet precondition.
 
 ```xml
 <!-- One dependency — no wrapper needed -->
-<prerequisite ref="specification">Failing tests from spec step</prerequisite>
+<prerequisite ref="specification">Tests from the specification step must exist. If not, return to specification.</prerequisite>
 
 <!-- Two or more — use the plural wrapper -->
 <prerequisites>
-  <prerequisite ref="build">Build passed</prerequisite>
-  <prerequisite ref="lint">Lint clean</prerequisite>
+  <prerequisite ref="build">Build must have passed. If not, return to build.</prerequisite>
+  <prerequisite ref="lint">Lint must be clean. If not, return to lint.</prerequisite>
 </prerequisites>
 
 <!-- With a programmatic check -->
 <prerequisite>
+  Working tree must be clean before committing.
   <check>
     <command actor="developer">git status --porcelain</command>
   </check>
@@ -503,15 +587,12 @@ Singular for one dependency (directly inside `<step>`), plural wrapper for two o
 
 ## 11. Instruction / Instructions
 
-`<instruction>` is the singular unit. `<instructions>` is the plural wrapper. A step contains exactly one of:
+`<instruction>` is the atomic unit of work inside a step. One or more `<instruction>` elements may appear directly inside a step. The `<instructions>` wrapper is an optional grouping element that contains two or more `<instruction>` children.
 
-- **`<instruction>`** — a single instruction (standalone, no wrapper needed)
-- **`<instructions>`** — two or more `<instruction>` elements
-
-Both forms are ordered. Children execute/read top to bottom. Mixed content allowed — prose and tags intermix.
+Instructions are ordered. Children execute/read top to bottom. Mixed content allowed — prose and tags intermix.
 
 ```xml
-<!-- Single instruction: use <instruction> directly -->
+<!-- Single instruction -->
 <instruction>
   <action actor="developer">
     <command ref="fmt-check" />
@@ -519,14 +600,22 @@ Both forms are ordered. Children execute/read top to bottom. Mixed content allow
   <rationale>Consistent formatting.</rationale>
 </instruction>
 
-<!-- Multiple instructions: wrap in <instructions> -->
+<!-- Multiple instructions (bare) -->
+<instruction>Review the diff.</instruction>
+<instruction>
+  <action actor="developer">
+    <command ref="fmt-check" />
+  </action>
+  <ask-user-question var="ok" type="confirm">Proceed?</ask-user-question>
+</instruction>
+
+<!-- Multiple instructions (wrapped) -->
 <instructions>
   <instruction>Review the diff.</instruction>
   <instruction>
     <action actor="developer">
       <command ref="fmt-check" />
     </action>
-    <ask-user-question var="ok" type="confirm">Proceed?</ask-user-question>
   </instruction>
 </instructions>
 ```
@@ -534,8 +623,6 @@ Both forms are ordered. Children execute/read top to bottom. Mixed content allow
 `<instruction>` can contain: `<note>`, `<action>`, `<command>`, `<conditional>`, `<each>`, `<sequence>`, any tool tag, `<constraint>`, `<rules>`, inline declarations.
 
 `<instructions>` contains only `<instruction>` elements (two or more).
-
-A step must not contain both `<instruction>` and `<instructions>`, and must not contain more than one of either.
 
 ### `<note>`
 
@@ -545,13 +632,12 @@ Author-facing context. Not executable, not output.
 
 ## 12. Gates
 
-Single `<criteria>` (required), optional `<on-pass>`, one or more `<on-fail>` (at least one required). Flat and nested forms both valid.
+Single `<criteria>` (required), optional `<on-pass>`, exactly one `<on-fail>` (required). Flat and nested forms both valid.
 
 ```xml
 <gate>
   <criteria>All tests pass with 0 filtered out</criteria>
-  <on-fail goto="implementation">Test failures</on-fail>
-  <on-fail retry="true" max="3" then="halt">Flaky test</on-fail>
+  <on-fail retry="true" max="3" then="halt">Tests failing</on-fail>
 </gate>
 ```
 
@@ -559,10 +645,10 @@ Single `<criteria>` (required), optional `<on-pass>`, one or more `<on-fail>` (a
 <gate actor="developer">
   <criteria>Build succeeds with no warnings</criteria>
   <on-pass goto="specification">Begin next cycle</on-pass>
-  <on-fail>
-    <reason>Coverage below {{ coverage_threshold }}%</reason>
-    <action goto="implementation">
-      <read path="./coverage-report.html" />
+  <on-fail goto="implementation">
+    <reason>Build failed</reason>
+    <action>
+      <read path="./build-log.txt" />
     </action>
   </on-fail>
 </gate>
@@ -570,12 +656,12 @@ Single `<criteria>` (required), optional `<on-pass>`, one or more `<on-fail>` (a
 
 **Validator rules for gates:**
 - Exactly one `<criteria>` (required).
-- At least one `<on-fail>` (required).
+- Exactly one `<on-fail>` (required).
 - At most one `<on-pass>` (optional).
 
 ### Flow Control Attributes
 
-On `<on-fail>`, `<on-pass>`, or `<action>`:
+**On `<on-fail>`:**
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
@@ -586,11 +672,18 @@ On `<on-fail>`, `<on-pass>`, or `<action>`:
 | `max` | Modifier | Max retries (requires `retry="true"`, integer ≥ 1) |
 | `then` | Modifier | After `max` retries: step ID or `halt` (requires `retry="true"`, defaults to `halt`) |
 
+**On `<on-pass>`:**
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `goto` | Primary | Jump to step ID (must resolve) |
+| `proceed` | Primary | Continue to next step (`true`) |
+
 **Mutual exclusivity:** Exactly one *primary* attribute per element. `goto` + `retry` = error. `halt` + `proceed` = error. The modifiers `max` and `then` are only valid when `retry="true"` is present.
 
-**Default behavior:**
-- `<on-fail>` with **no** flow-control attributes: **halt with error**. The engine includes as much context as available (step id, step title, criteria text, reason text).
-- `<on-pass>` with **no** flow-control attributes: **proceed** to next step.
+**`<on-fail>` requires explicit flow control.** The `<on-fail>` must carry exactly one primary attribute. There is no default behavior — the author must be explicit about what happens on failure.
+
+**`<on-pass>` default:** If no flow-control attributes are present, execution proceeds to the next step.
 
 ### `<action>`
 
@@ -598,17 +691,11 @@ An executable directive. The LLM should perform what `<action>` says directly �
 
 `<action>` appears in two contexts:
 - **Inside instructions** — a specific thing to do, as opposed to `<instruction>` prose which allows interpretation.
-- **Inside gate handlers** (`<on-pass>`, `<on-fail>`) — the consequence of a gate result. Flow-control attributes (`goto`, `retry`, `halt`, `proceed`, `max`, `then`) are only valid in this context.
+- **Inside gate handlers** (`<on-pass>`, `<on-fail>`) — content to execute as part of the handler. Flow control belongs on the handler element itself, not on `<action>`.
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `actor` | No | Who performs this action |
-| `goto` | No | Jump to step ID (gate context only) |
-| `retry` | No | Retry current step (gate context only) |
-| `halt` | No | Stop workflow (gate context only) |
-| `proceed` | No | Continue to next step (gate context only) |
-| `max` | No | Max retries, requires `retry` (gate context only) |
-| `then` | No | After max retries, requires `retry` (gate context only) |
 
 `<action>` does **not** contain structural or decision-making elements like `<rules>`, `<gate>`, `<constraint>`, or `<conditional>`. If you need those, they belong in the `<instruction>` or `<step>` that contains the action.
 
@@ -671,7 +758,9 @@ A unified branching construct. Evaluates the `on` expression and routes to the m
 
 **Conditionals vs. gates:** Conditionals are **navigational** — they route based on a value that already exists. Gates are **evaluative** — they judge whether completed work meets a bar. Conditionals do not support `retry`, `max`, or `then` because the value won't change by retrying. Gates do, because the work can be redone.
 
-**Structure:** At least one `<case>`. `<case>` `value` attributes must be unique within their `<conditional>`. At most one `<default>` child element. Mixed content allowed in `<case>` and `<default>`.
+**After a `<case>` or `<default>` body:** If the body executes with no `goto` or `halt`, execution continues to whatever follows the `<conditional>`.
+
+**Structure:** At least one `<case>`, followed by at most one `<default>`. `<case>` `value` attributes must be unique within their `<conditional>`. `<default>` must appear after all `<case>` elements. Mixed content allowed in `<case>` and `<default>`.
 
 ---
 
@@ -706,6 +795,12 @@ Strictly ordered command list. A sibling to `<instruction>` in purpose: where `<
 ## 16. Decorators
 
 Can appear inside any block.
+
+### `<goal>`
+
+```xml
+<goal>Define the contract your code must fulfill.</goal>
+```
 
 ### `<constraint>`
 
@@ -744,7 +839,7 @@ Can appear inside any block.
 | Element | Purpose | Content |
 |---------|---------|---------|
 | `<rationale>` | Why something matters. Can appear inside any block. | Text |
-| `<description>` | What something is (author-facing, never output). Only valid as a child of `<meta>` or `<step>` — at most one per parent. Also valid as a property of `<actor>`, `<resource>`, and `<tool-tag>` declarations. | Text |
+| `<description>` | What something is (author-facing, never output). Only valid as a child of `<meta>`, `<step>`, or `<actor>` — at most one per parent. | Text |
 
 ---
 
@@ -872,17 +967,20 @@ Can appear inside `<instruction>`, `<action>`, or any instruction-level block. A
 
 ## 21. References
 
-Standalone blocks outside `<steps>`.
+A reference points to an external thing — a file, URL, document, or other resource that provides context but is not declared as a `<resource>` (which implies consumption by the workflow). References are informational: "here is something relevant."
 
 ```xml
-<reference id="verification-commands">
-  <note>CI command order.</note>
-  <sequence>
-    <command ref="fmt-check" />
-    <command ref="test-all" />
-  </sequence>
-</reference>
+<reference id="style-guide" path="https://example.com/style-guide">Project style guide.</reference>
+<reference id="rfc" path="./docs/rfc-042.md">Design RFC for this feature.</reference>
+<reference id="api-docs" path="https://docs.example.com/api/v2" />
 ```
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `id` | Yes | Unique identifier (global) |
+| `path` | Yes | Path or URL to the referenced thing |
+
+The element body is optional descriptive text. References do not contain sequences, commands, or other structural elements — they point to things outside the document.
 
 ---
 
@@ -905,18 +1003,16 @@ APE uses a layered validation model:
 **Document-level:**
 - `<meta>`, if present, is the first child of `<ape>`
 - If `<steps>` is present, it must contain \u2265 1 `<step>`
-- `<meta>` contains `<n>` (required)
 
 **Required children:**
-- `<step>` must contain `<title>` and exactly one `<instruction>` or `<instructions>`
-- `<gate>` must contain exactly one `<criteria>` and at least one `<on-fail>`
+- `<gate>` must contain exactly one `<criteria>` and exactly one `<on-fail>`
 - `<conditional>` must have a non-empty `on` attribute
 - `<conditional>` must contain at least one `<case>`
-- `<conditional>` must contain at most one `<default>` child element
+- `<conditional>` must contain at most one `<default>` child element, and it must appear after all `<case>` elements
 - `<conditional>` `default` attribute and `<default>` child element are mutually exclusive
 
 **Identity and uniqueness:**
-- Global IDs (`actor`, `resource`, `command`, `sequence`, `reference`, `tool-tag`, `step`, `template`, `output`) are unique across the entire document. No shadowing.
+- Global IDs (`actor`, `resource`, `command`, `sequence`, `reference`, `step`, `template`, `output`) are unique across the entire document. No shadowing.
 - Scoped names (`var/@name`, `param/@ref`) are unique within their scope. Shadowing is permitted.
 - `<case>` `value` attributes are unique within their `<conditional>`
 
@@ -929,7 +1025,6 @@ APE uses a layered validation model:
 - `<output ref="X">` resolves to another `<output>` `id`
 - `<template ref="X">` resolves to a `<resource>` `id`
 - `<write ref="X">` resolves to a `<resource>` with write access
-- Namespaced references (e.g., `lint.fmt-check`) use a declared import alias
 - `{{ ... }}` identifiers resolve to an in-scope variable (or are explicitly runtime-provided)
 - `<param ref="X">` resolves to an identifier in the caller's scope (cross-document resolution)
 
@@ -940,7 +1035,8 @@ APE uses a layered validation model:
 - Reference-site attributes (`actor`, `shell`, `tool`) override declaration-site values
 
 **Flow control rules:**
-- At most one primary flow-control attribute (`goto`, `retry`, `halt`, `proceed`) per `<on-fail>`, `<on-pass>`, or `<action>`
+- `<on-fail>` must have exactly one primary flow-control attribute (`goto`, `retry`, `halt`, `proceed`)
+- `<on-pass>` supports only `goto` and `proceed`
 - `max` requires `retry="true"`
 - `then` requires `retry="true"` (defaults to `halt` if omitted)
 - `goto` values must resolve to a `<step>` `id`
@@ -950,8 +1046,22 @@ APE uses a layered validation model:
 - If `template` is present, it must resolve to a `<template>` `id`
 - If `to` is `file` or `resource`, `target` should be present
 
+**Variable rules:**
+- A `<var>` declaration must carry a value via element content, `value` attribute, or `default` attribute. Empty declarations are not valid.
+- Variables created implicitly (by `<ask-user-question var>` or `<command set>`) do not require a `<var>` declaration.
+
+**Prerequisite rules:**
+- `<prerequisite>` and `<prerequisites>` must appear before all other children in a `<step>`
+- Prerequisite text content must describe the condition and the consequence of it not being met
+
+**Constraint ordering:**
+- When a `<constraint>` appears inside an `<instruction>`, it must appear before prose and executable content (`<action>`, `<output>`, `<command>`, tool tags)
+
+**Comment rules:**
+- XML comments (`<!-- -->`) are not permitted in APE documents. Use `<note>` for author-facing context.
+
 **Description rules:**
-- `<description>` may only appear as a direct child of `<meta>`, `<step>`, `<actor>`, `<resource>`, or `<tool-tag>`
+- `<description>` may only appear as a direct child of `<meta>`, `<step>`, or `<actor>`
 - At most one `<description>` per `<meta>` or `<step>`
 
 **Template rules:**
@@ -970,21 +1080,25 @@ APE uses a layered validation model:
 
 ---
 
-## 24. Core Constraints
+## 23. Core Constraints
 
 1. **`<meta>` is always first** if present. Contains declarations and metadata only — no tool tags, no instructions.
-2. **`<steps>` is optional.** If present, it must contain at least one `<step>`. Documents without `<steps>` are executed top to bottom — declarations, commands, and tool tags at root level are processed in document order.
+2. **`<steps>` is optional.** Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. Documents without `<steps>` are executed top to bottom — declarations, commands, and tool tags at root level are processed in document order.
 3. **Declarations scope to their block.** Available inside and after, not upward or backward. `<param>` declarations resolve from the caller's scope and are then locally scoped.
 4. **Two-pass resolution.** Forward references work. Nearest scope wins.
-5. **Global IDs are globally unique.** `actor`, `resource`, `command`, `sequence`, `reference`, `tool-tag`, `step`, `template`, and `output` IDs cannot shadow or collide. Only `var/@name` and `param/@ref` support scoped shadowing.
-6. **Mixed content is allowed in instruction-level elements.** `<instruction>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` allow interleaved text and child elements. Tags are anchors; text is narrative. `<instructions>` (plural) is a structural wrapper containing `<instruction>` elements and does not itself allow mixed content.
+5. **Global IDs are globally unique.** `actor`, `resource`, `command`, `sequence`, `reference`, `step`, `template`, and `output` IDs cannot shadow or collide. Only `var/@name` and `param/@ref` support scoped shadowing.
+6. **Mixed content is allowed in instruction-level elements.** `<instruction>`, `<action>`, `<case>`, `<default>`, `<each>`, `<on-fail>`, `<on-pass>`, and `<prerequisite>` allow interleaved text and child elements. Tags are anchors; text is narrative. `<instructions>` (plural) is a structural wrapper containing only `<instruction>` children and does not allow mixed content.
 7. **`<command>` identity is exclusive.** `id` and `ref` cannot both be present. If `ref` is present, the element body must be empty/whitespace. `set` works with any mode.
-8. **Flow control: one primary attribute** per `<on-fail>`/`<on-pass>`/`<action>`. Primary attributes are `goto`, `retry`, `halt`, `proceed`. Modifiers `max` and `then` require `retry`.
-9. **`<on-fail>` default is halt with error.** If no flow-control attributes are present, the engine halts and includes available context (step id, title, criteria, reason).
-10. **Interleaving is allowed.** Children within blocks need not follow a fixed order.
+8. **Flow control: one primary attribute.** `<on-fail>` must have exactly one primary attribute (`goto`, `retry`, `halt`, `proceed`). `<on-pass>` supports only `goto` and `proceed`. Flow-control attributes belong on the handler elements, not on `<action>`. Modifiers `max` and `then` require `retry`.
+9. **`<on-fail>` is singular and requires explicit flow control.** Exactly one `<on-fail>` per gate. It must carry a primary attribute. There is no default behavior — the author must be explicit about what happens on failure.
+10. **Interleaving is allowed.** Children within blocks need not follow a fixed order. Exceptions: `<default>` must appear after all `<case>` elements in a `<conditional>`; `<prerequisite>` and `<prerequisites>` must appear before all other children in a `<step>`; `<constraint>` must appear before prose and executable content inside an `<instruction>`.
 11. **Tool tags live inside blocks or at root level.** Not inside `<meta>`. In stepless documents, tool tags at root level are executed in document order.
-12. **`<description>` is author-facing and placement-restricted.** Never output or executed. As a standalone element, only valid inside `<meta>` (at most one) and `<step>` (at most one). Also valid as a property of `<actor>`, `<resource>`, and `<tool-tag>` declarations. Not a decorator — cannot appear in arbitrary blocks.
+12. **`<description>` is author-facing and placement-restricted.** Never output or executed. Only valid inside `<meta>` (at most one), `<step>` (at most one), and `<actor>`. Not a decorator — cannot appear in arbitrary blocks.
 13. **Sequences are strictly ordered.**
-14. **`<action>` is an executable directive.** It holds things that *happen* — text, commands, tool tags, outputs. Not structural or decision-making elements. The LLM should execute it directly, not treat it as interpretive guidance. Flow-control attributes are only valid inside gate handlers.
+14. **`<action>` is an executable directive.** It holds things that *happen* — text, commands, tool tags, outputs. Not structural or decision-making elements. The LLM should execute it directly, not treat it as interpretive guidance. `<action>` does not carry flow-control attributes.
 15. **Templates define shape.** Content with format awareness and interpolation. They don't specify where content goes.
 16. **Outputs define destination.** What gets produced, where it lands, and how it's placed. They are prescriptive — leave little room for interpretation.
+17. **No XML comments.** APE documents must not contain XML comments (`<!-- -->`). Use `<note>` for author-facing context. Comments are invisible to validators, unsearchable by tooling, and add noise without structural value.
+18. **Variables must have values.** A `<var>` declaration must carry a value via element content, `value` attribute, or `default` attribute. Do not declare empty variables as placeholders for runtime state — use `<ask-user-question var>` or `<command set>` to create variables implicitly when their values become available.
+19. **Prerequisites are first.** In a `<step>`, `<prerequisite>` and `<prerequisites>` must appear before all other children. Prerequisites are entry conditions evaluated before work begins.
+20. **Constraints before work.** When a `<constraint>` appears inside an `<instruction>`, it must appear before prose, `<action>`, `<output>`, `<command>`, and other executable content. The LLM must read restrictions before executing work.

@@ -1,342 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
+<ape version="0.2.2" xmlns="https://ape-lang.dev/schema/0">
 
   <meta>
-    <name>EVMts Mission-Critical Development Workflow</name>
-    <description>A zero-tolerance, TDD-first development workflow for mission-critical infrastructure where mistakes can cause business loss. Default stance is defensive: no broken builds, no missing tests, no placeholders, no swallowed errors.</description>
-
-    <actors>
-      <actor id="claude" type="agent">
-        <description>Primary AI agent executing this workflow.</description>
-        <responsibilities>
-          <responsibility>Execute the TDD work loop for each change</responsibility>
-          <responsibility>Enforce zero-tolerance constraints at every step</responsibility>
-          <responsibility>Stop and ask for help rather than stubbing</responsibility>
-        </responsibilities>
-      </actor>
-      <actor id="developer" type="human">
-        <description>Human developer providing guidance, approvals, and architecture decisions.</description>
-        <responsibilities>
-          <responsibility>Approve architectural changes before implementation</responsibility>
-          <responsibility>Provide guidance when the agent encounters uncertainty</responsibility>
-        </responsibilities>
-      </actor>
-    </actors>
-
-    <resources>
-      <resource id="repo-root" type="directory" path="./" access="read,write,edit,grep">
-        <description>Repository root directory. All commands must run from here.</description>
-      </resource>
-      <resource id="git" type="executable">
-        <description>Git version control. Use history instead of commented-out code.</description>
-      </resource>
-      <resource id="build-system" type="executable">
-        <description>The project build system (determined by repo contents).</description>
-      </resource>
-      <resource id="test-runner" type="executable">
-        <description>The project test runner (determined by repo contents).</description>
-      </resource>
-    </resources>
-
-    <commands>
-      <command id="run-build" actor="claude" note="Run from repo root always">build</command>
-      <command id="run-tests" actor="claude" note="Run full test suite from repo root; NO FILTERS">test</command>
-    </commands>
+    <name>Mission-Critical TDD Workflow</name>
+    <description>A zero-tolerance, TDD-first workflow for mission-critical infrastructure. Defensive by default: no broken builds, no stubs, no swallowed errors, no placeholders. Every change follows a strict red-green-verify loop from the repository root.</description>
   </meta>
 
-  <!-- ============================================================
-       Global Constraints — Zero Tolerance Operating Mode
-       These apply to every step in the workflow.
-       ============================================================ -->
-
   <constraint>NEVER proceed with broken builds or failing tests.</constraint>
-  <constraint>NEVER leave stub or placeholder implementations (e.g., raise NotImplementedError, throw new Error("not implemented"), "Coming soon", dummy outputs).</constraint>
-  <constraint>NEVER leave commented-out code; use Git history instead.</constraint>
+  <constraint>NEVER use stub or placeholder implementations (raise NotImplementedError, throw new Error("not implemented"), "Coming soon", dummy outputs, or any fallback that pretends to work).</constraint>
+  <constraint>NEVER leave commented-out code — use Git history instead.</constraint>
   <constraint>NEVER skip or comment out tests.</constraint>
-  <constraint>NEVER leave stub or fallback implementations that pretend to work.</constraint>
-  <constraint>NEVER swallow errors (e.g., empty catch {} blocks, bare except: pass, rescue => nil).</constraint>
-  <constraint>If you cannot implement correctly, STOP and ask the developer for help rather than stubbing.</constraint>
+  <constraint>NEVER swallow errors (empty catch blocks, bare except: pass, rescue => nil).</constraint>
+  <constraint>If you cannot implement something correctly, STOP and ask for help rather than stubbing.</constraint>
+
   <constraint>ALWAYS run commands from the repository root directory.</constraint>
   <constraint>NEVER use "cd" unless explicitly debugging a submodule.</constraint>
-  <constraint>Assume all build and test commands are designed to run from repo root.</constraint>
+  <constraint>When proposing a change in architecture or approach, present a proposal and wait for approval from the developer before implementing.</constraint>
+  <constraint>If your plan fails or you hit uncertainty, STOP, explain what happened and what you learned, and wait for guidance from the developer.</constraint>
+
+  <rules>
+    <rule>Prefer minimal "else" statements in control flow.</rule>
+    <rule>Use descriptive variable names (top, value, operand — not a, b).</rule>
+    <rule>Use direct imports; no aliases.</rule>
+    <rule>Assertions must include descriptive messages.</rule>
+    <rule>Always pair resource acquisition with cleanup or release.</rule>
+  </rules>
+
+  <rules>
+    <rule>Tests must be self-contained: no abstractions for test setup, no helper functions; copy/paste setup is preferred.</rule>
+    <rule>Always print test results.</rule>
+    <rule>Only failed tests should produce output; if tests produce no output, they passed.</rule>
+    <rule>Any test failure must be fixed immediately before continuing.</rule>
+  </rules>
+
+  <rules>
+    <rule>If a bug is not obvious, improve visibility first (instrumentation, logs, asserts, targeted prints) before changing logic.</rule>
+    <rule>Use evidence-based debugging only: form a hypothesis, add observability to validate it, confirm with test output, then fix and re-run.</rule>
+  </rules>
 
   <anti-patterns>
-    <anti-pattern>Using "cd" to change directories before running build or test commands</anti-pattern>
-    <anti-pattern>Adding placeholder or stub implementations to make tests pass temporarily</anti-pattern>
-    <anti-pattern>Commenting out failing tests instead of fixing them</anti-pattern>
-    <anti-pattern>Swallowing errors with empty catch/except/rescue blocks</anti-pattern>
-    <anti-pattern>Proceeding with work when the build is broken</anti-pattern>
-    <anti-pattern>Leaving commented-out code instead of relying on Git history</anti-pattern>
+    <anti-pattern>Changing logic before understanding the root cause.</anti-pattern>
+    <anti-pattern>Debugging without a hypothesis.</anti-pattern>
   </anti-patterns>
 
   <steps>
 
-    <!-- ============================================================
-         Step 1: Security and Safety Gate
-         Before touching any code, verify the environment is safe.
-         ============================================================ -->
-    <step number="1" id="security-gate" actor="claude" uses="repo-root">
+    <step number="1" id="security-check">
       <title>Security and Safety Gate</title>
-      <description>Before touching anything, check for sensitive data and establish the crash policy.</description>
+      <goal>Ensure no sensitive data is present and establish crash-handling policy before touching any code.</goal>
 
       <instructions>
         <instruction>
-          Scan the working context for sensitive data: API keys, passwords, tokens, or other credentials.
-          <action actor="claude">
-            Inspect the prompt, inputs, and any provided files for sensitive data such as API keys, passwords, tokens, or credentials.
-          </action>
+          Scan the prompt and any referenced inputs for API keys, passwords, tokens, or other sensitive data.
+
+          <conditional on="{{ sensitive_data_detected }}">
+            <case value="true">
+              <stop>Sensitive data detected. Aborting. Explain what was found and request a sanitized prompt before continuing.</stop>
+            </case>
+            <case value="false">
+              <action>No sensitive data detected. Proceed.</action>
+            </case>
+          </conditional>
         </instruction>
         <instruction>
-          <note>Crash policy is critical and applies for the entire workflow.</note>
-          Establish the crash policy: any unhandled crash is a severe bug. The application must return errors gracefully and must never crash.
-          <constraint>If a crash occurs, FIRST fix the validation/error-handling path that allowed the crash, THEN fix the bug that originally triggered it.</constraint>
+          <constraint>Any unhandled crash is a severe bug. The application must return errors gracefully and must never crash.</constraint>
+          <constraint>If a crash occurs: FIRST fix the validation or error-handling path that allowed the crash, THEN fix the bug that originally triggered it.</constraint>
         </instruction>
       </instructions>
 
       <gate>
-        <criteria>No sensitive data detected in the working context, and the crash policy is acknowledged.</criteria>
-        <on-fail halt="true">Sensitive data detected. Abort immediately, explain what was detected, and request a sanitized prompt/input before continuing.</on-fail>
+        <criteria>No sensitive data is present in the prompt or inputs, and crash-handling policy is acknowledged.</criteria>
+        <on-fail halt="true">Sensitive data detected or safety preconditions not met. Cannot proceed.</on-fail>
       </gate>
     </step>
 
-    <!-- ============================================================
-         Step 2: Specify (Tests First)
-         Write or update tests that define the intended behavior.
-         ============================================================ -->
-    <step number="2" id="specify" actor="claude" uses="repo-root, test-runner">
-      <title>Specify — Tests First</title>
-      <description>Write or update tests that define the intended behavior. Tests are the contract.</description>
-
-      <prerequisite ref="security-gate">Security gate must pass before any code work begins.</prerequisite>
+    <step number="2" id="specify">
+      <prerequisite ref="security-check" goto="security-check">Security gate must pass before any code changes. If not, return to security-check.</prerequisite>
+      <title>Specify (Tests First)</title>
+      <goal>Define the intended behavior by writing or updating tests before any implementation.</goal>
 
       <instruction>
-        Write or update tests that define the intended behavior for the current change (feature, refactor, or bug fix). Tests are the contract — prefer direct, explicit setup.
-        <constraint>Tests must be self-contained with no abstractions for test setup.</constraint>
-        <constraint>No helper functions in tests; copy/paste setup is preferred over shared helpers.</constraint>
-        <constraint>Assertions must include descriptive messages.</constraint>
+        <constraint>Prefer direct, explicit setup in tests.</constraint>
+        Write or update tests that define the intended behavior for this change (feature, refactor, or bug fix). Tests are the contract.
       </instruction>
 
-      <rules>
-        <rule>Tests must be self-contained — no abstractions for test setup</rule>
-        <rule>No helper functions; copy/paste setup is preferred</rule>
-        <rule>Assertions must include descriptive messages</rule>
-        <rule>Only failed tests should produce output; passing tests remain silent</rule>
-      </rules>
-
       <gate>
-        <criteria>New or updated tests exist that define the intended behavior for the current change.</criteria>
-        <on-fail retry="true" max="2" then="halt">Tests not written or incomplete. Write the failing tests before proceeding.</on-fail>
+        <criteria>New or updated tests exist that specify the intended behavior for the current change.</criteria>
+        <on-fail retry="true" max="2" then="halt">Tests not written or do not specify new behavior. Write the tests first.</on-fail>
       </gate>
     </step>
 
-    <!-- ============================================================
-         Step 3: Prove Tests Fail
-         Confirm new/changed tests fail before implementing.
-         ============================================================ -->
-    <step number="3" id="prove-failure" actor="claude" uses="repo-root, test-runner">
-      <title>Prove Tests Fail for the Right Reason</title>
-      <description>Run tests from repo root and confirm new/changed tests FAIL before implementing.</description>
-
-      <prerequisite ref="specify">Tests must be written in the specify step first.</prerequisite>
-
-      <instructions>
-        <instruction>
-          <action>
-            Run the test suite from the repository root.
-            <command ref="run-tests" />
-          </action>
-        </instruction>
-        <instruction>
-          Confirm that the new or changed tests FAIL before proceeding to implementation.
-          <constraint>If the new tests pass unexpectedly, the test is not specifying new behavior — fix the test before continuing.</constraint>
-        </instruction>
-      </instructions>
-
-      <gate>
-        <criteria>New/changed tests fail as expected, confirming they specify new behavior that does not yet exist.</criteria>
-        <on-fail goto="specify">Tests passed unexpectedly — the test is not specifying new behavior. Return to specify and fix the test.</on-fail>
-      </gate>
-    </step>
-
-    <!-- ============================================================
-         Step 4: Implement
-         Implement the behavior completely with no placeholders.
-         ============================================================ -->
-    <step number="4" id="implement" actor="claude" uses="repo-root">
-      <title>Implement — No Placeholders, No Error Swallowing</title>
-      <description>Implement the behavior completely. No stubs, no temporary implementations, no ignored errors.</description>
-
-      <prerequisite ref="prove-failure">Tests must be proven to fail for the right reason before implementing.</prerequisite>
+    <step number="3" id="prove-failure">
+      <prerequisite ref="specify" goto="specify">Tests must be written before proving failure. If not, return to specify.</prerequisite>
+      <title>Prove Tests Fail</title>
+      <goal>Confirm new or changed tests fail for the right reason before implementing, ensuring they actually specify new behavior.</goal>
 
       <instruction>
-        Implement the behavior completely to make the failing tests pass.
+        <action>Run the tests from the repository root. Confirm the new or changed tests FAIL before implementing.</action>
+        <note>If they pass unexpectedly, the test is not specifying new behavior — fix the test.</note>
+      </instruction>
+
+      <gate>
+        <criteria>New or changed tests fail, and they fail for the expected reason (missing functionality, not a test error).</criteria>
+        <on-fail goto="specify">Tests passed unexpectedly or failed for the wrong reason. Return to specification and fix the tests.</on-fail>
+      </gate>
+    </step>
+
+    <step number="4" id="implement">
+      <prerequisite ref="prove-failure" goto="prove-failure">Tests must be proven to fail before implementation begins. If not, return to prove-failure.</prerequisite>
+      <goal>Implement the behavior completely with no placeholders, no stubs, and no swallowed errors.</goal>
+
+      <instruction>
         <constraint>Do not add stubs or "temporary" implementations.</constraint>
-        <constraint>Do not ignore errors; every error must be handled explicitly or propagated.</constraint>
-        <constraint>Always pair resource acquisition with cleanup/release.</constraint>
+        <constraint>Do not ignore errors — every error must be handled explicitly or propagated.</constraint>
+        <constraint>Always pair resource acquisition with cleanup or release.</constraint>
+        Implement the behavior completely to make the failing tests pass.
       </instruction>
 
-      <rules>
-        <rule>Prefer minimal "else" statements in control flow</rule>
-        <rule>Use descriptive variable names (e.g., top, value, operand — not a, b)</rule>
-        <rule>Use direct imports with no aliases</rule>
-        <rule>Always pair resource acquisition with cleanup/release</rule>
-      </rules>
-
-      <anti-patterns>
-        <anti-pattern>Adding stubs or raise NotImplementedError as a "temporary" measure</anti-pattern>
-        <anti-pattern>Ignoring or swallowing errors with empty catch/except/rescue blocks</anti-pattern>
-        <anti-pattern>Using non-descriptive variable names like a, b, x</anti-pattern>
-        <anti-pattern>Using import aliases instead of direct imports</anti-pattern>
-        <anti-pattern>Forgetting to release or clean up acquired resources</anti-pattern>
-      </anti-patterns>
-
       <gate>
-        <criteria>Implementation is complete with no placeholders, no stubs, no swallowed errors, and all resource acquisitions paired with cleanup.</criteria>
-        <on-fail retry="true" max="3" then="halt">Implementation incomplete or contains prohibited patterns. Fix and retry.</on-fail>
+        <criteria>Implementation is complete with no stubs, no placeholder code, no swallowed errors, and all resource acquisitions paired with cleanup.</criteria>
+        <on-fail retry="true" max="3" then="halt">Implementation contains stubs, placeholders, or swallowed errors. Fix before proceeding.</on-fail>
       </gate>
     </step>
 
-    <!-- ============================================================
-         Step 5: Verify Build and Tests
-         Run the build and full test suite for every code change.
-         ============================================================ -->
-    <step number="5" id="verify" actor="claude" uses="repo-root, build-system, test-runner">
+    <step number="5" id="verify">
+      <prerequisite ref="implement" goto="implement">Implementation must be complete before verification. If not, return to implement.</prerequisite>
       <title>Verify Build and Tests</title>
-      <description>For EVERY code change (exception: documentation-only .md changes), run the build and full test suite. Work is not done until build and tests are green.</description>
+      <goal>Confirm the build succeeds and all tests pass from the repository root before considering work done.</goal>
 
-      <prerequisite ref="implement">Implementation must be complete before verification.</prerequisite>
-
-      <instructions>
-        <instruction>
-          <action>
-            Run the build from the repository root.
-            <command ref="run-build" />
-          </action>
-        </instruction>
-        <instruction>
-          <action>
-            Run the full test suite from the repository root.
-            <command ref="run-tests" />
-          </action>
-        </instruction>
-        <instruction>
-          <note>Documentation-only .md changes are exempt from the build/test requirement, but must not introduce any code changes.</note>
-        </instruction>
-      </instructions>
-
-      <constraint>Do not consider work "done" until build and tests are green.</constraint>
+      <instruction>
+        Run the build and the full test suite from the repository root. Do not consider work done until build and tests are green.
+        <note>Exception: documentation-only .md changes may skip build and test verification, but must not introduce code changes.</note>
+      </instruction>
 
       <gate>
         <criteria>Build succeeds and all tests pass from the repository root.</criteria>
-        <on-fail goto="handle-failures">Build or tests failed. Go to failure handling immediately.</on-fail>
-      </gate>
-    </step>
-
-    <!-- ============================================================
-         Step 6: Handle Failures
-         Any failing test or build break is top priority.
-         ============================================================ -->
-    <step number="6" id="handle-failures" actor="claude" uses="repo-root, build-system, test-runner">
-      <title>Handle Failures Immediately</title>
-      <description>Any failing test or build break is treated as top priority. Stop new work, fix the failure, and re-run until green.</description>
-
-      <instructions>
-        <instruction>
-          <constraint>Stop all new work immediately.</constraint>
-          Stop any new work and focus entirely on the failure.
-        </instruction>
-        <instruction>
-          Diagnose and fix the failing test or build break.
-          <note>If the bug is not obvious, switch to evidence-based debugging: improve visibility first (instrumentation, logs, asserts, targeted prints), then change logic.</note>
-          <action>
-            Fix the failure using evidence-based debugging if needed:
-            1. Form a hypothesis about the failure cause.
-            2. Add observability (instrumentation, logs, asserts, targeted prints) to validate the hypothesis.
-            3. Confirm with test output.
-            4. Apply the fix.
-          </action>
-        </instruction>
-        <instruction>
-          <action>
-            Re-run build and tests until green.
-            <command ref="run-build" />
-            <command ref="run-tests" />
-          </action>
-        </instruction>
-      </instructions>
-
-      <anti-patterns>
-        <anti-pattern>Attempting to change logic before understanding the failure through observability</anti-pattern>
-        <anti-pattern>Guessing at fixes without forming and validating a hypothesis first</anti-pattern>
-        <anti-pattern>Continuing new work while a failure remains unresolved</anti-pattern>
-      </anti-patterns>
-
-      <gate>
-        <criteria>Build succeeds and all tests pass after fixing the failure.</criteria>
-        <on-fail retry="true" max="5" then="halt">Still failing after fix attempt. Retry the debugging and fix cycle.</on-fail>
-        <on-pass goto="verify">Failures resolved. Return to verification to confirm everything is green.</on-pass>
-      </gate>
-    </step>
-
-    <!-- ============================================================
-         Step 7: Collaboration and Transition
-         Propose changes, get approval, or cycle back for the next change.
-         ============================================================ -->
-    <step number="7" id="collaboration" actor="claude">
-      <title>Collaboration and Transition</title>
-      <description>When proposing architecture changes, present a proposal and wait for approval. If uncertainty is hit, stop and explain. Otherwise, cycle back for the next change.</description>
-
-      <prerequisite ref="verify">Build and tests must be green before transitioning.</prerequisite>
-
-      <instructions>
-        <instruction>
-          <when>
-            <if test="{{ has_architecture_proposal }} == true">
-              <action>
-                Present the proposed change in architecture or approach to the developer.
-              </action>
-              <ask-user-question var="proposal-approved" type="confirm">Approve the proposed architectural change?</ask-user-question>
-            </if>
-          </when>
-        </instruction>
-        <instruction>
-          <when>
-            <if test="{{ hit_uncertainty }} == true">
-              <stop>Uncertainty encountered. Explain what happened and what was learned, then wait for developer guidance.</stop>
-            </if>
-          </when>
-        </instruction>
-        <instruction>
-          Verify the definition of done for the current change:
-          <action>
-            Confirm the end state checklist:
-            - Fully implemented (no placeholders/stubs)
-            - No swallowed errors
-            - No crashes; validation prevents crash paths
-            - Build succeeds from repo root
-            - Tests pass; failures fixed immediately
-          </action>
-        </instruction>
-      </instructions>
-
-      <gate>
-        <criteria>Current change meets the definition of done: fully implemented, no swallowed errors, no crashes, build succeeds, tests pass.</criteria>
-        <on-pass goto="specify">Definition of done met. Begin the next change cycle.</on-pass>
-        <on-fail goto="implement">Definition of done not met. Return to implementation to address gaps.</on-fail>
+        <on-pass goto="specify">Build and tests green. Begin the next change cycle.</on-pass>
+        <on-fail goto="implement">Build or tests failing. Fix immediately — this is top priority. Stop new work, fix the failure, and re-verify.</on-fail>
       </gate>
     </step>
 
   </steps>
 
   <principles>
-    <principle name="Zero Tolerance">No broken builds, missing tests, placeholders, or swallowed errors — ever.</principle>
-    <principle name="TDD First">Tests define the contract. Write tests first, prove they fail, then implement.</principle>
-    <principle name="Defensive">Default stance is defensive. Mission-critical infrastructure where mistakes cause business loss.</principle>
-    <principle name="Evidence-Based Debugging">Improve visibility first (instrumentation, logs, asserts), then change logic. Never guess.</principle>
-    <principle name="No Stubs">If you cannot implement correctly, stop and ask for help rather than stubbing.</principle>
-    <principle name="Crash Policy">Any unhandled crash is a severe bug. Fix the error-handling path first, then fix the triggering bug.</principle>
-    <principle name="Self-Contained Tests">Tests must be self-contained with direct, explicit setup. No shared helpers or abstractions.</principle>
-    <principle name="Immediate Failure Response">Any failing test or build break is top priority. Stop new work and fix immediately.</principle>
+    <principle name="Zero Tolerance">No broken builds, no stubs, no swallowed errors, no placeholders. If you cannot implement it correctly, stop and ask.</principle>
+    <principle name="TDD First">Tests define the contract. Write them first, prove they fail, then implement.</principle>
+    <principle name="Evidence-Based">Debug with hypotheses and observability, not guesswork. Improve visibility before changing logic.</principle>
+    <principle name="Defensive">This is mission-critical infrastructure where mistakes cause business loss. Default to caution.</principle>
   </principles>
 
 </ape>

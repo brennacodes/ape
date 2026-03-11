@@ -1,287 +1,198 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ape version="0.2.4" xmlns="https://ape-lang.dev/schema/0">
+<ape version="0.2.2" xmlns="https://ape-lang.dev/schema/0">
 
   <meta>
     <name>TDD Orchestrator Workflow</name>
-    <description>Operating rules for a TDD Orchestrator pattern using Claude Code. The main agent coordinates the TDD loop end-to-end, delegating test writing to a Red Agent and implementation to a Green Agent. Specialized subagents do the hands-on work while the orchestrator validates phase transitions.</description>
+    <description>A test-driven development workflow where a main orchestrator agent coordinates Red and Green subagents through a repeating TDD cycle. The orchestrator never writes code directly — it delegates test authoring to the Red Agent and implementation to the Green Agent, validating each phase before proceeding.</description>
 
     <actors>
       <actor id="orchestrator" type="agent">
-        <description>Primary AI agent acting as TDD Orchestrator. Coordinates the TDD loop end-to-end.</description>
+        <description>TDD Orchestrator. Coordinates the TDD loop end-to-end. Does not write tests or implementation code.</description>
         <responsibilities>
-          <responsibility>Coordinate the TDD loop end-to-end</responsibility>
           <responsibility>Specify requirements and delegate to subagents</responsibility>
-          <responsibility>Validate phase completion by running tests</responsibility>
-          <responsibility>Detect deadlocks and report to user</responsibility>
-          <responsibility>Track phase completion in todo.md</responsibility>
+          <responsibility>Run test commands and validate phase outcomes</responsibility>
+          <responsibility>Detect deadlocks and report to the user</responsibility>
         </responsibilities>
       </actor>
       <actor id="red-agent" type="subagent">
-        <description>Subagent responsible for writing tests that encode requirements. Produces failing tests during the Red Phase.</description>
+        <description>Writes tests that encode requirements. Output: failing tests.</description>
       </actor>
       <actor id="green-agent" type="subagent">
-        <description>Subagent responsible for writing the minimum implementation to satisfy failing tests during the Green Phase.</description>
+        <description>Implements the minimum change needed to satisfy failing tests.</description>
       </actor>
       <actor id="developer" type="human">
-        <description>Human developer who intervenes when deadlocks occur and decides how to proceed.</description>
+        <description>Intervenes when deadlocks occur or agent behavior needs correction. Decides next action: modify approach, update agent instructions, manually intervene, or skip.</description>
       </actor>
     </actors>
 
     <resources>
-      <resource id="test-runner" type="executable">
-        <description>The project's test command used to validate Red and Green phases</description>
-      </resource>
-      <resource id="todo-md" type="file" path="./todo.md" access="read,write">
-        <description>Phase completion tracking file with checkboxes for each requirement</description>
-      </resource>
-      <resource id="red-agent-config" type="file" path="./.claude/agents/red-agent.md" access="read,write">
-        <description>Red Agent configuration and instructions</description>
-      </resource>
-      <resource id="green-agent-config" type="file" path="./.claude/agents/green-agent.md" access="read,write">
-        <description>Green Agent configuration and instructions</description>
-      </resource>
-      <resource id="claude-md" type="file" path="./CLAUDE.md" access="read,write">
-        <description>Orchestration rules and workflow guidance document</description>
-      </resource>
+      <resource id="todo-md" type="file" path="todo.md" access="read,write" />
+      <resource id="red-agent-config" type="file" path=".claude/agents/red-agent.md" access="read,write" />
+      <resource id="green-agent-config" type="file" path=".claude/agents/green-agent.md" access="read,write" />
     </resources>
 
     <commands>
-      <command id="run-tests" actor="orchestrator">Run the project's test command using the test runner</command>
-      <command id="stage-changes" actor="orchestrator">Stage all changes with git</command>
+      <command id="run-tests" set="test_result">Run the project's test command</command>
     </commands>
   </meta>
 
-  <constraint>The orchestrator must never write tests or implementation code directly. All code work is delegated to subagents.</constraint>
-  <constraint>Never retry the same failing operation more than twice.</constraint>
-  <constraint>Do not continue the TDD cycle while deadlocked.</constraint>
+  <constraint>The orchestrator must NEVER write tests or implementation code directly.</constraint>
+  <constraint>The orchestrator must NEVER retry the same failing operation more than twice.</constraint>
+  <constraint>Do not put code into auto-generated files or files with special naming conventions (e.g., __init__.py).</constraint>
+  <constraint>Avoid try/except blocks unless explicitly required by the requirement.</constraint>
+  <constraint>ALWAYS run tests after creating or changing code.</constraint>
 
   <rules>
-    <rule>Do not put code into auto-generated files or files with special naming conventions (e.g., __init__.py)</rule>
-    <rule>Keep documentation to only what is necessary</rule>
-    <rule>Always run tests after creation or changes using the appropriate test command</rule>
-    <rule>Avoid try/except blocks unless explicitly required by the requirement</rule>
+    <rule>Keep documentation to only what is necessary.</rule>
+    <rule>When reviewing agent output, verify it does not violate coding rules before accepting.</rule>
   </rules>
 
   <steps>
 
-    <step number="1" id="red-phase" actor="orchestrator">
-      <title>Red Phase</title>
-      <goal>Specify the requirement and delegate test creation to the Red Agent so that failing tests encode the requirement.</goal>
+    <step number="1" id="red-phase">
+      <goal>Delegate test writing to the Red Agent so that tests encoding the current requirement exist and are expected to fail.</goal>
 
-      <instructions>
-        <instruction>
-          Specify the current requirement clearly for the Red Agent.
-          <action actor="orchestrator">
-            Delegate to the Red Agent with the requirement specification. The Red Agent must write tests that encode the requirement.
-          </action>
-        </instruction>
-        <instruction>
-          <note>The Red Agent writes tests that should fail before implementation exists. The output expectation is that tests exist and fail for the correct reason.</note>
-          <action actor="red-agent">
-            Write tests that encode the specified requirement. Tests must fail because the requirement is not yet implemented.
-          </action>
-        </instruction>
-      </instructions>
+      <instruction>
+        Specify the requirement clearly, then delegate to the Red Agent to write tests that encode it.
+        <action actor="red-agent">Write tests that encode the specified requirement. Tests must fail before implementation exists.</action>
+      </instruction>
 
       <gate>
-        <criteria>New tests have been created by the Red Agent that encode the current requirement</criteria>
-        <on-fail retry="true" max="2" then="halt">Red Agent failed to produce valid tests. Deadlock detected.</on-fail>
+        <criteria>New tests exist that encode the current requirement.</criteria>
+        <on-fail retry="true" max="2" then="deadlock-recovery">Red Agent failed to produce tests for the requirement.</on-fail>
       </gate>
     </step>
 
-    <step number="2" id="validate-red" actor="orchestrator" uses="test-runner, todo-md">
-      <title>Validate Red Phase</title>
-      <goal>Confirm that the new tests fail for the correct reason, proving the requirement is not yet implemented.</goal>
+    <step number="2" id="red-validation" uses="todo-md">
+      <prerequisite ref="red-phase" goto="red-phase">Tests must be written before they can be validated. If not, return to red-phase.</prerequisite>
 
-      <prerequisite ref="red-phase">Tests created by the Red Agent</prerequisite>
+      <goal>Confirm the new tests fail for the correct reason — the requirement is not yet implemented.</goal>
 
       <instructions>
         <instruction>
-          <action actor="orchestrator">
+          <action>
+            Run the test suite and capture the results.
             <command ref="run-tests" />
           </action>
         </instruction>
         <instruction>
-          <action actor="orchestrator">
-            Confirm the new or updated tests fail for the correct reason: the requirement is not implemented yet. Failures must be related to the missing implementation, not unrelated issues.
-          </action>
+          Verify the new or updated tests fail because the requirement is not implemented yet, not for an unrelated reason.
         </instruction>
       </instructions>
 
       <gate>
-        <criteria>New tests fail for the correct reason (requirement not yet implemented) and no unrelated failures are present</criteria>
+        <criteria>New tests fail for the correct reason: the requirement is not yet implemented. No unrelated failures.</criteria>
         <on-fail goto="red-phase">
-          <reason>Test failures are unrelated to the requirement. Send tests back to Red Agent to refine.</reason>
+          <reason>Tests did not fail as expected. Either they pass prematurely or fail for unrelated reasons.</reason>
+          <action>Send the tests back to the Red Agent to refine.</action>
         </on-fail>
-        <on-fail retry="true" max="2" then="halt">Red Agent failed the same refinement task twice. Deadlock detected.</on-fail>
       </gate>
     </step>
 
-    <step number="3" id="green-phase" actor="orchestrator">
-      <title>Green Phase</title>
-      <goal>Delegate implementation to the Green Agent to satisfy the failing tests with a minimal change.</goal>
+    <step number="3" id="green-phase">
+      <prerequisite ref="red-validation" goto="red-validation">Tests must be validated as correctly failing before implementation begins. If not, return to red-validation.</prerequisite>
 
-      <prerequisite ref="validate-red">Tests confirmed to fail for the correct reason</prerequisite>
-
-      <constraint>Green Agent must implement the minimum change needed to satisfy the failing tests. Do not add extra features.</constraint>
+      <goal>Delegate implementation to the Green Agent to satisfy the failing tests with minimal code.</goal>
 
       <instruction>
-        <action actor="green-agent">
-          Implement the minimum change needed to make the failing tests pass. Do not add extra features or functionality beyond what the tests require.
-        </action>
+        <constraint>Minimal implementation only — do not add extra features beyond what the failing tests require.</constraint>
+        Delegate to the Green Agent with the failing tests as context.
+        <action actor="green-agent">Implement the minimum change needed to make the failing tests pass. Do not add extra features.</action>
       </instruction>
 
       <gate>
-        <criteria>Green Agent has produced an implementation targeting the failing tests</criteria>
-        <on-fail retry="true" max="2" then="halt">Green Agent failed to produce implementation. Deadlock detected.</on-fail>
+        <criteria>The Green Agent has produced an implementation targeting the failing tests.</criteria>
+        <on-fail retry="true" max="2" then="deadlock-recovery">Green Agent failed to produce an implementation.</on-fail>
       </gate>
     </step>
 
-    <step number="4" id="validate-green" actor="orchestrator" uses="test-runner, todo-md">
-      <title>Validate Green Phase</title>
-      <goal>Confirm all tests pass including existing suites, ensuring no regressions were introduced.</goal>
+    <step number="4" id="green-validation" uses="todo-md">
+      <prerequisite ref="green-phase" goto="green-phase">Implementation must be delivered before validation. If not, return to green-phase.</prerequisite>
 
-      <prerequisite ref="green-phase">Implementation produced by the Green Agent</prerequisite>
+      <goal>Confirm all tests pass — both the new tests and the existing suite — with no regressions.</goal>
 
       <instructions>
         <instruction>
-          <action actor="orchestrator">
+          <action>
+            Run the full test suite.
             <command ref="run-tests" />
           </action>
         </instruction>
         <instruction>
-          <action actor="orchestrator">
-            Confirm all tests pass, including existing test suites. There must be no regressions.
-          </action>
+          Confirm all tests pass, including existing suites. There must be no regressions.
         </instruction>
         <instruction>
-          <action actor="orchestrator">
-            Mark the phase complete by ticking the checkbox in todo.md.
-            <write ref="todo-md" />
+          On success, mark the phase complete by ticking the checkbox in todo.md. Stage all changes.
+          <action>
+            <edit path="todo.md">Tick the checkbox for the completed requirement.</edit>
           </action>
-        </instruction>
-        <instruction>
-          <action actor="orchestrator">
-            <command ref="stage-changes" />
-          </action>
-          <note>Each completed phase ends with all tests passing and changes staged.</note>
         </instruction>
       </instructions>
 
       <gate>
-        <criteria>All tests pass with no regressions and the phase is marked complete in todo.md</criteria>
+        <criteria>All tests pass with no regressions. Changes are staged.</criteria>
+        <on-pass goto="red-phase">Proceed to the next requirement and restart the TDD cycle.</on-pass>
         <on-fail goto="green-phase">
-          <reason>Tests are failing. Send back to Green Agent to fix issues before proceeding.</reason>
+          <reason>Tests are failing or regressions detected.</reason>
+          <action>Return to the Green Agent to fix the implementation.</action>
         </on-fail>
-        <on-fail retry="true" max="2" then="halt">Green Agent failed the same fix task twice. Deadlock detected.</on-fail>
       </gate>
     </step>
 
-    <step number="5" id="cycle-transition" actor="orchestrator">
-      <title>Cycle Transition</title>
-      <goal>Transition to the next requirement and restart the TDD loop, or handle deadlock if detected.</goal>
-
-      <prerequisite ref="validate-green">All tests passing and changes staged</prerequisite>
-
-      <instruction>
-        <action actor="orchestrator">
-          Move to the next requirement. If all requirements are complete, the workflow ends. Otherwise restart the TDD loop at the Red Phase.
-        </action>
-      </instruction>
-
-      <gate>
-        <criteria>Next requirement is identified and ready for the Red Phase, or all requirements are complete</criteria>
-        <on-pass goto="red-phase">Start the next TDD cycle with the new requirement</on-pass>
-        <on-fail halt="true">All requirements have been completed or workflow must stop</on-fail>
-      </gate>
-    </step>
-
-    <step number="6" id="deadlock-recovery" actor="orchestrator">
-      <title>Deadlock Recovery</title>
-      <goal>When a deadlock is detected (an agent fails the same task twice), stop and report to the user for a decision.</goal>
-
-      <description>This step is entered when deadlock protection is triggered. The orchestrator must explain the failure clearly and wait for the user to decide how to proceed.</description>
+    <step number="5" id="deadlock-recovery" uses="red-agent-config,green-agent-config">
+      <goal>When a subagent fails the same task twice, halt the cycle and involve the developer to decide the next action.</goal>
 
       <instructions>
         <instruction>
-          <action actor="orchestrator">
-            Report to the user what failed, what was attempted, and what evidence was observed (errors, test output summary).
+          Explain to the developer what failed, what was attempted, and what evidence was observed (errors, test output summary).
+          <action>
+            <ask-user-question var="recovery_action" type="choice" actor="developer">
+              A deadlock has been detected. How should we proceed?
+              <option value="modify">Modify the approach</option>
+              <option value="update-agents">Update agent instructions</option>
+              <option value="intervene">Manually intervene</option>
+              <option value="skip">Skip the problematic step</option>
+            </ask-user-question>
           </action>
         </instruction>
         <instruction>
-          <ask-user-question var="deadlock-resolution" type="choice">
-            A deadlock has been detected. How would you like to proceed?
-            <option value="modify-approach">Modify the approach</option>
-            <option value="update-instructions">Update agent instructions</option>
-            <option value="manual-intervention">Manually intervene</option>
-            <option value="skip-step">Skip the problematic step</option>
-          </ask-user-question>
-        </instruction>
-        <instruction>
-          <when>
-            <if test="{{ deadlock-resolution }} == 'update-instructions'">
-              <action actor="orchestrator">
-                Update the appropriate agent configuration file to refine instructions, constraints, and workflow details.
-                <write ref="red-agent-config" />
-                <write ref="green-agent-config" />
+          <conditional on="{{ recovery_action }}">
+            <case value="update-agents">
+              <action>
+                Update agent configuration files to prevent recurrence. Document what was learned and why the change improves behavior.
+                <edit path=".claude/agents/red-agent.md">Refine instructions, constraints, and workflow details based on the failure.</edit>
+                <edit path=".claude/agents/green-agent.md">Refine instructions, constraints, and workflow details based on the failure.</edit>
               </action>
-              <action actor="orchestrator">
-                Document what was learned and why the change improves behavior.
+            </case>
+            <case value="intervene">
+              <action>
+                <ask-user-question actor="developer">Please describe the manual intervention or provide corrected code.</ask-user-question>
               </action>
-            </if>
-          </when>
+            </case>
+            <case value="skip">
+              <action>Mark the problematic requirement as skipped and prepare to move on.</action>
+            </case>
+            <default>
+              <action>Adjust the approach based on the developer's guidance.</action>
+            </default>
+          </conditional>
         </instruction>
       </instructions>
 
       <gate>
-        <criteria>User has chosen a resolution and the orchestrator has acted on it</criteria>
-        <on-pass goto="red-phase">Resume the TDD cycle</on-pass>
-        <on-fail halt="true">Unable to resolve deadlock</on-fail>
-      </gate>
-    </step>
-
-    <step number="7" id="self-improvement" actor="orchestrator" uses="red-agent-config, green-agent-config, claude-md">
-      <title>Self-Improvement</title>
-      <goal>When agent behavior is unexpected or incorrect, update configurations and document learnings to improve future behavior.</goal>
-
-      <description>This step is triggered when agent behavior deviates from expectations during any phase. It updates agent configurations and orchestration rules.</description>
-
-      <instructions>
-        <instruction>
-          <action actor="orchestrator">
-            Create or modify agent configuration files to refine instructions, constraints, and workflow details.
-            <write ref="red-agent-config" />
-            <write ref="green-agent-config" />
-          </action>
-        </instruction>
-        <instruction>
-          <action actor="orchestrator">
-            Update CLAUDE.md to clarify orchestration rules or add missing guidance.
-            <write ref="claude-md" />
-          </action>
-        </instruction>
-        <instruction>
-          <action actor="orchestrator">
-            Document what was learned and why the change improves behavior.
-          </action>
-        </instruction>
-      </instructions>
-
-      <gate>
-        <criteria>Agent configurations and workflow guidance have been updated with documented learnings</criteria>
-        <on-pass goto="red-phase">Resume the TDD cycle with improved configurations</on-pass>
-        <on-fail halt="true">Unable to update configurations</on-fail>
+        <criteria>The developer's chosen recovery action has been applied.</criteria>
+        <on-pass goto="red-phase">Resume the TDD cycle.</on-pass>
+        <on-fail halt="true">Unable to recover from deadlock.</on-fail>
       </gate>
     </step>
 
   </steps>
 
   <principles>
-    <principle name="Orchestration Only">The main agent coordinates but never writes code. All implementation and test writing is delegated to specialized subagents.</principle>
-    <principle name="Red-Green Discipline">Every requirement goes through the full Red-Green cycle: failing tests first, then minimal implementation to pass them.</principle>
-    <principle name="Deadlock Protection">If any agent fails the same task twice, stop immediately and involve the human developer. Never silently loop.</principle>
-    <principle name="Minimal Implementation">The Green Agent implements only what is needed to pass the failing tests. No extra features, no gold-plating.</principle>
-    <principle name="Continuous Improvement">When agent behavior is unexpected, update configurations and document learnings to prevent recurrence.</principle>
+    <principle name="Orchestration-only">The main agent coordinates — it never writes tests or production code itself.</principle>
+    <principle name="Red-Green discipline">Every requirement passes through failing tests (Red) before implementation (Green). No shortcuts.</principle>
+    <principle name="Deadlock awareness">If a subagent fails the same task twice, stop immediately and involve the user rather than looping endlessly.</principle>
+    <principle name="Continuous improvement">When agent behavior is unexpected, update agent configuration files and orchestration rules, then document what was learned.</principle>
   </principles>
 
 </ape>

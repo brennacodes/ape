@@ -516,7 +516,7 @@ def run_parallel(
                 try:
                     result = future.result()
                     if result.error:
-                        status = f"ERROR: {result.error}"
+                        status = f"[red]ERROR[/red]: {result.error}"
                     elif result.summary:
                         s = result.summary
                         status = f"pass={s.passed}/{s.total} rate={s.pass_rate:.0%}"

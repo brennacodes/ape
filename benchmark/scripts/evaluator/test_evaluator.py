@@ -614,6 +614,44 @@ class TestEvaluateCondition:
         }
         assert evaluate_condition(cond, trace, self._ctx())[0] is False
 
+    def test_exists_between_target_before_after(self):
+        """target_before / target_after are resolved as the (start, end) tuple."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _read("test.spec.js", "r1"),        # file_read (start)
+            _tool_result("r1"),
+            _bash("npm test", "b1"),             # execute_command (metric)
+            _tool_result("b1"),
+            _write("src/app.js", "w1"),          # file_write (end)
+            _tool_result("w1"),
+        )
+        cond = {
+            "metric": "tool_call.execute_command",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_read",
+            "target_after": "tool_call.file_write",
+        }
+        assert evaluate_condition(cond, trace, self._ctx())[0] is True
+
+    def test_exists_between_target_before_after_fails(self):
+        """exists_between fails when metric is not between the two targets."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("npm test", "b1"),             # execute_command (metric) — before start
+            _tool_result("b1"),
+            _read("test.spec.js", "r1"),         # file_read (start)
+            _tool_result("r1"),
+            _write("src/app.js", "w1"),          # file_write (end)
+            _tool_result("w1"),
+        )
+        cond = {
+            "metric": "tool_call.execute_command",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_read",
+            "target_after": "tool_call.file_write",
+        }
+        assert evaluate_condition(cond, trace, self._ctx())[0] is False
+
     # -- strictly_precedes ---------------------------------------------------
     def test_strictly_precedes_passes(self):
         trace = _simple_trace(
@@ -1489,6 +1527,30 @@ class TestApplyOperator:
         calls = [{"pattern": "err"}, {"pattern": "error handling"}]
         assert _apply_operator("first_search_broader_than_final", calls, None, 10, {}) is True
 
+    def test_only_via_empty_a_passes(self):
+        """No metric occurrences → vacuously true."""
+        assert _apply_operator("only_via", [], [1, 2], 10, {}) is True
+
+    def test_only_via_empty_both_passes(self):
+        """No metric and no target → vacuously true."""
+        assert _apply_operator("only_via", [], [], 10, {}) is True
+
+    def test_only_via_nonempty_a_empty_b_fails(self):
+        """Metric occurred but no dispatch → fail."""
+        assert _apply_operator("only_via", [3, 5], [], 10, {}) is False
+
+    def test_only_via_all_covered(self):
+        """Every write is preceded by a dispatch."""
+        assert _apply_operator("only_via", [2, 4], [1, 3], 10, {}) is True
+
+    def test_only_via_first_not_covered(self):
+        """First write at index 1, dispatch only at index 3 → uncovered."""
+        assert _apply_operator("only_via", [1, 5], [3], 10, {}) is False
+
+    def test_only_via_dispatch_at_same_index(self):
+        """Dispatch at same index as write counts as covered."""
+        assert _apply_operator("only_via", [2], [2], 10, {}) is True
+
     def test_precedes_per_path_raises(self):
         with pytest.raises(UnknownOperator, match="precedes_per_path"):
             _apply_operator("precedes_per_path", [1], [2], 10, {})
@@ -1604,6 +1666,7 @@ class TestConstants:
             "tool_call.glob",
             "tool_call.ask_user",
             "tool_call.skill",
+            "tool_call.subagent_dispatch",
         }
         assert set(TOOL_NAME_MAP.keys()) == expected_keys
 
@@ -1775,3 +1838,135 @@ class TestGlobInSearchMetrics:
         target = {"metric": "tool_call.search", "count": 2}
         passed = _apply_operator("contains_count_gte", batches, target, 10, {})
         assert passed is True
+
+
+# ===========================================================================
+# only_via integration via evaluate_check
+# ===========================================================================
+
+class TestOnlyViaEvaluateCheck:
+    """Integration tests for only_via through the evaluate_check path."""
+
+    def _ctx(self):
+        return {"conditions": {}, "variables": {}}
+
+    def test_only_via_no_writes_passes(self):
+        """No writes at all → vacuously true (all done by subagents)."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_tool_use("Agent", {"prompt": "write tests"}, "t1"),
+            _tool_result("t1", "done"),
+        )
+        check = {
+            "id": "test_only_via",
+            "phase": "delegation",
+            "description": "writes only via dispatch",
+            "type": "constraint",
+            "condition": {
+                "metric": "tool_call.file_write",
+                "operator": "only_via",
+                "target": "tool_call.subagent_dispatch",
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is True
+
+    def test_only_via_writes_with_dispatch_passes(self):
+        """Writes preceded by dispatch → passes."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_tool_use("Agent", {"prompt": "write tests"}, "t1"),
+            _tool_result("t1", "done"),
+            _write("test_foo.py", "t2"),
+            _tool_result("t2", "ok"),
+        )
+        check = {
+            "id": "test_only_via",
+            "phase": "delegation",
+            "description": "writes only via dispatch",
+            "type": "constraint",
+            "condition": {
+                "metric": "tool_call.file_write",
+                "operator": "only_via",
+                "target": "tool_call.subagent_dispatch",
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is True
+
+    def test_only_via_writes_without_dispatch_fails(self):
+        """Writes without any dispatch → fails."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("test_foo.py", "t1"),
+            _tool_result("t1", "ok"),
+        )
+        check = {
+            "id": "test_only_via",
+            "phase": "delegation",
+            "description": "writes only via dispatch",
+            "type": "constraint",
+            "condition": {
+                "metric": "tool_call.file_write",
+                "operator": "only_via",
+                "target": "tool_call.subagent_dispatch",
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False
+
+
+# ===========================================================================
+# Graceful handling of unknown operators/transforms in evaluate_check
+# ===========================================================================
+
+class TestEvaluateCheckGracefulSkip:
+    """Unknown operators or transforms skip the check rather than crash."""
+
+    def _ctx(self):
+        return {"conditions": {}, "variables": {}}
+
+    def test_unknown_operator_skips(self):
+        """An unknown operator should skip (passed=None), not crash."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("foo.py", "t1"),
+            _tool_result("t1"),
+        )
+        check = {
+            "id": "test_skip",
+            "phase": "test",
+            "description": "unknown op",
+            "type": "constraint",
+            "condition": {
+                "metric": "tool_call.file_write",
+                "operator": "nonexistent_future_op",
+                "target": 0,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is None
+        assert "Unknown operator" in result.skip_reason
+
+    def test_unknown_transform_skips(self):
+        """An unknown transform should skip (passed=None), not crash."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("foo.py", "t1"),
+            _tool_result("t1"),
+        )
+        check = {
+            "id": "test_skip",
+            "phase": "test",
+            "description": "unknown transform",
+            "type": "constraint",
+            "condition": {
+                "metric": "tool_call.file_write",
+                "transform": "nonexistent_transform",
+                "operator": "eq",
+                "target": 0,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is None
+        assert "Unknown transform" in result.skip_reason
