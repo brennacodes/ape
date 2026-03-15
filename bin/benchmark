@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# Run the benchmark suite end-to-end.
+# All arguments are passed through to benchmark/run_benchmark.py.
+#
+# Usage:
+#   bin/benchmark                                    # run all cases
+#   bin/benchmark --dry-run                          # show cases without executing
+#   bin/benchmark --app bivvy --format-filter ape    # filter to specific cases
+#   bin/benchmark --workers 1 --delay 5              # sequential with rate limiting
+#
+# Options:
+#   --benchmark-root PATH   Root of the benchmark directory (default: benchmark/)
+#   --model MODEL           Model to use (default: claude-opus-4-6)
+#   --output PATH           Directory for legacy JSON results (default: output/summaries)
+#   --results-dir PATH      Directory for structured result storage (default: output/)
+#   --timeout MINUTES       Per-case timeout in minutes (default: 20)
+#   --max-turns N           Max CLI turns (unlimited if not set)
+#   --dry-run               Show discovered cases without executing them
+#   --workers N             Number of parallel workers (default: 4, 1=sequential)
+#   --delay SECONDS         Rate-limit delay between cases in seconds (default: 0)
+#   --enrich-tokens         Enable token enrichment from session logs
+#   --no-enrich-tokens      Disable token enrichment (default)
+#   --legacy-output         Write results in legacy flat JSON format
+#   -v, --verbose           Verbose logging (default: on)
+#
+# Dimension filters (any combination narrows the case matrix):
+#   --app NAME              Filter by app name (e.g. "bivvy")
+#   --category NAME         Filter by prompt category (e.g. "bugs")
+#   --item ID               Filter by app-config item ID
+#   --format-filter NAME    Filter by workflow format (e.g. "plain-text", "ape")
+#   --workflow NAME         Filter by workflow stem (e.g. "bivvy")
+#
+# Other:
+#   -h, --help              Show help message and exit
+
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 "$REPO_ROOT/benchmark/run_benchmark.py" "$@"

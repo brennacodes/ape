@@ -373,19 +373,58 @@ class Trace:
         return results
 
     def cargo_llvm_cov_results(self) -> list[dict]:
-        """Parse all cargo llvm-cov invocations and outcomes."""
+        """Parse all cargo llvm-cov invocations and outcomes.
+
+        Coverage output from ``cargo llvm-cov`` can be very large (thousands of
+        test lines) and is often truncated in the Bash tool result.  When that
+        happens, the model typically runs a follow-up command (grep, cat, or
+        tail) on the saved tool-results file to extract the TOTAL line.  We
+        look for the percentage in the original command output first, then scan
+        subsequent Bash commands for a TOTAL summary line if the percentage
+        wasn't found.
+        """
         import re
         results = []
-        for info in self.bash_commands_with_results():
+        all_commands = list(self.bash_commands_with_results())
+        for i, info in enumerate(all_commands):
             if 'cargo llvm-cov' not in info['command'] and 'llvm-cov' not in info['command']:
                 continue
             output = info['output']
             coverage_pct = None
-            # Look for coverage percentage patterns
-            # Common: "XX.XX%" or "Total: XX.XX%"
-            m = re.search(r'(\d+\.?\d*)\s*%', output)
+
+            # Try 1: Look for the TOTAL summary line directly (most reliable).
+            # Format: "TOTAL  <regions> <missed> <pct>%  <functions> <missed> <pct>%  <lines> <missed> <pct>%"
+            m = re.search(r'TOTAL\s+.*?(\d+\.?\d*)\s*%\s+.*?(\d+\.?\d*)\s*%\s+.*?(\d+\.?\d*)\s*%', output)
             if m:
-                coverage_pct = float(m.group(1))
+                # Last percentage is line coverage
+                coverage_pct = float(m.group(3))
+            else:
+                # Try 2: Any percentage pattern in the output
+                m = re.search(r'(\d+\.?\d*)\s*%', output)
+                if m:
+                    coverage_pct = float(m.group(1))
+
+            # Try 3: Output was truncated — check subsequent commands for the
+            # TOTAL line (model often greps/cats the tool-results file).
+            if coverage_pct is None:
+                for subsequent in all_commands[i+1:]:
+                    sub_out = subsequent['output']
+                    # Look for TOTAL line in the output of follow-up commands
+                    m = re.search(
+                        r'TOTAL\s+.*?(\d+\.?\d*)\s*%\s+.*?(\d+\.?\d*)\s*%\s+.*?(\d+\.?\d*)\s*%',
+                        sub_out,
+                    )
+                    if m:
+                        coverage_pct = float(m.group(3))
+                        break
+                    # Also try a simpler percentage if the grep is just the
+                    # summary portion (e.g. "92.84%")
+                    if 'TOTAL' in sub_out:
+                        m = re.search(r'(\d+\.?\d*)\s*%', sub_out)
+                        if m:
+                            coverage_pct = float(m.group(1))
+                            break
+
             results.append({
                 'command': info['command'],
                 'event_index': info['event_index'],

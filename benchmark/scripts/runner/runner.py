@@ -341,7 +341,10 @@ def _extract_cli_error(raw_output: str, stderr: str, exit_code: int) -> str:
     return f"CLI exited with code {exit_code}: {fallback}"
 
 
-def check_results_to_outcomes(results: list[CheckResult]) -> list[CheckOutcome]:
+def check_results_to_outcomes(
+    results: list[CheckResult],
+    category: str = "",
+) -> list[CheckOutcome]:
     """Convert evaluator CheckResults to results module CheckOutcomes."""
     return [
         make_outcome(
@@ -350,6 +353,7 @@ def check_results_to_outcomes(results: list[CheckResult]) -> list[CheckOutcome]:
             passed=r.passed,
             skip_reason=r.skip_reason,
             detail=r.detail,
+            category=category or None,
             metric_value=r.metric_value,
             target_value=r.target_value,
             operator=r.operator,
@@ -596,7 +600,7 @@ def _run_in_workspace(
 
     # 8. Summarize
     logger.info("%s: summarizing results", case.case_id)
-    outcomes = check_results_to_outcomes(check_results)
+    outcomes = check_results_to_outcomes(check_results, category=case.category)
     # For template cases, prompt_id encodes category/item for unique identification
     if case.category and case.item_id:
         effective_prompt_id = f"{case.category}/{case.item_id}"

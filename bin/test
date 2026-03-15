@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+#
+# Run the benchmark test suite via pytest.
+# All arguments are passed through to pytest.
+#
+# Usage:
+#   bin/test                                         # run all tests
+#   bin/test -v                                      # verbose output
+#   bin/test -k test_evaluator                       # run tests matching name
+#   bin/test benchmark/scripts/evaluator/            # run tests in a specific module
+#   bin/test -x                                      # stop on first failure
+#
+# Common pytest options:
+#   -v, --verbose           Increase verbosity
+#   -x, --exitfirst         Stop after first failure
+#   -k EXPRESSION           Only run tests matching the expression
+#   -s                      Disable output capture (show print statements)
+#   --tb=short|long|auto    Traceback print mode
+#   --lf, --last-failed     Re-run only tests that failed last time
+#   --co, --collect-only    Only collect tests, don't execute
+#   -h, --help              Show help message and exit
+#
+# Test modules:
+#   benchmark/scripts/evaluator/test_evaluator.py              Evaluator core logic
+#   benchmark/scripts/evaluator/test_evaluator_integration.py  Full evaluation workflows
+#   benchmark/scripts/evaluator/test_operators.py              Comparison operators
+#   benchmark/scripts/evaluator/test_eval_trace.py             Evaluation audit trail
+#   benchmark/scripts/runner/test_runner.py                    Case execution
+#   benchmark/scripts/runner/test_trace.py                     Trace parsing
+#   benchmark/scripts/runner/test_environment.py               Workspace isolation
+#   benchmark/scripts/coordinator/test_coordinator.py          Discovery & matching
+#   benchmark/scripts/results/test_results.py                  Result formatting
+#   benchmark/scripts/results/test_statistical_report.py       Report generation
+#   benchmark/scripts/metrics/test_efficiency.py               Efficiency metrics
+#   benchmark/scripts/test_infrastructure.py                   Integration tests
+#   benchmark/scripts/test_integration.py                      End-to-end tests
+
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 -m pytest "$REPO_ROOT/benchmark/scripts/" "$@"

@@ -521,20 +521,11 @@ checks:
       metric_args: "cargo build"
       target_args: "git commit"
 
-  - id: post_commit_loops_to_specification
-    phase: post_commit
-    category: adherence
-    description: >
-      After successful post-commit verification, loop back to specification
-      for the next change. The workflow is cyclical — each commit starts
-      a new TDD cycle.
-    type: constraint
-    prompt_condition: explicit_edit_requested
-    condition:
-      metric: phase.on_pass_route
-      metric_args: "post_commit"
-      operator: eq
-      target: "tdd_specify"
+  # REMOVED: post_commit_loops_to_specification
+  # The workflow now correctly stops after successful post-commit verification
+  # when the work is complete. Looping back to specification only applies when
+  # there are additional changes to make, which is a workflow-level decision,
+  # not something to enforce per-prompt.
 
   # ---------------------------------------------------------------------------
   # FAILURE RECOVERY (floating)

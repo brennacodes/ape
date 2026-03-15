@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# Re-evaluate stored benchmark results using the current evaluator.
+# All arguments are passed through to benchmark/re_evaluate.py.
+#
+# At least one targeting option is required.
+#
+# Usage:
+#   bin/re-evaluate --last                           # most recent run
+#   bin/re-evaluate --last --save                    # most recent, save corrections
+#   bin/re-evaluate --run 3                          # specific run number
+#   bin/re-evaluate --all                            # everything
+#   bin/re-evaluate --format ape --fixture bivvy     # filter by format and fixture
+#   bin/re-evaluate output/bivvy/ape/.../003         # specific run directory
+#
+# Targeting options (at least one required):
+#   PATH                    Path to a specific run directory to re-evaluate
+#   --last                  Re-evaluate only the most recent run
+#   --all                   Re-evaluate all runs
+#   --run N                 Re-evaluate a specific run number (e.g. 3)
+#
+# Filter options (narrow which runs are re-evaluated):
+#   --fixture ID            Filter by fixture ID (e.g. "bivvy")
+#   --format NAME           Filter by format (e.g. "ape", "markdown")
+#   --prompt ID             Filter by prompt ID (e.g. "bugs/silent_yaml_failure")
+#
+# Output options:
+#   --save                  Write corrected results back to disk (summary.json + check files)
+#
+# Other:
+#   -h, --help              Show help message and exit
+
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 "$REPO_ROOT/benchmark/re_evaluate.py" "$@"

@@ -130,6 +130,16 @@ class MetricNotResolvable(Exception):
     """Raised when a metric cannot be resolved from the Trace alone."""
 
 
+class CheckNotApplicable(Exception):
+    """Raised when a check's runtime precondition was not met.
+
+    Unlike MetricNotResolvable (which means "the data we expected is missing"),
+    this means "the situation this check evaluates never arose" — e.g. a routing
+    check for build failures when no build failure occurred.  The check should
+    be skipped (passed=None), not failed.
+    """
+
+
 class UnknownOperator(Exception):
     """Raised when a condition references an operator not in the vocabulary."""
 
@@ -354,7 +364,15 @@ def _detect_phases(
     - execution_order: ordered phase names (floating phases excluded)
     - phase_events: {phase_name: [event_indices]} for all detected phases
     """
-    # Find the implementation boundary (first Write/Edit/Create event)
+    # Find the implementation boundary (first Write/Edit/Create event that is
+    # NOT a test specification).  This handles two cases:
+    #   1. Dedicated test files: path contains "test" (e.g. tests/foo_test.rs)
+    #   2. Inline tests: content contains test markers (e.g. #[test] in a src/ file)
+    # Without this exclusion, a TDD-first edit that adds tests would set the
+    # implementation boundary, making tdd_specify impossible to detect.
+    tdd_mapping = phase_tool_mapping.get("tdd_specify", {})
+    tdd_match_str = tdd_mapping.get("match", "")
+    tdd_content_match = tdd_mapping.get("content_match")
     impl_mapping = phase_tool_mapping.get("implementation", {})
     impl_signals = impl_mapping.get("signals", [])
     impl_first_idx = None
@@ -362,12 +380,25 @@ def _detect_phases(
         tool_name = TOOL_NAME_MAP.get(sig)
         if tool_name:
             for tc in trace.all_tool_calls(tool_name):
+                # Skip dedicated test file writes (path contains "test")
+                if tdd_match_str and tdd_match_str in _primary_arg(tc):
+                    continue
+                # Skip edits whose content contains test markers (inline tests).
+                # This lets the implementation boundary advance past TDD edits
+                # to src/ files that add #[test] functions.
+                if tdd_content_match:
+                    content = tc.input.get("content", "") or tc.input.get("new_string", "")
+                    if content and re.search(tdd_content_match, content):
+                        continue
                 if impl_first_idx is None or tc.call_index < impl_first_idx:
                     impl_first_idx = tc.call_index
 
-    # Find verification boundary (first verification event after implementation)
-    verify_mapping = phase_tool_mapping.get("verification", {})
+    # Find verification boundary (first verification/testing event after implementation).
+    # Look for "verification" first, fall back to "testing" — the test config may
+    # use either name for the same concept.
+    verify_mapping = phase_tool_mapping.get("verification") or phase_tool_mapping.get("testing", {})
     verify_signals = verify_mapping.get("signals", [])
+    verify_match = verify_mapping.get("match")
     verify_first_idx = None
     if impl_first_idx is not None:
         for sig in verify_signals:
@@ -375,13 +406,23 @@ def _detect_phases(
             if tool_name:
                 for tc in trace.all_tool_calls(tool_name):
                     if tc.call_index > impl_first_idx:
+                        # Apply match filter if present (e.g. "cargo test")
+                        if verify_match and not _matches_signal(tc, verify_match):
+                            continue
                         if verify_first_idx is None or tc.call_index < verify_first_idx:
                             verify_first_idx = tc.call_index
 
-    # Positions that depend on other phases being detected first
-    _DEFERRED_POSITIONS = {"after_tdd_specify"}
+    # Positions that depend on other phases being detected first.
+    # "last" is deferred so it can enforce ordering: a "last" phase must come
+    # after the preceding ordered phase (e.g. post_commit must come after commit).
+    _DEFERRED_POSITIONS = {"after_tdd_specify", "last"}
 
-    def _collect_phase(phase_name: str, mapping: dict, lower_bound: int | None = None) -> list[int]:
+    def _collect_phase(
+        phase_name: str,
+        mapping: dict,
+        lower_bound: int | None = None,
+        upper_bound: int | None = None,
+    ) -> list[int]:
         """Collect matching event indices for a phase, respecting position and match filters."""
         signals = mapping.get("signals", [])
         position = mapping.get("position", "any")
@@ -418,9 +459,16 @@ def _detect_phases(
                         if lower_bound is None or idx <= lower_bound:
                             rejection_reason = f"index {idx} <= tdd_specify boundary {lower_bound}"
                             accepted = False
+                        elif upper_bound is not None and idx >= upper_bound:
+                            rejection_reason = f"index {idx} >= impl boundary {upper_bound} (past TDD prove-fail window)"
+                            accepted = False
                     elif position == "last":
-                        # Handled below — collect all, then keep only last
-                        pass
+                        # Collect all candidates, then keep only the last one
+                        # (done below).  If a lower_bound is set (from the
+                        # preceding ordered phase), reject events before it.
+                        if lower_bound is not None and idx <= lower_bound:
+                            rejection_reason = f"index {idx} <= preceding phase boundary {lower_bound}"
+                            accepted = False
                     # Apply match filter
                     if accepted and match_str:
                         if not _matches_signal(tc, match_str, content_match):
@@ -475,19 +523,47 @@ def _detect_phases(
             phase_events[phase_name] = indices
 
     # Pass 2: detect deferred phases using first-pass results
+    ordered_phases = phase_classification.get("ordered", [])
     for phase_name, mapping in deferred:
         position = mapping.get("position", "any")
         lower_bound = None
+        upper_bound = None
         if position == "after_tdd_specify":
             tdd_specify_indices = phase_events.get("tdd_specify", [])
             if tdd_specify_indices:
                 lower_bound = min(tdd_specify_indices)
+                # tdd_prove_fail should only include events before implementation
+                # starts — after that, test runs are verification, not prove-fail.
+                upper_bound = impl_first_idx
             else:
                 # No tdd_specify detected — cannot satisfy after_tdd_specify
                 continue
-        indices = _collect_phase(phase_name, mapping, lower_bound=lower_bound)
+        elif position == "last":
+            # "last" phases must come after the preceding ordered phase.
+            # Find the phase that immediately precedes this one in the
+            # ordered classification and use its max event as the lower bound.
+            if phase_name in ordered_phases:
+                idx_in_order = ordered_phases.index(phase_name)
+                # Walk backwards to find the nearest preceding phase that was detected
+                for preceding in reversed(ordered_phases[:idx_in_order]):
+                    if preceding in phase_events and phase_events[preceding]:
+                        lower_bound = max(phase_events[preceding])
+                        break
+        indices = _collect_phase(phase_name, mapping, lower_bound=lower_bound, upper_bound=upper_bound)
         if indices:
             phase_events[phase_name] = indices
+
+    # Deduplicate: events claimed by earlier ordered phases should not also
+    # appear in later phases.  E.g. a test-content edit at index 46 detected
+    # as tdd_specify should not also appear in implementation's event list.
+    claimed: set[int] = set()
+    for phase_name in ordered_phases:
+        if phase_name in phase_events:
+            phase_events[phase_name] = [i for i in phase_events[phase_name] if i not in claimed]
+            claimed.update(phase_events[phase_name])
+            # Remove phases that have no events left after dedup
+            if not phase_events[phase_name]:
+                del phase_events[phase_name]
 
     # Build execution order by first occurrence, excluding floating phases
     floating = set(phase_classification.get("floating", []))
@@ -541,20 +617,35 @@ def _count_impl_verify_cycles(phase_events: dict[str, list[int]]) -> int:
 # External state metric resolution
 # ---------------------------------------------------------------------------
 
+# Paths that are tooling artifacts, not source changes the model chose to make.
+# These are excluded from diff.files_changed so they don't pollute scope checks.
+_DIFF_EXCLUDED_PREFIXES = (
+    ".claude/",
+    "CLAUDE.md",
+)
+
+
 def _resolve_diff_files_changed(trace: Trace, context: dict[str, Any]) -> list[str]:
     """
     Resolve diff.files_changed — files modified during the session.
 
     Prefers workspace_state.modified_files when available (actual git diff).
     Falls back to Write/Edit tool call paths from the trace (normalized to relative).
+
+    Excludes tooling artifacts (e.g. .claude/) that are not source changes the
+    model intentionally made.
     """
     ws = context.get("workspace_state", {})
     if ws.get("modified_files"):
-        return list(ws["modified_files"])
-    # Fallback: infer from Write/Edit tool calls in the trace
-    workspace_path = context.get("workspace_path") or trace.workspace_path
-    raw = list(dict.fromkeys(trace.all_file_paths_modified()))
-    return list(_normalize_to_relative(set(raw), workspace_path))
+        raw = list(ws["modified_files"])
+    else:
+        # Fallback: infer from Write/Edit tool calls in the trace
+        workspace_path = context.get("workspace_path") or trace.workspace_path
+        raw = list(_normalize_to_relative(
+            set(dict.fromkeys(trace.all_file_paths_modified())),
+            workspace_path,
+        ))
+    return [p for p in raw if not any(p.startswith(pfx) for pfx in _DIFF_EXCLUDED_PREFIXES)]
 
 
 def _normalize_to_relative(paths: set[str], workspace_path: str | None) -> set[str]:
@@ -689,6 +780,7 @@ def _resolve_phase_routing(
     if routing_type == "on_fail":
         # Find failed commands for this phase
         commands = phase_commands.get(phase_name, [])
+        any_failures_found = False
         for cmd_pattern in commands:
             failed_indices = trace.command_failed_at(cmd_pattern)
             if eval_trace is not None:
@@ -713,6 +805,7 @@ def _resolve_phase_routing(
                     failed=failed_bash,
                     last_fail_index=max(failed_indices) if failed_indices else None)
             if failed_indices:
+                any_failures_found = True
                 # Look at what happens after the failure
                 last_fail = max(failed_indices)
                 mods = trace.file_modifications_after_event(last_fail)
@@ -732,18 +825,49 @@ def _resolve_phase_routing(
                                 eval_trace.log("_resolve_phase_routing", "routing_concluded",
                                     detected_route="implementation", phase_name=phase_name)
                             return "implementation"
-                # Check if the failed command was re-run (without modifications = didn't route)
+                # Check if the specific failed command was re-run.  If the
+                # re-run succeeded, the model (or a self-fixing tool like
+                # cargo fmt) resolved the issue — that counts as routing
+                # through implementation even without explicit Write/Edit
+                # calls.  Only conclude "no routing" when the re-run also
+                # failed (the model blindly retried without fixing).
+                #
+                # Important: only match re-runs of the *specific* command
+                # pattern that failed, not any command in the phase.  E.g.
+                # if cargo fmt failed, don't match a subsequent cargo clippy.
                 for info in trace.bash_commands_with_results():
-                    if info['event_index'] > last_fail:
-                        for pattern in commands:
-                            if pattern in info['command']:
-                                if eval_trace is not None:
-                                    eval_trace.log("_resolve_phase_routing", "checked_command_rerun",
-                                        after_index=last_fail, matched_rerun=True, conclusion=None)
-                                    eval_trace.log("_resolve_phase_routing", "routing_concluded",
-                                        detected_route=None, phase_name=phase_name)
-                                # Re-ran same command without fixing = no routing
-                                return None
+                    if info['event_index'] > last_fail and cmd_pattern in info['command']:
+                        rerun_succeeded = info['exit_code'] is None or info['exit_code'] == 0
+                        if eval_trace is not None:
+                            eval_trace.log("_resolve_phase_routing", "checked_command_rerun",
+                                after_index=last_fail, matched_rerun=True,
+                                rerun_command=info['command'][:80],
+                                rerun_exit_code=info['exit_code'],
+                                rerun_succeeded=rerun_succeeded,
+                                conclusion="implementation" if rerun_succeeded else None)
+                        if rerun_succeeded:
+                            # Command was re-run and passed — the issue
+                            # was fixed (either by the model editing
+                            # files or by a self-fixing tool like fmt).
+                            if eval_trace is not None:
+                                eval_trace.log("_resolve_phase_routing", "routing_concluded",
+                                    detected_route="implementation", phase_name=phase_name)
+                            return "implementation"
+                        else:
+                            # Re-ran but still failed — no real fix applied.
+                            if eval_trace is not None:
+                                eval_trace.log("_resolve_phase_routing", "routing_concluded",
+                                    detected_route=None, phase_name=phase_name)
+                            return None
+        # If no failures were found at all, the prerequisite event never
+        # occurred — this check is not applicable (skip, don't fail).
+        if not any_failures_found:
+            reason = f"No {phase_name} failures occurred — routing check is not applicable"
+            if eval_trace is not None:
+                eval_trace.log("_resolve_phase_routing", "routing_not_applicable",
+                    phase_name=phase_name, reason=reason)
+            raise CheckNotApplicable(reason)
+
         if eval_trace is not None:
             eval_trace.log("_resolve_phase_routing", "routing_concluded",
                 detected_route=None, phase_name=phase_name)
@@ -1863,6 +1987,19 @@ def evaluate_check(
     try:
         passed, detail, metric_value, target_value, op = evaluate_condition_with_evidence(
             condition, trace, context, eval_trace=et)
+    except CheckNotApplicable as exc:
+        # Skip, not fail: the runtime precondition for this check was never met.
+        # E.g. a build-failure routing check when no build failure occurred.
+        et.log("evaluate_check", "check_skipped",
+            passed=None, reason=str(exc))
+        return CheckResult(
+            check_id=check_id,
+            phase=phase,
+            description=description,
+            passed=None,
+            skip_reason=str(exc),
+            eval_trace=et.to_list(),
+        )
     except MetricNotResolvable as exc:
         # Fail, not skip: if the check expects data and it's missing, the agent
         # didn't do what the workflow required (e.g. no commits → commit checks
