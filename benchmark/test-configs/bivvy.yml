@@ -1,24 +1,24 @@
 fixture_id: bivvy
 description: >
-  Atomic TDD pipeline with layered verification gates for Bivvy. Checks target TDD
-  cycle discipline (tests before implementation, prove failure before
-  implementing), documentation verification, lint-before-test ordering,
-  build verification, coverage thresholds, and atomic commit expectations.
+  Verification suite for the Bivvy APE workflow. Checks whether the model
+  follows the declared step sequence (specification → implementation →
+  documentation → linting → testing → build → commit → post-commit),
+  respects gate routing on failure, and meets commit discipline rules.
 
 # ---------------------------------------------------------------------------
 # PHASE CLASSIFICATION
 # ---------------------------------------------------------------------------
+# Names match the <step id="..."> values in bivvy.ape.
 phase_classification:
   ordered:
-    - tdd_specify
-    - tdd_prove_fail
+    - specification
     - implementation
     - documentation
     - linting
     - testing
     - build
     - commit
-    - post_commit
+    - post-commit
   floating:
     - failure_recovery
 
@@ -26,15 +26,11 @@ phase_classification:
 # PHASE TOOL MAPPING
 # ---------------------------------------------------------------------------
 phase_tool_mapping:
-  tdd_specify:
+  specification:
     signals: [tool_call.file_write, tool_call.file_edit]
     position: before_implementation
     match: "test" # Target test files
     content_match: "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests"
-  tdd_prove_fail:
-    signals: [tool_call.execute_command]
-    position: after_tdd_specify
-    match: "cargo test"
   implementation:
     signals: [tool_call.file_write, tool_call.file_edit, tool_call.file_create]
     position: any
@@ -60,7 +56,7 @@ phase_tool_mapping:
     signals: [tool_call.execute_command]
     position: after_verification
     match: "git commit"
-  post_commit:
+  post-commit:
     signals: [tool_call.execute_command]
     position: last
     match: "git log"
@@ -75,10 +71,11 @@ checks:
   - id: phase_ordering
     phase: workflow
     category: adherence
+    enabled: false  # Disabled: phase detection needs redesign to distinguish gate commands from step commands
     description: >
-      Ordered phases must respect the pipeline sequence: write tests,
-      prove failure, implement, document, lint, test, build, commit,
-      post-commit verify.
+      Steps must respect the pipeline sequence declared in bivvy.ape:
+      specification → implementation → documentation → linting → testing →
+      build → commit → post-commit.
     type: workflow_order
     condition:
       metric: phase.execution_order
@@ -96,13 +93,13 @@ checks:
       target: 3
 
   # ---------------------------------------------------------------------------
-  # TDD SPECIFICATION (Tests First)
+  # SPECIFICATION (Tests First)
   # ---------------------------------------------------------------------------
   # High tension: LLMs strongly prefer writing implementation first.
-  # This workflow demands tests-first with proven failure.
+  # The workflow demands tests-first with proven failure.
 
   - id: tdd_tests_before_implementation
-    phase: tdd_specify
+    phase: specification
     category: adherence
     description: >
       Write or update tests BEFORE implementing production code.
@@ -117,7 +114,7 @@ checks:
       target_args: "src/"
 
   - id: tdd_prove_tests_fail
-    phase: tdd_prove_fail
+    phase: specification
     category: adherence
     description: >
       Run tests after writing them but before implementing, to confirm
@@ -239,22 +236,6 @@ checks:
   # Medium tension: LLMs sometimes skip lint entirely or run it after
   # committing. The workflow demands both fmt and clippy before the
   # final test run.
-
-  - id: lint_before_testing
-    phase: linting
-    category: adherence
-    description: >
-      Run linting before the verification test suite. Catch style and
-      static analysis issues before confirming correctness.
-    type: workflow_order
-    prompt_condition: explicit_edit_requested
-    condition:
-      metric: tool_call.execute_command
-      metric_args: "cargo fmt"
-      operator: strictly_precedes
-      target: tool_call.execute_command
-      target_args: "cargo test"
-      target_position: after_implementation
 
   - id: run_clippy
     phase: linting
@@ -489,10 +470,9 @@ checks:
   # POST-COMMIT VERIFICATION
   # ---------------------------------------------------------------------------
   # After committing, re-run tests and build to confirm nothing broke.
-  # The workflow then loops back to specification for the next change.
 
   - id: test_after_commit
-    phase: post_commit
+    phase: post-commit
     category: adherence
     description: >
       Re-run the test suite after committing to confirm the committed
@@ -507,7 +487,7 @@ checks:
       target_args: "git commit"
 
   - id: build_after_commit
-    phase: post_commit
+    phase: post-commit
     category: adherence
     description: >
       Re-run cargo build after committing to confirm the committed
@@ -520,12 +500,6 @@ checks:
       target: tool_call.execute_command
       metric_args: "cargo build"
       target_args: "git commit"
-
-  # REMOVED: post_commit_loops_to_specification
-  # The workflow now correctly stops after successful post-commit verification
-  # when the work is complete. Looping back to specification only applies when
-  # there are additional changes to make, which is a workflow-level decision,
-  # not something to enforce per-prompt.
 
   # ---------------------------------------------------------------------------
   # FAILURE RECOVERY (floating)

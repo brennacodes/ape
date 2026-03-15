@@ -9,9 +9,9 @@ Bivvy is a cross-language development environment setup automation tool built in
 - **Zero warnings** — warnings are treated as errors and should be fixed immediately.
 - **Small steps** — prefer many small commits over few large ones.
 
-## The TDD Pipeline
+## The Development Pipeline
 
-Development follows a strict test-driven sequence. Each step must be completed before moving to the next.
+Follow these steps exactly in order. Each step must be completed before moving to the next.
 
 ### 1. Specification (Tests First)
 

@@ -358,7 +358,7 @@ def _detect_phases(
 
     Two-pass approach: first pass detects phases without dependency constraints,
     second pass resolves phases that depend on first-pass results (e.g.
-    after_tdd_specify depends on tdd_specify).
+    after_specification depends on specification).
 
     Returns (execution_order, phase_events) where:
     - execution_order: ordered phase names (floating phases excluded)
@@ -369,8 +369,8 @@ def _detect_phases(
     #   1. Dedicated test files: path contains "test" (e.g. tests/foo_test.rs)
     #   2. Inline tests: content contains test markers (e.g. #[test] in a src/ file)
     # Without this exclusion, a TDD-first edit that adds tests would set the
-    # implementation boundary, making tdd_specify impossible to detect.
-    tdd_mapping = phase_tool_mapping.get("tdd_specify", {})
+    # implementation boundary, making specification impossible to detect.
+    tdd_mapping = phase_tool_mapping.get("specification", {})
     tdd_match_str = tdd_mapping.get("match", "")
     tdd_content_match = tdd_mapping.get("content_match")
     impl_mapping = phase_tool_mapping.get("implementation", {})
@@ -414,8 +414,8 @@ def _detect_phases(
 
     # Positions that depend on other phases being detected first.
     # "last" is deferred so it can enforce ordering: a "last" phase must come
-    # after the preceding ordered phase (e.g. post_commit must come after commit).
-    _DEFERRED_POSITIONS = {"after_tdd_specify", "last"}
+    # after the preceding ordered phase (e.g. post-commit must come after commit).
+    _DEFERRED_POSITIONS = {"after_specification", "last"}
 
     def _collect_phase(
         phase_name: str,
@@ -455,9 +455,9 @@ def _detect_phases(
                         if verify_first_idx is None or idx <= verify_first_idx:
                             rejection_reason = f"index {idx} <= verify boundary {verify_first_idx}"
                             accepted = False
-                    elif position == "after_tdd_specify":
+                    elif position == "after_specification":
                         if lower_bound is None or idx <= lower_bound:
-                            rejection_reason = f"index {idx} <= tdd_specify boundary {lower_bound}"
+                            rejection_reason = f"index {idx} <= specification boundary {lower_bound}"
                             accepted = False
                         elif upper_bound is not None and idx >= upper_bound:
                             rejection_reason = f"index {idx} >= impl boundary {upper_bound} (past TDD prove-fail window)"
@@ -528,15 +528,15 @@ def _detect_phases(
         position = mapping.get("position", "any")
         lower_bound = None
         upper_bound = None
-        if position == "after_tdd_specify":
-            tdd_specify_indices = phase_events.get("tdd_specify", [])
-            if tdd_specify_indices:
-                lower_bound = min(tdd_specify_indices)
-                # tdd_prove_fail should only include events before implementation
+        if position == "after_specification":
+            specification_indices = phase_events.get("specification", [])
+            if specification_indices:
+                lower_bound = min(specification_indices)
+                # specification should only include events before implementation
                 # starts — after that, test runs are verification, not prove-fail.
                 upper_bound = impl_first_idx
             else:
-                # No tdd_specify detected — cannot satisfy after_tdd_specify
+                # No specification detected — cannot satisfy after_specification
                 continue
         elif position == "last":
             # "last" phases must come after the preceding ordered phase.
@@ -555,7 +555,7 @@ def _detect_phases(
 
     # Deduplicate: events claimed by earlier ordered phases should not also
     # appear in later phases.  E.g. a test-content edit at index 46 detected
-    # as tdd_specify should not also appear in implementation's event list.
+    # as specification should not also appear in implementation's event list.
     claimed: set[int] = set()
     for phase_name in ordered_phases:
         if phase_name in phase_events:
@@ -874,23 +874,23 @@ def _resolve_phase_routing(
         return None
 
     elif routing_type == "on_pass":
-        # For post_commit: after successful commit verification, check for spec activity
-        if phase_name == "post_commit":
-            post_commit_events = phase_events.get("post_commit", [])
+        # For post-commit: after successful commit verification, check for spec activity
+        if phase_name == "post-commit":
+            post_commit_events = phase_events.get("post-commit", [])
             if not post_commit_events:
                 if eval_trace is not None:
                     eval_trace.log("_resolve_phase_routing", "routing_concluded",
                         detected_route=None, phase_name=phase_name,
-                        reason="no post_commit events")
+                        reason="no post-commit events")
                 return None
             last_post = max(post_commit_events)
-            # Look for test-writing activity after post_commit
-            tdd_events = phase_events.get("tdd_specify", [])
+            # Look for specification activity after post-commit
+            tdd_events = phase_events.get("specification", [])
             if any(idx > last_post for idx in tdd_events):
                 if eval_trace is not None:
                     eval_trace.log("_resolve_phase_routing", "routing_concluded",
-                        detected_route="tdd_specify", phase_name=phase_name)
-                return "tdd_specify"
+                        detected_route="specification", phase_name=phase_name)
+                return "specification"
         if eval_trace is not None:
             eval_trace.log("_resolve_phase_routing", "routing_concluded",
                 detected_route=None, phase_name=phase_name)
@@ -1635,9 +1635,9 @@ def _resolve_position_boundary(
         impl_indices = phase_events.get("implementation", [])
         return max(impl_indices) if impl_indices else None
 
-    if position == "after_tdd_specify" and phase_mapping:
+    if position == "after_specification" and phase_mapping:
         _, phase_events = _detect_phases(trace, phase_mapping, phase_class, eval_trace=eval_trace)
-        tdd_indices = phase_events.get("tdd_specify", [])
+        tdd_indices = phase_events.get("specification", [])
         return min(tdd_indices) if tdd_indices else None
 
     return None
@@ -1957,6 +1957,15 @@ def evaluate_check(
     conditions_ctx = context.get("conditions", {})
 
     et = EvalTrace()
+
+    # Skip disabled checks
+    if check.get("enabled") is False:
+        et.log("evaluate_check", "check_disabled", check_id=check_id)
+        return CheckResult(
+            check_id=check_id, phase=phase, description=description,
+            passed=None, skip_reason="check disabled",
+            eval_trace=et.to_list())
+
     et.log("evaluate_check", "check_started",
         check_id=check_id, phase=phase, condition=check.get("condition"))
 
