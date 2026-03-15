@@ -1,26 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ape version="0.3.0" xmlns="https://ape-lang.dev/schema/0">
 
-  <preamble>
-APE is an executable workflow. You are the runtime.
+  <IMPORTANT>
+  APE is an executable workflow. You are the runtime. You MUST follow the workflow exactly as specified.
 
-Meta is configuration and declarations only. Tags declared here are available globally but not executed until referenced.
+  You MUST process steps in order unless explicitly instructed otherwise by the workflow.
 
-Instruction and action are both directives. Instruction: do what it says. Action: execute its children.
+  <meta> block is configuration and declarations only.
+  <instruction> tags are directives.
+  <gate> tags evaluate a condition and route via on-fail (required) or on-pass.
+  <conditional> tags branch on a value via case children, with an optional default.
+  <run> tags execute commands, either inline or by reference to an id in <approved-commands> or <approved-gate-commands>.
 
-Gates evaluate a condition and route via on-fail (required) or on-pass. Pass/fail must be unambiguous. Exactly one of ref or check per criterion.
-
-Conditionals branch on a value via case children, with an optional default.
-
-Process steps in order.
-  </preamble>
+  <approved-gate-commands> are the ONLY commands that can be executed from within a <gate> tag.
+  IF you need to evaluate something that isn't in <approved-gate-commands>, you MUST follow the gate logic FIRST. Any subsequent execution MUST use <approved-commands>.
+  </IMPORTANT>
 
   <meta>
     <name>Bivvy Development Workflow</name>
     <description>Atomic, test-driven development workflow for building Bivvy. Tests first, prove failure, implement, document, verify, commit. Each commit is code + tests + docs for one logical change.</description>
 
-    <command id="run-tests">cargo test --all-features</command>
-    <var name="test_failures" type="number"><command>cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i=="failed;") sum+=$(i-1) } END { print sum+0 }'</command></var>
+    <approved-commands>
+      <command id="run-tests">cargo test --all-features</command>
+      <command id="build">cargo build</command>
+      <command id="build-dev">cargo build --all-targets --all-features</command>
+      <command id="build-release">cargo build --release</command>
+      <command id="clippy">cargo clippy --all-targets --all-features -- -D warnings</command>
+      <command id="fmt">cargo fmt -- --check</command>
+      <command id="doc">cargo doc --no-deps --all-features</command>
+      <command id="cov">cargo llvm-cov --all-features</command>
+    </approved-commands>
+
+    <approved-gate-commands>
+      <command id="test-failure-count">cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i=="failed;") sum+=$(i-1) } END { print sum+0 }'</command>
+      <command id="build-error-count">cargo build 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="build-dev-error-count">cargo build --all-targets --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="build-release-error-count">cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="clippy-error-count">cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="fmt-error-count">cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command>
+      <command id="cov-pct">cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; exit } }'</command>
+      <command id="doc-errors">cargo doc --no-deps --all-features 2>&amp;1 | grep -c "^error"</command>
+    </approved-gate-commands>
+
     <var name="min_coverage" type="number" default="90" />
   </meta>
 
@@ -38,10 +59,11 @@ Process steps in order.
 
       <instruction>Write or update test files that specify the intended behavior.</instruction>
 
-      <action><command ref="run-tests" /></action>
-
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
+
         <criterion check="{{ test_failures == 0 }}" />
+
         <on-fail goto="implementation" />
         <on-pass goto="specification" />
       </gate>
@@ -52,11 +74,12 @@ Process steps in order.
 
       <instruction>Write the minimum implementation to pass failing tests.</instruction>
 
-      <action><command ref="run-tests" /></action>
-
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
+
         <criterion check="{{ test_failures == 0 }}" />
-        <on-fail retry="true" max="3" then="halt" />
+
+        <on-fail retry="true" max="3" then="stop" />
         <on-pass goto="documentation" />
       </gate>
     </step>
@@ -76,13 +99,12 @@ Process steps in order.
         <instruction>Limit inline comments to non-obvious rationale.</instruction>
       </instructions>
 
-      <action><command>cargo doc --no-deps --all-features</command></action>
-
-      <var name="doc_errors" type="number"><command>cargo doc --no-deps --all-features 2>&amp;1 | grep -c "^error"</command></var>
-
       <gate>
+        <run ref="doc-errors" set="doc_errors" />
+
         <criterion check="{{ doc_errors == 0 }}" />
-        <on-fail retry="true" max="2" then="halt" />
+
+        <on-fail retry="true" max="2" then="stop" />
         <on-pass goto="linting" />
       </gate>
     </step>
@@ -90,18 +112,15 @@ Process steps in order.
     <step number="4" id="linting">
       <prerequisite ref="documentation" goto="documentation" />
 
-      <action><command>cargo fmt -- --check</command></action>
-
-      <action><command>cargo clippy --all-targets --all-features -- -D warnings</command></action>
-
-      <var name="fmt_errors" type="number"><command>cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command></var>
-      <var name="clippy_errors" type="number"><command>cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
-
       <gate>
+        <run ref="fmt-error-count" set="fmt_errors" />
+        <run ref="clippy-error-count" set="clippy_errors" />
+
         <criteria operator="and">
           <criterion check="{{ fmt_errors == 0 }}" />
           <criterion check="{{ clippy_errors == 0 }}" />
         </criteria>
+
         <on-fail goto="implementation" />
         <on-pass goto="testing" />
       </gate>
@@ -110,16 +129,15 @@ Process steps in order.
     <step number="5" id="testing">
       <prerequisite ref="linting" goto="linting" />
 
-      <action><command ref="run-tests" /></action>
-      <action><command>cargo llvm-cov --all-features</command></action>
-
-      <var name="coverage_pct" type="number"><command>cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; exit } }'</command></var>
-
       <gate>
+        <run ref="cov-pct" set="coverage_pct" />
+        <run ref="test-failure-count" set="test_failures" />
+
         <criteria operator="and">
           <criterion check="{{ test_failures == 0 }}" />
           <criterion check="{{ coverage_pct >= min_coverage }}" />
         </criteria>
+
         <on-fail goto="implementation" />
         <on-pass goto="build" />
       </gate>
@@ -128,17 +146,15 @@ Process steps in order.
     <step number="6" id="build">
       <prerequisite ref="testing" goto="testing" />
 
-      <action><command>cargo build --all-targets --all-features</command></action>
-      <action><command>cargo build --release</command></action>
-
-      <var name="build_dev_errors" type="number"><command>cargo build --all-targets --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
-      <var name="build_release_errors" type="number"><command>cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
-
       <gate>
+        <run ref="build-dev-error-count" set="build_dev_errors" />
+        <run ref="build-release-error-count" set="build_release_errors" />
+
         <criteria operator="and">
           <criterion check="{{ build_dev_errors == 0 }}" />
           <criterion check="{{ build_release_errors == 0 }}" />
         </criteria>
+
         <on-fail goto="linting" />
         <on-pass goto="commit" />
       </gate>
@@ -155,10 +171,10 @@ Process steps in order.
 
       <instruction>Stage only the files related to this change. Write the commit message explaining WHY, not just WHAT.</instruction>
 
-      <action><command>git add -p</command></action>
-      <action><command>git commit</command></action>
+      <run>git add -p</run>
+      <run>git commit</run>
 
-      <var name="staged_count" type="number"><command>git diff --cached --name-only | wc -l</command></var>
+      <run set="staged_count">git diff --cached --name-only | wc -l</run>
 
       <gate>
         <criterion check="{{ staged_count == 0 }}" />
@@ -169,17 +185,17 @@ Process steps in order.
     <step number="8" id="post-commit">
       <prerequisite ref="commit" goto="commit" />
 
-      <action><command ref="run-tests" /></action>
-      <action><command>cargo build</command></action>
-      <action><command>git log -1 --stat</command></action>
-
-      <var name="build_basic_errors" type="number"><command>cargo build 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
+      <run>git log -1 --stat</run>
 
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
+        <run ref="build-error-count" set="build_errors" />
+
         <criteria operator="and">
           <criterion check="{{ test_failures == 0 }}" />
-          <criterion check="{{ build_basic_errors == 0 }}" />
+          <criterion check="{{ build_errors == 0 }}" />
         </criteria>
+
         <on-pass goto="specification" />
         <on-fail goto="implementation" />
       </gate>
