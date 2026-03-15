@@ -32,13 +32,15 @@ class TestTruncate:
     def test_exact_length_unchanged(self):
         assert _truncate("abcde", 5) == "abcde"
 
-    def test_long_string_truncated(self):
+    def test_long_string_returned_in_full(self):
         result = _truncate("abcdefghij", 5)
-        assert result.startswith("abcde")
-        assert "[truncated]" in result
+        assert result == "abcdefghij"
 
     def test_empty_string(self):
         assert _truncate("", 100) == ""
+
+    def test_no_max_len_returns_full(self):
+        assert _truncate("hello world") == "hello world"
 
 
 # ===========================================================================

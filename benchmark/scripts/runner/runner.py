@@ -371,17 +371,27 @@ def _run_in_workspace(
     timeout: int,
     max_turns: int | None,
     on_output: Any = None,
-    setup_snapshot: SetupSnapshot | None = None,
     on_state: Any = None,
 ) -> CaseResult:
     """Execute a test case inside an already-created workspace.
 
     Called by run_case() inside a try/finally that guarantees teardown.
 
+    Captures setup state here — right before the CLI command is built —
+    so the snapshot reflects the true workspace after ALL setup (including
+    baseline capture) and before the prompt is submitted.
+
     *on_state*, when provided, is called with the workspace_state dict
     each time it is updated so the caller can persist it incrementally.
     """
     workspace_state: dict = {}
+
+    # Capture setup state NOW — after all setup, before prompt submission.
+    setup_snapshot: SetupSnapshot | None = None
+    try:
+        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id)
+    except Exception:
+        logger.warning("%s: failed to capture setup state", case.case_id, exc_info=True)
 
     # Write setup snapshot to disk immediately so it's visible during the run
     if on_state is not None and setup_snapshot is not None:
@@ -697,21 +707,16 @@ def run_case(
     except Exception as exc:
         return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}")
 
-    # Capture workspace state right after setup, before the LLM runs
-    setup_snapshot = None
-    try:
-        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id)
-    except Exception:
-        pass
-
     # Wrap entire workspace lifecycle in try/finally so teardown is
     # guaranteed even on unexpected exceptions.
+    # NOTE: Setup state capture happens inside _run_in_workspace,
+    # right before the CLI command is built, ensuring it reflects the
+    # true workspace state after ALL setup and before prompt submission.
     try:
         return _run_in_workspace(
             case, workspace_path, env, executor,
             prompt_text, checks, context, model, timeout, max_turns,
             on_output=on_output,
-            setup_snapshot=setup_snapshot,
             on_state=on_state,
         )
     finally:

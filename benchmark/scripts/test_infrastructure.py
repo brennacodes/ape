@@ -479,7 +479,7 @@ class TestCloneWorkspace:
         workspace = env.setup(app, wf, "markdown")
         assert (workspace / "main.py").exists()
         assert (workspace / "CLAUDE.md").exists()
-        assert (workspace / ".bench-home").is_dir()
+        assert (workspace / ".claude" / "scripts" / "guard.py").exists()
         env.teardown(workspace)
 
     def test_setup_dispatches_to_copy_for_plain_dir(self, tmp_path):
@@ -546,19 +546,18 @@ class TestCloneWorkspace:
         assert "Bash(*)" in data["permissions"]["allow"]
         env.teardown(workspace)
 
-    def test_clone_has_isolated_home(self, tmp_path):
+    def test_clone_has_guard_script(self, tmp_path):
+        """Guard script must exist at .claude/scripts/guard.py, .home must not exist."""
         app = _make_git_fixture(tmp_path)
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        assert (workspace / ".bench-home").is_dir()
-        assert (workspace / ".bench-home" / ".claude").is_dir()
-        assert (workspace / ".bench-home" / "tmp").is_dir()
-        assert (workspace / ".bench-home" / ".gitconfig").exists()
+        assert (workspace / ".claude" / "scripts" / "guard.py").exists()
+        assert not (workspace / ".home").exists()
         env.teardown(workspace)
 
-    def test_clone_appends_to_existing_gitignore(self, tmp_path):
+    def test_clone_preserves_existing_gitignore(self, tmp_path):
         app = _make_git_fixture(tmp_path)
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
@@ -566,7 +565,7 @@ class TestCloneWorkspace:
         workspace = env.setup(app, wf, "plain-text")
         gitignore = (workspace / ".gitignore").read_text()
         assert "__pycache__/" in gitignore
-        assert ".bench-home/" in gitignore
+        assert ".home/" not in gitignore
         env.teardown(workspace)
 
     def test_clone_no_remote_refs(self, tmp_path):
@@ -766,8 +765,8 @@ class TestWorkspaceIsolation:
         assert (workspace / "src" / "config" / "loader.rs").exists()
         # Workspace should be a git repo with initial-state tag
         assert (workspace / ".git").is_dir()
-        # Isolated home should exist
-        assert (workspace / ".bench-home").is_dir()
+        # Guard script should exist
+        assert (workspace / ".claude" / "scripts" / "guard.py").exists()
 
         env.teardown(workspace)
         assert not workspace.exists()
@@ -805,20 +804,17 @@ class TestWorkspaceIsolation:
         workspace = env.setup(app_path, workflow_path, "plain-text")
         cli_env = env.build_env(workspace)
 
-        assert cli_env["HOME"] == str(workspace / ".bench-home")
+        # HOME should NOT be overridden
+        assert "HOME" not in cli_env
         assert "CLAUDECODE" not in cli_env
         assert "PWD" not in cli_env
         assert "PATH" in cli_env
 
-        # XDG dirs should point inside isolated home
-        home = str(workspace / ".bench-home")
-        assert cli_env["XDG_CONFIG_HOME"].startswith(home)
-        assert cli_env["XDG_DATA_HOME"].startswith(home)
-        assert cli_env["XDG_CACHE_HOME"].startswith(home)
-        assert cli_env["XDG_RUNTIME_DIR"].startswith(home)
-
-        # TMPDIR should be workspace-local, not system-wide
-        assert cli_env["TMPDIR"].startswith(home)
+        # XDG dirs should NOT be set
+        assert "XDG_CONFIG_HOME" not in cli_env
+        assert "XDG_DATA_HOME" not in cli_env
+        assert "XDG_CACHE_HOME" not in cli_env
+        assert "XDG_RUNTIME_DIR" not in cli_env
 
         # System git config should be blocked
         assert cli_env["GIT_CONFIG_NOSYSTEM"] == "1"
@@ -831,22 +827,31 @@ class TestWorkspaceIsolation:
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
         workspace = env.setup(app_path, workflow_path, "plain-text")
-        gitconfig = workspace / ".bench-home" / ".gitconfig"
-        assert gitconfig.exists()
-        content = gitconfig.read_text()
-        assert "name = benchmark" in content
-        assert "email = benchmark@localhost" in content
+        # Git identity is set via repo-level git config, not .gitconfig file
+        result = subprocess.run(
+            ["git", "config", "user.name"],
+            cwd=workspace, capture_output=True, text=True,
+        )
+        assert result.stdout.strip() == "benchmark"
+        result = subprocess.run(
+            ["git", "config", "user.email"],
+            cwd=workspace, capture_output=True, text=True,
+        )
+        assert result.stdout.strip() == "benchmark@localhost"
 
         env.teardown(workspace)
 
-    def test_workspace_has_isolated_tmpdir(self, tmp_path):
+    def test_build_env_no_tmpdir_override(self, tmp_path):
+        """TMPDIR should not be overridden to point inside workspace."""
         env = BenchmarkEnvironment(base_dir=tmp_path)
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
         workspace = env.setup(app_path, workflow_path, "plain-text")
-        tmpdir = workspace / ".bench-home" / "tmp"
-        assert tmpdir.is_dir()
+        cli_env = env.build_env(workspace)
+        # TMPDIR should pass through from system, not point into workspace
+        if "TMPDIR" in cli_env:
+            assert str(workspace) not in cli_env["TMPDIR"]
 
         env.teardown(workspace)
 
@@ -910,14 +915,14 @@ class TestWorkspaceIsolation:
         env.teardown(workspace)
 
     def test_guard_script_exists(self, tmp_path):
-        """guard.py must exist in .bench-home/ and be executable."""
+        """guard.py must exist at .claude/scripts/ and be executable."""
         app = _make_git_fixture(tmp_path)
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
-        assert guard.exists(), "guard.py must be written to .bench-home/"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
+        assert guard.exists(), "guard.py must be written to .claude/scripts/"
         assert os.access(guard, os.X_OK), "guard.py must be executable"
         env.teardown(workspace)
 
@@ -928,7 +933,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         # Blocked: git log (no limit)
         result = subprocess.run(
@@ -954,7 +959,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         for cmd in ["git show HEAD", "git reflog"]:
             result = subprocess.run(
@@ -965,20 +970,20 @@ class TestWorkspaceIsolation:
             assert result.returncode != 0, f"'{cmd}' must be blocked"
         env.teardown(workspace)
 
-    def test_guard_blocks_bench_home_access(self, tmp_path):
-        """Guard must block Read/Grep/Glob/Bash access to .bench-home/."""
+    def test_guard_blocks_guard_script_access(self, tmp_path):
+        """Guard must block Read/Grep/Glob/Bash access to .claude/scripts/guard.py."""
         app = _make_git_fixture(tmp_path)
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
-            {"tool_name": "Read", "tool_input": {"file_path": ".bench-home/guard.py"}},
-            {"tool_name": "Bash", "tool_input": {"command": "cat .bench-home/guard.py"}},
-            {"tool_name": "Grep", "tool_input": {"pattern": "test", "path": ".bench-home/"}},
-            {"tool_name": "Glob", "tool_input": {"pattern": "*.py", "path": ".bench-home/"}},
+            {"tool_name": "Read", "tool_input": {"file_path": ".claude/scripts/guard.py"}},
+            {"tool_name": "Bash", "tool_input": {"command": "cat .claude/scripts/guard.py"}},
+            {"tool_name": "Grep", "tool_input": {"pattern": "test", "path": ".claude/scripts/guard.py"}},
+            {"tool_name": "Glob", "tool_input": {"pattern": "*.py", "path": ".claude/scripts/guard.py"}},
         ]
         for case in cases:
             result = subprocess.run(
@@ -987,7 +992,7 @@ class TestWorkspaceIsolation:
                 capture_output=True, text=True, cwd=workspace,
             )
             assert result.returncode != 0, \
-                f".bench-home access via {case['tool_name']} must be blocked"
+                f"guard script access via {case['tool_name']} must be blocked"
         env.teardown(workspace)
 
     def test_guard_blocks_settings_access(self, tmp_path):
@@ -997,7 +1002,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
             {"tool_name": "Read", "tool_input": {"file_path": ".claude/settings.local.json"}},
@@ -1020,7 +1025,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         for cmd in ["env", "printenv", "env | grep HOME"]:
             result = subprocess.run(
@@ -1038,7 +1043,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
             {"tool_name": "Bash", "tool_input": {"command": "ls ../"}},
@@ -1062,7 +1067,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
             {"tool_name": "Read", "tool_input": {"file_path": ".git/config"}},
@@ -1085,7 +1090,7 @@ class TestWorkspaceIsolation:
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
         workspace = env.setup(app, wf, "plain-text")
-        guard = workspace / ".bench-home" / "guard.py"
+        guard = workspace / ".claude" / "scripts" / "guard.py"
 
         allowed = [
             {"tool_name": "Bash", "tool_input": {"command": "cargo build"}},
@@ -1141,10 +1146,9 @@ class TestWorkspaceIsolation:
 
         workspace = env.setup(app_path, workflow_path, "plain-text")
 
-        # Simulate a memory file being created
-        encoded = str(workspace.resolve()).replace("/", "-").replace(" ", "-")
-        mem_dir = workspace / ".bench-home" / ".claude" / "projects" / encoded / "memory"
-        mem_dir.mkdir(parents=True)
+        # Simulate a memory file being created in workspace .claude/
+        mem_dir = workspace / ".claude" / "memory"
+        mem_dir.mkdir(parents=True, exist_ok=True)
         (mem_dir / "auto.md").write_text("some memory")
 
         leaked = env.check_memory_leak(workspace)

@@ -57,11 +57,6 @@ _PASSTHROUGH_VARS = {
 _EXCLUDED_VARS = {
     "CLAUDECODE",
     "PWD",
-    # XDG dirs are overridden to workspace-local paths in build_env().
-    "XDG_CONFIG_HOME",
-    "XDG_DATA_HOME",
-    "XDG_CACHE_HOME",
-    "XDG_RUNTIME_DIR",
 }
 
 # Workflow formats that replace the fixture's CLAUDE.md with a benchmark workflow.
@@ -76,9 +71,9 @@ _KEEP_FIXTURE_WORKFLOWS = {"adhoc-xml"}
 # ---------------------------------------------------------------------------
 # Isolation guard script
 # ---------------------------------------------------------------------------
-# Written to .bench-home/guard.py at setup time and invoked by PreToolUse
-# hooks.  Blocks tool calls that would let the agent discover benchmark
-# infrastructure (git history, .bench-home, settings files, env vars).
+# Written to .claude/scripts/guard.py at setup time and invoked by
+# PreToolUse hooks.  Blocks tool calls that would let the agent discover
+# benchmark infrastructure (git history, guard script, settings files, env vars).
 #
 # Exit 0 = allow, exit 2 + stderr message = block.
 
@@ -114,9 +109,9 @@ def _check_bash(cmd):
     if re.search(r'(?:^|[;&|]\s*)(?:env|printenv)\s*(?:$|[|;&>\s])', c):
         return "Environment inspection is not available in this workspace"
 
-    # Block .bench-home access
-    if ".bench-home" in c:
-        return "Access to .bench-home/ is restricted"
+    # Block guard script access
+    if ".claude/scripts/guard.py" in c:
+        return "Access to .claude/scripts/guard.py is restricted"
 
     # Block .claude/settings access via bash
     if re.search(r"\.claude/settings", c):
@@ -160,8 +155,8 @@ def _check_bash(cmd):
 def _check_path(path):
     if not path:
         return None
-    if ".bench-home" in path:
-        return "Access to .bench-home/ is restricted"
+    if ".claude/scripts/guard.py" in path:
+        return "Access to .claude/scripts/guard.py is restricted"
     if re.search(r"(?:^|/)\.claude/settings", path):
         return "Access to .claude/settings files is restricted"
     if re.search(r"(?:^|/)\.git/", path):
@@ -176,7 +171,7 @@ if __name__ == "__main__":
 
 # Hook configuration added to .claude/settings.local.json so PreToolUse
 # hooks invoke the guard script for Bash, Read, Grep, and Glob calls.
-_HOOK_ENTRY = {"type": "command", "command": "python3 .bench-home/guard.py"}
+_HOOK_ENTRY = {"type": "command", "command": "python3 .claude/scripts/guard.py"}
 
 _HOOKS_CONFIG = {
     "PreToolUse": [
@@ -232,11 +227,14 @@ class WorkspaceState:
     before: SetupSnapshot | None = None
 
 
-def _truncate(s: str, max_len: int) -> str:
-    """Truncate a string, appending an indicator if it was cut."""
-    if len(s) <= max_len:
-        return s
-    return s[:max_len] + "\n... [truncated]"
+def _truncate(s: str, max_len: int = 0) -> str:
+    """Return the string as-is (no truncation).
+
+    The *max_len* parameter is kept for call-site compatibility but is
+    ignored — we always store the complete output so that state.json
+    is never missing data.
+    """
+    return s
 
 
 def _parse_test_count(cargo_test_stdout: str) -> int | None:
@@ -377,6 +375,10 @@ class BenchmarkEnvironment:
         if current and current != "HEAD":
             self._git(workspace, "branch", "-D", current)
 
+        # --- Set git identity in the repo --------------------------------
+        self._git(workspace, "config", "user.name", "benchmark")
+        self._git(workspace, "config", "user.email", "benchmark@localhost")
+
         # --- Layer benchmark files before committing ---------------------
         self._inject_benchmark_files(
             workspace, workflow_path, workflow_format, fixture_workflow_files,
@@ -392,7 +394,10 @@ class BenchmarkEnvironment:
         staged = []
         if workflow_format in _CLAUDE_MD_FORMATS:
             staged.append("CLAUDE.md")
-        staged.extend([".claude/settings.local.json", ".gitignore"])
+        staged.append(".claude/settings.local.json")
+        staged.append(".claude/scripts/guard.py")
+        if (workspace / ".gitignore").exists():
+            staged.append(".gitignore")
         self._git(workspace, "add", "--force", "--", *staged)
 
         # Single commit: all fixture files + benchmark files together.
@@ -436,8 +441,10 @@ class BenchmarkEnvironment:
         )
 
         self._git(workspace, "init")
+        self._git(workspace, "config", "user.name", "benchmark")
+        self._git(workspace, "config", "user.email", "benchmark@localhost")
         self._git(workspace, "add", "-A")
-        self._git(workspace, "commit", "-m", "Initial fixture state")
+        self._git(workspace, "commit", "-m", "Initial commit")
         self._git(workspace, "tag", "initial-state")
 
         return workspace
@@ -449,7 +456,7 @@ class BenchmarkEnvironment:
         workflow_format: str,
         fixture_workflow_files: list[str] | None = None,
     ) -> None:
-        """Write workflow, settings, isolated HOME, and .gitignore into *workspace*.
+        """Write workflow, settings, and guard script into *workspace*.
 
         For formats not in ``_KEEP_FIXTURE_WORKFLOWS``, any files listed in
         *fixture_workflow_files* are deleted first to prevent the fixture's
@@ -483,67 +490,19 @@ class BenchmarkEnvironment:
             "hooks": _HOOKS_CONFIG,
         }, indent=2), encoding="utf-8")
 
-        home_dir = workspace / ".bench-home"
-        home_dir.mkdir(exist_ok=True)
-
         # Write the isolation guard script — invoked by PreToolUse hooks
-        guard_path = home_dir / "guard.py"
+        scripts_dir = settings_dir / "scripts"
+        scripts_dir.mkdir(exist_ok=True)
+        guard_path = scripts_dir / "guard.py"
         guard_path.write_text(_GUARD_SCRIPT, encoding="utf-8")
         os.chmod(guard_path, 0o755)
-
-        home_claude = home_dir / ".claude"
-        home_claude.mkdir(exist_ok=True)
-
-        real_creds = Path.home() / ".claude" / ".credentials.json"
-        if real_creds.exists():
-            shutil.copy2(real_creds, home_claude / ".credentials.json")
-
-        # Symlink the real Keychain directory so subscription auth (which
-        # stores tokens in macOS Keychain) works with the overridden HOME.
-        real_keychains = Path.home() / "Library" / "Keychains"
-        if real_keychains.is_dir():
-            fake_library = home_dir / "Library" / "Keychains"
-            fake_library.parent.mkdir(parents=True, exist_ok=True)
-            if not fake_library.exists():
-                os.symlink(real_keychains, fake_library)
-
-        (home_claude / "settings.json").write_text(json.dumps({
-            "permissions": {
-                "allow": [
-                    "Bash(*)", "Read(*)", "Write(*)", "Edit(*)",
-                    "Glob(*)", "Grep(*)",
-                ],
-                "deny": [],
-            },
-        }, indent=2), encoding="utf-8")
-
-        workspace_tmp = home_dir / "tmp"
-        workspace_tmp.mkdir(exist_ok=True)
-
-        (home_dir / ".gitconfig").write_text(
-            "[user]\n    name = benchmark\n    email = benchmark@localhost\n",
-            encoding="utf-8",
-        )
-
-        gitignore_path = workspace / ".gitignore"
-        bench_ignore = ".bench-home/"
-        if gitignore_path.exists():
-            existing = gitignore_path.read_text(encoding="utf-8")
-            if bench_ignore not in existing:
-                gitignore_path.write_text(
-                    existing.rstrip("\n") + "\n" + bench_ignore + "\n",
-                    encoding="utf-8",
-                )
-        else:
-            gitignore_path.write_text(bench_ignore + "\n", encoding="utf-8")
 
     def build_env(self, workspace: Path) -> dict[str, str]:
         """Build a scrubbed environment dict for the CLI subprocess.
 
         The resulting env contains only whitelisted passthrough vars plus
-        workspace-local overrides for HOME, TMPDIR, XDG dirs, and git config.
+        overrides for git config and memory isolation.
         """
-        home_dir = workspace / ".bench-home"
         env: dict[str, str] = {}
 
         for key in _PASSTHROUGH_VARS:
@@ -552,19 +511,6 @@ class BenchmarkEnvironment:
             val = os.environ.get(key)
             if val is not None:
                 env[key] = val
-
-        home_str = str(home_dir)
-        env["HOME"] = home_str
-
-        # Per-workspace TMPDIR prevents collisions between parallel runs
-        env["TMPDIR"] = str(home_dir / "tmp")
-
-        # XDG dirs — point into isolated home so no subprocess reads/writes
-        # shared locations like ~/.config or ~/.local/share
-        env["XDG_CONFIG_HOME"] = str(home_dir / ".config")
-        env["XDG_DATA_HOME"] = str(home_dir / ".local" / "share")
-        env["XDG_CACHE_HOME"] = str(home_dir / ".cache")
-        env["XDG_RUNTIME_DIR"] = str(home_dir / "run")
 
         # Block system-level git config (/etc/gitconfig) from affecting runs
         env["GIT_CONFIG_NOSYSTEM"] = "1"
@@ -578,9 +524,8 @@ class BenchmarkEnvironment:
 
     def get_session_dir(self, workspace: Path) -> Path:
         """Return the Claude Code session directory for this workspace."""
-        home_dir = workspace / ".bench-home"
         encoded = str(workspace.resolve()).replace("/", "-").replace(" ", "-")
-        return home_dir / ".claude" / "projects" / encoded
+        return Path.home() / ".claude" / "projects" / encoded
 
     def get_workflow_content(self, workflow_path: Path, workflow_format: str) -> str | None:
         """Return workflow content if it should be prepended to the prompt.
@@ -594,20 +539,19 @@ class BenchmarkEnvironment:
         return workflow_path.read_text(encoding="utf-8")
 
     def capture_setup_state(self, workspace: Path, *, case_id: str = "") -> SetupSnapshot:
-        """Capture a snapshot of the workspace right after setup, before the LLM runs."""
+        """Capture a snapshot of the workspace after all setup, before the LLM runs.
+
+        This must be called AFTER ``setup()`` completes (including any
+        baseline capture) and BEFORE the prompt is submitted.  The file
+        list is a full filesystem walk — not ``git ls-tree`` — so it
+        reflects every file on disk that the LLM can encounter.
+        """
         logger = logging.getLogger("bench.environment")
         label = case_id or workspace.name
         logger.info("%s: capturing setup state", label)
-        file_list_raw = self._git(workspace, "ls-tree", "-r", "--name-only", "HEAD")
-        file_list = tuple(
-            f.strip() for f in file_list_raw.splitlines() if f.strip()
-        ) if file_list_raw else ()
-        git_log = self._git(workspace, "log", "--oneline", "--all")
-        git_status = self._git(workspace, "status", "--porcelain")
 
-        claude_md = workspace / "CLAUDE.md"
-        claude_md_content = claude_md.read_text(encoding="utf-8") if claude_md.is_file() else None
-
+        # Run baseline FIRST so the file list includes any side-effects
+        # (e.g. Cargo.lock updates, generated code) from baseline commands.
         baseline = self._capture_baseline(workspace, case_id=label)
         if baseline is not None:
             logger.info(
@@ -621,10 +565,29 @@ class BenchmarkEnvironment:
             )
         else:
             logger.info("%s: no baseline (no Cargo.toml)", label)
-        logger.info("%s: setup state captured, %d files tracked", label, len(file_list))
+
+        # Filesystem walk — captures every file on disk so the snapshot
+        # reflects exactly what the LLM can encounter.
+        file_list: list[str] = []
+        for dirpath, dirnames, filenames in os.walk(workspace):
+            rel_dir = os.path.relpath(dirpath, workspace)
+            for fname in filenames:
+                if rel_dir == ".":
+                    file_list.append(fname)
+                else:
+                    file_list.append(os.path.join(rel_dir, fname))
+        file_list.sort()
+
+        git_log = self._git(workspace, "log", "--oneline", "--all")
+        git_status = self._git(workspace, "status", "--porcelain")
+
+        claude_md = workspace / "CLAUDE.md"
+        claude_md_content = claude_md.read_text(encoding="utf-8") if claude_md.is_file() else None
+
+        logger.info("%s: setup state captured, %d files on disk", label, len(file_list))
 
         return SetupSnapshot(
-            file_list=file_list,
+            file_list=tuple(file_list),
             git_log=git_log,
             git_status=git_status,
             claude_md_content=claude_md_content,
@@ -757,14 +720,14 @@ class BenchmarkEnvironment:
         flagged.
         """
         memory_files: list[str] = []
-        home_dir = workspace / ".bench-home"
 
-        # Check under the isolated HOME's project memory directory
-        projects_dir = home_dir / ".claude" / "projects"
+        # Check under the real HOME's project memory directory
+        encoded = str(workspace.resolve()).replace("/", "-").replace(" ", "-")
+        projects_dir = Path.home() / ".claude" / "projects" / encoded
         if projects_dir.is_dir():
             for p in projects_dir.rglob("memory*"):
                 if p.is_file() or p.is_dir():
-                    memory_files.append(str(p.relative_to(workspace)))
+                    memory_files.append(str(p.relative_to(Path.home())))
 
         # Check workspace-level .claude for any memory files
         workspace_claude = workspace / ".claude"
