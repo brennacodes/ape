@@ -234,8 +234,11 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
           <criterion check="{{ build_errors == 0 }}" />
         </criteria>
 
-        <on-pass goto="specification" />
         <on-fail goto="implementation" />
+        <on-pass>
+          <instruction>Summarize your work to the user</instruction>
+          <stop />
+        </on-pass>
       </gate>
     </step>
 
