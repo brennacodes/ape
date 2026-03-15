@@ -371,12 +371,30 @@ def _run_in_workspace(
     max_turns: int | None,
     on_output: Any = None,
     setup_snapshot: SetupSnapshot | None = None,
+    on_state: Any = None,
 ) -> CaseResult:
     """Execute a test case inside an already-created workspace.
 
     Called by run_case() inside a try/finally that guarantees teardown.
+
+    *on_state*, when provided, is called with the workspace_state dict
+    each time it is updated so the caller can persist it incrementally.
     """
     workspace_state: dict = {}
+
+    # Write setup snapshot to disk immediately so it's visible during the run
+    if on_state is not None and setup_snapshot is not None:
+        from dataclasses import asdict as _asdict
+        before_dict: dict[str, Any] = {
+            "file_list": list(setup_snapshot.file_list),
+            "git_log": setup_snapshot.git_log,
+            "git_status": setup_snapshot.git_status,
+            "claude_md_content": setup_snapshot.claude_md_content,
+        }
+        if setup_snapshot.baseline is not None:
+            before_dict["baseline"] = _asdict(setup_snapshot.baseline)
+        workspace_state["before"] = before_dict
+        on_state(workspace_state)
 
     # 3. Build command — prepend workflow content for plain-text format
     workflow_content = env.get_workflow_content(
@@ -470,6 +488,9 @@ def _run_in_workspace(
             )
     except Exception:
         pass
+
+    if on_state is not None:
+        on_state(workspace_state)
 
     if exit_code != 0:
         error_detail = _extract_cli_error(raw_output, stderr, exit_code)
@@ -602,6 +623,7 @@ def run_case(
     environment: BenchmarkEnvironment | None = None,
     _execute: Any = None,
     on_output: Any = None,
+    on_state: Any = None,
 ) -> CaseResult:
     """Execute one TestCase end-to-end in an isolated workspace.
 
@@ -689,6 +711,7 @@ def run_case(
             prompt_text, checks, context, model, timeout, max_turns,
             on_output=on_output,
             setup_snapshot=setup_snapshot,
+            on_state=on_state,
         )
     finally:
         env.teardown(workspace_path)
@@ -721,6 +744,7 @@ def run_parallel(
     _execute: Any = None,
     on_output: Any = None,
     on_output_factory: Any = None,
+    on_state_factory: Any = None,
 ) -> Iterator[CaseResult]:
     """Run multiple cases concurrently with rate limiting.
 
@@ -731,6 +755,9 @@ def run_parallel(
     must return a callback ``(line: str) -> None`` for that case.  This
     is preferred over *on_output* for parallel runs because it produces
     per-case callbacks that know which case each line belongs to.
+
+    *on_state_factory*, when provided, is called with a TestCase and
+    must return a callback ``(state: dict) -> None`` for that case.
     """
     if workers <= 1:
         yield from run_all(cases, model, timeout, max_turns, environment, _execute, on_output=on_output)
@@ -752,7 +779,8 @@ def run_parallel(
                 time.sleep(wait)
             last_launch[0] = time.monotonic()
         cb = on_output_factory(case) if on_output_factory else on_output
-        return run_case(case, model, timeout, max_turns, environment, _execute, on_output=cb)
+        state_cb = on_state_factory(case) if on_state_factory else None
+        return run_case(case, model, timeout, max_turns, environment, _execute, on_output=cb, on_state=state_cb)
 
     completed = 0
     total = len(cases)

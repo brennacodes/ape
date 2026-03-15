@@ -283,6 +283,30 @@ class Recorder:
         return self._log_dir(fixture_id, fmt, prompt_id) / f"{run_id:03d}.trace.json"
 
     # ------------------------------------------------------------------
+    # Incremental writes
+    # ------------------------------------------------------------------
+
+    def init_run_dir(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Path:
+        """Create the run directory early so incremental writes have a destination.
+
+        Returns the run directory Path.  Safe to call multiple times.
+        """
+        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        return run_dir
+
+    def write_state(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int, state: dict) -> None:
+        """Write (or overwrite) state.json in an already-created run directory.
+
+        Called incrementally as phases complete — first with setup state,
+        then again with the full post-run workspace state.
+        """
+        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        with open(run_dir / "state.json", "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2)
+
+    # ------------------------------------------------------------------
     # Save
     # ------------------------------------------------------------------
 

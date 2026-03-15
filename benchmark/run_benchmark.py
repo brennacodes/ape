@@ -373,20 +373,35 @@ def dry_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _case_identity(case) -> tuple[str, str, str]:
+    """Return (fixture_id, format, prompt_id) for a TestCase."""
+    fixture_id = case.app.name
+    fmt = case.workflow.format
+    if case.category and case.item_id:
+        prompt_id = f"{case.category}/{case.item_id}"
+    else:
+        prompt_id = case.prompt.prompt_id
+    return fixture_id, fmt, prompt_id
+
+
+def _make_state_callback(recorder: Recorder, fixture_id: str, fmt: str, prompt_id: str, run_id: int):
+    """Return an on_state callback that writes state.json incrementally."""
+    def _cb(state: dict) -> None:
+        recorder.write_state(fixture_id, fmt, prompt_id, run_id, state)
+    return _cb
+
+
 def _save_result(
     result: CaseResult,
     recorder: Recorder,
     args: argparse.Namespace,
+    run_id: int | None = None,
 ) -> RunRecord | None:
     """Persist a single CaseResult to disk immediately. Returns the RunRecord or None."""
-    fixture_id = result.case.app.name
-    fmt = result.case.workflow.format
-    if result.case.category and result.case.item_id:
-        prompt_id = f"{result.case.category}/{result.case.item_id}"
-    else:
-        prompt_id = result.case.prompt.prompt_id
+    fixture_id, fmt, prompt_id = _case_identity(result.case)
 
-    run_id = recorder.next_run_id(fixture_id, fmt, prompt_id)
+    if run_id is None:
+        run_id = recorder.next_run_id(fixture_id, fmt, prompt_id)
     completed_at = datetime.now().isoformat()
     started_at = getattr(result, "started_at", "") or ""
 
@@ -510,11 +525,16 @@ def run(args: argparse.Namespace) -> int:
     results: list[CaseResult] = []
     records: list[RunRecord] = []
 
+    # Map case_id -> pre-allocated run_id for incremental state writes
+    _allocated_run_ids: dict[str, int] = {}
+    _run_id_lock = threading.Lock()
+
     def _on_result(result: CaseResult) -> None:
         """Save a result to disk immediately and collect it."""
         results.append(result)
         if not args.legacy_output:
-            record = _save_result(result, recorder, args)
+            pre_run_id = _allocated_run_ids.pop(result.case.case_id, None)
+            record = _save_result(result, recorder, args, run_id=pre_run_id)
             if record:
                 records.append(record)
 
@@ -527,6 +547,16 @@ def run(args: argparse.Namespace) -> int:
                 progress.set_active(case.case_id)
                 return progress.make_callback(case.case_id)
 
+            def _make_state_cb(case):
+                if args.legacy_output:
+                    return None
+                fid, fmt, pid = _case_identity(case)
+                with _run_id_lock:
+                    rid = recorder.next_run_id(fid, fmt, pid)
+                    _allocated_run_ids[case.case_id] = rid
+                    recorder.init_run_dir(fid, fmt, pid, rid)
+                return _make_state_callback(recorder, fid, fmt, pid, rid)
+
             for result in run_parallel(
                 cases,
                 model=args.model,
@@ -536,6 +566,7 @@ def run(args: argparse.Namespace) -> int:
                 delay_s=args.delay,
                 environment=environment,
                 on_output_factory=_make_cb,
+                on_state_factory=_make_state_cb if not args.legacy_output else None,
             ):
                 cid = result.case.case_id
                 if result.error:
@@ -548,6 +579,16 @@ def run(args: argparse.Namespace) -> int:
             for i, case in enumerate(cases, 1):
                 progress.set_active(case.case_id)
                 logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), case.case_id)
+
+                # Allocate run_id upfront so state can be written incrementally
+                state_cb = None
+                if not args.legacy_output:
+                    fid, fmt, pid = _case_identity(case)
+                    rid = recorder.next_run_id(fid, fmt, pid)
+                    _allocated_run_ids[case.case_id] = rid
+                    recorder.init_run_dir(fid, fmt, pid, rid)
+                    state_cb = _make_state_callback(recorder, fid, fmt, pid, rid)
+
                 result = run_case(
                     case,
                     model=args.model,
@@ -555,6 +596,7 @@ def run(args: argparse.Namespace) -> int:
                     max_turns=args.max_turns,
                     environment=environment,
                     on_output=progress.make_callback(case.case_id),
+                    on_state=state_cb,
                 )
                 progress.mark_done(case.case_id, "")
                 _on_result(result)
