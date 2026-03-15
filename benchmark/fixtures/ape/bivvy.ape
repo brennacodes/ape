@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <IMPORTANT>
-APE is an executable workflow. You are the runtime.
+APE is an executable workflow. You are the runtime. You are being evaluated on your ability to follow this workflow exactly.
 
 You MUST execute the workflow exactly as written.
-You MUST process tags and their children in order of appearance unless the workflow explicitly directs otherwise.
-Tag names, attributes, and workflow structure are normative and MUST be treated as executable directives, not descriptive labels or suggestions.
+You MUST process ALL tags and their children in order of appearance unless the workflow explicitly directs otherwise.
+You MUST treat tag names, attributes, and workflow structure as normative executable directives, not descriptive labels or suggestions.
 You MUST NOT skip, reinterpret, soften, or invent workflow behavior.
+A step MUST NOT transition to another step except via its declared <gate> outcome, unless the step explicitly contains another control-flow directive.
+You MUST NOT infer criterion truth from inspection if the gate specifies executable checks.
+You MUST NOT leave a step that contains a <gate> until that gate has been evaluated and routed via <on-pass> or <on-fail>.
+When a <gate> contains <run> children, those runs MUST execute before any criterion is evaluated.
+If a <run> inside a <gate> does not execute, does not produce a value for its declared set, or produces an unparsable value required by a criterion, you MUST <stop> immediately.
 
 <meta>: contains configuration and declarations for the workflow.
-<instruction>: execute the directives.
-<gate>: evaluate the criteria and route via on-fail (required) or on-pass.
-<conditional>: follow the logic defined by the cases and optional default.
-<run>: execute the commands; either those defined inline or referenced by an id in <approved-commands> or <approved-gate-commands>.
-<output>: print output to the user.
+<instruction>: You MUST execute the directives. You MUST NOT interpret the directives for flow control.
+<gate>: You MUST evaluate the criteria and route via on-fail (required) or on-pass.
+<conditional>: You MUST follow the logic defined by the cases and optional default.
+<run>: You MUST execute the commands; either those defined inline or referenced by an id in <approved-commands> or <approved-gate-commands>.
+<output>: You MUST print output to the user.
 
 `ref`: references an id from another tag.
 `set`: sets a variable that can be used in other tags.
@@ -47,7 +52,7 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <command id="build-release-error-count">cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="clippy-error-count">cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="fmt-error-count">cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command>
-      <command id="cov-pct">cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; exit } }'</command>
+      <command id="cov-pct">cargo llvm-cov --all-features 2>&1 | awk '/TOTAL/ { for(i=1;i<=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; found=1; exit } } END { if(!found) print -1 }'</command>
       <command id="doc-errors">cargo doc --no-deps --all-features 2>&amp;1 | grep -c "^error"</command>
     </approved-gate-commands>
 
@@ -130,8 +135,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
 
       <gate>
         <run ref="fmt-error-count" set="fmt_errors" />
-        <run ref="clippy-error-count" set="clippy_errors" />
         <output>Fmt errors: {{ fmt_errors }}</output>
+
+        <run ref="clippy-error-count" set="clippy_errors" />
         <output>Clippy errors: {{ clippy_errors }}</output>
 
         <criteria operator="and">
@@ -150,8 +156,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
 
       <gate>
         <run ref="cov-pct" set="coverage_pct" />
-        <run ref="test-failure-count" set="test_failures" />
         <output>Coverage: {{ coverage_pct }}%</output>
+
+        <run ref="test-failure-count" set="test_failures" />
         <output>Test failures: {{ test_failures }}</output>
 
         <criteria operator="and">
@@ -170,8 +177,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
 
       <gate>
         <run ref="build-dev-error-count" set="build_dev_errors" />
-        <run ref="build-release-error-count" set="build_release_errors" />
         <output>Build dev errors: {{ build_dev_errors }}</output>
+
+        <run ref="build-release-error-count" set="build_release_errors" />
         <output>Build release errors: {{ build_release_errors }}</output>
 
         <criteria operator="and">
@@ -216,8 +224,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
 
       <gate>
         <run ref="test-failure-count" set="test_failures" />
-        <run ref="build-error-count" set="build_errors" />
         <output>Test failures: {{ test_failures }}</output>
+
+        <run ref="build-error-count" set="build_errors" />
         <output>Build errors: {{ build_errors }}</output>
 
         <criteria operator="and">
