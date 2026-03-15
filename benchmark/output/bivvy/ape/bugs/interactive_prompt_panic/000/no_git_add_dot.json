@@ -1,0 +1,86 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/', \"grep -A2 'dialoguer' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/Cargo.toml\", 'grep -r \"interact_on_opt\" target/debug/.fingerprint/ 2>/dev/null || cargo doc --document-private-items -p dialoguer 2>&1 | tail -5', 'grep -r \"fn interact_on_opt\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/target/doc/src/dialoguer/ 2>/dev/null | head -20', 'find /Users/brenna/.cargo/registry/src -path \"*dialoguer-0.12*\" -name \"*.rs\" -exec grep -l \"interact_on_opt\" {} \\\\;', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bgd2tr1lf.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh status', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh diff', 'git add src/error.rs src/ui/prompts.rs && git commit -m \"$(cat <<\\'EOF\\'\\nHandle Ctrl+D in interactive prompts gracefully\\n\\ndialoguer\\'s interact_on() internally calls interact_on_opt().unwrap(),\\nwhich panics when the user presses Ctrl+D (EOF) or Escape. Switch to\\ninteract_on_opt() for Confirm, Select, and MultiSelect prompts, and\\nreturn BivvyError::PromptCancelled instead of panicking.\\n\\nAlso fix prompt_yes_no to restore the cursor on read_key failure\\nbefore returning the cancellation error.\\nEOF\\n)\"', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh log -1 --stat', 'cargo test --all-features 2>&1', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bdvfkxeqy.txt', 'cargo build 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/",
+    "grep -A2 'dialoguer' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/Cargo.toml",
+    "grep -r \"interact_on_opt\" target/debug/.fingerprint/ 2>/dev/null || cargo doc --document-private-items -p dialoguer 2>&1 | tail -5",
+    "grep -r \"fn interact_on_opt\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/target/doc/src/dialoguer/ 2>/dev/null | head -20",
+    "find /Users/brenna/.cargo/registry/src -path \"*dialoguer-0.12*\" -name \"*.rs\" -exec grep -l \"interact_on_opt\" {} \\;",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bgd2tr1lf.txt",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo build --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh status",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh diff",
+    "git add src/error.rs src/ui/prompts.rs && git commit -m \"$(cat <<'EOF'\nHandle Ctrl+D in interactive prompts gracefully\n\ndialoguer's interact_on() internally calls interact_on_opt().unwrap(),\nwhich panics when the user presses Ctrl+D (EOF) or Escape. Switch to\ninteract_on_opt() for Confirm, Select, and MultiSelect prompts, and\nreturn BivvyError::PromptCancelled instead of panicking.\n\nAlso fix prompt_yes_no to restore the cursor on read_key failure\nbefore returning the cancellation error.\nEOF\n)\"",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh log -1 --stat",
+    "cargo test --all-features 2>&1",
+    "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bdvfkxeqy.txt",
+    "cargo build 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2472322.323226541,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2472322.323262291,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/",
+        "grep -A2 'dialoguer' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/Cargo.toml",
+        "grep -r \"interact_on_opt\" target/debug/.fingerprint/ 2>/dev/null || cargo doc --document-private-items -p dialoguer 2>&1 | tail -5",
+        "grep -r \"fn interact_on_opt\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/target/doc/src/dialoguer/ 2>/dev/null | head -20",
+        "find /Users/brenna/.cargo/registry/src -path \"*dialoguer-0.12*\" -name \"*.rs\" -exec grep -l \"interact_on_opt\" {} \\;",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+        "cargo test --all-features 2>&1",
+        "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bgd2tr1lf.txt",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo build --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh status",
+        "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh diff",
+        "git add src/error.rs src/ui/prompts.rs && git commit -m \"$(cat <<'EOF'\nHandle Ctrl+D in interactive prompts gracefully\n\ndialoguer's interact_on() internally calls interact_on_opt().unwrap(),\nwhich panics when the user presses Ctrl+D (EOF) or Escape. Switch to\ninteract_on_opt() for Confirm, Select, and MultiSelect prompts, and\nreturn BivvyError::PromptCancelled instead of panicking.\n\nAlso fix prompt_yes_no to restore the cursor on read_key failure\nbefore returning the cancellation error.\nEOF\n)\"",
+        "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh log -1 --stat",
+        "cargo test --all-features 2>&1",
+        "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bdvfkxeqy.txt",
+        "cargo build 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2472322.323283,
+      "passed": true,
+      "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/', \"grep -A2 'dialoguer' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/Cargo.toml\", 'grep -r \"interact_on_opt\" target/debug/.fingerprint/ 2>/dev/null || cargo doc --document-private-items -p dialoguer 2>&1 | tail -5', 'grep -r \"fn interact_on_opt\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh/target/doc/src/dialoguer/ 2>/dev/null | head -20', 'find /Users/brenna/.cargo/registry/src -path \"*dialoguer-0.12*\" -name \"*.rs\" -exec grep -l \"interact_on_opt\" {} \\\\;', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bgd2tr1lf.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh status', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh diff', 'git add src/error.rs src/ui/prompts.rs && git commit -m \"$(cat <<\\'EOF\\'\\nHandle Ctrl+D in interactive prompts gracefully\\n\\ndialoguer\\'s interact_on() internally calls interact_on_opt().unwrap(),\\nwhich panics when the user presses Ctrl+D (EOF) or Escape. Switch to\\ninteract_on_opt() for Confirm, Select, and MultiSelect prompts, and\\nreturn BivvyError::PromptCancelled instead of panicking.\\n\\nAlso fix prompt_yes_no to restore the cursor on read_key failure\\nbefore returning the cancellation error.\\nEOF\\n)\"', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ckbmxxeh log -1 --stat', 'cargo test --all-features 2>&1', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ckbmxxeh/1f60c018-ed48-4ff0-8b37-bbf753705039/tool-results/bdvfkxeqy.txt', 'cargo build 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

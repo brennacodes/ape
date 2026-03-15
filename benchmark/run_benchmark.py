@@ -55,7 +55,7 @@ from runner import (
     run_case, run_all, run_parallel, DEFAULT_MODEL, CaseResult, shutdown_all,
     is_auth_error,
 )
-from environment import BenchmarkEnvironment
+from environment import BenchmarkEnvironment, BaselineCache, BaselineMetrics
 from results import format_run_summary, write_json
 from recorder import Recorder, RunRecord
 
@@ -81,7 +81,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--results-dir", type=Path, default=Path(_HERE) / "output",
         help="Directory for structured result storage.",
     )
-    parser.add_argument("--timeout", type=float, default=20, help="Per-case timeout in minutes (default: 20).")
+    parser.add_argument("--timeout", type=float, default=30, help="Per-case timeout in minutes (default: 30).")
     parser.add_argument("--max-turns", type=int, default=None, help="Max CLI turns.")
     parser.add_argument("--dry-run", action="store_true", help="Show cases without executing.")
     parser.add_argument("--workers", type=int, default=4, help="Parallel workers (1=sequential).")
@@ -89,6 +89,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--enrich-tokens", action="store_true", default=False, dest="enrich_tokens")
     parser.add_argument("--no-enrich-tokens", action="store_false", dest="enrich_tokens")
     parser.add_argument("--legacy-output", action="store_true")
+    parser.add_argument("--refresh-baselines", action="store_true",
+                        help="Force recomputation of fixture baselines (ignores cache). "
+                             "Use with --baselines-only to refresh without running the benchmark.")
+    parser.add_argument("--baselines-only", action="store_true",
+                        help="Compute/refresh baselines and exit (no benchmark run).")
+    parser.add_argument("--skip-baseline", action="store_true",
+                        help="Skip baseline capture entirely.")
     parser.add_argument("-v", "--verbose", action="store_true", default=True)
 
     # Dimension filters — any combination narrows the case matrix
@@ -487,6 +494,50 @@ def _enrich_with_tokens(recorder: Recorder, records: list[RunRecord]) -> None:
     logger.info("Enriched %d/%d records with token data", enriched, len(records))
 
 
+def warm_baselines(
+    cases: list,
+    refresh: bool = False,
+    output_dir: Path | None = None,
+) -> dict[str, BaselineMetrics]:
+    """Pre-compute or load cached baselines for all unique fixtures.
+
+    Returns a dict mapping app name -> BaselineMetrics.  Results are
+    deterministic and identical across workflow formats since baselines
+    depend only on the fixture's source code.
+    """
+    cache = BaselineCache(output_dir=output_dir)
+
+    # Collect unique fixtures
+    fixtures: dict[str, Path] = {}
+    for case in cases:
+        if case.app.name not in fixtures:
+            fixtures[case.app.name] = case.app.path
+
+    baselines: dict[str, BaselineMetrics] = {}
+    for name, path in fixtures.items():
+        if not (path / "Cargo.toml").is_file():
+            logger.info("Skipping baseline for %s (no Cargo.toml)", name)
+            continue
+
+        if refresh:
+            logger.info("Refreshing baseline for %s (--refresh-baselines)", name)
+            result = cache.compute(path)
+        else:
+            result = cache.load_or_compute(path)
+
+        if result is not None:
+            baselines[name] = result
+            console.print(
+                f"  [green]{name}[/green]: tests={result.test_count} "
+                f"(exit {result.cargo_test_exit_code}), "
+                f"coverage={result.coverage_pct}"
+            )
+        else:
+            console.print(f"  [yellow]{name}[/yellow]: no baseline (compute failed)")
+
+    return baselines
+
+
 def run(args: argparse.Namespace) -> int:
     filters = _build_filters(args)
     _, _, _, _, _, cases = discover(args.benchmark_root, filters)
@@ -505,7 +556,23 @@ def run(args: argparse.Namespace) -> int:
         return 1
     console.print("[green]OK[/green]")
 
-    environment = BenchmarkEnvironment()
+    # Pre-compute baselines once per fixture — shared across all variants.
+    precomputed: dict[str, BaselineMetrics] = {}
+    if args.skip_baseline:
+        console.print("[dim]Skipping baseline capture (--skip-baseline)[/dim]")
+    else:
+        console.print("[bold]Fixture baselines[/bold]")
+        precomputed = warm_baselines(cases, refresh=args.refresh_baselines, output_dir=args.results_dir)
+        if precomputed:
+            console.print(
+                f"  [dim]{len(precomputed)} fixture(s) baselined — "
+                f"shared across all {len(cases)} cases[/dim]"
+            )
+
+    environment = BenchmarkEnvironment(
+        skip_baseline=args.skip_baseline,
+        precomputed_baselines=precomputed,
+    )
 
     console.print(Panel.fit(
         f"[bold]Benchmark Run[/bold]\n"
@@ -679,6 +746,23 @@ def _install_signal_handlers() -> None:
     signal.signal(signal.SIGTERM, _handle)
 
 
+def baselines_only(args: argparse.Namespace) -> int:
+    """Compute or refresh baselines for all fixtures and exit."""
+    filters = _build_filters(args)
+    _, _, _, _, _, cases = discover(args.benchmark_root, filters)
+
+    if not cases:
+        console.print("[red]No cases discovered.[/red] No fixtures to baseline.")
+        return 1
+
+    console.print("[bold]Fixture baselines[/bold]")
+    baselines = warm_baselines(cases, refresh=args.refresh_baselines, output_dir=args.results_dir)
+    console.print(
+        f"\n[bold green]Done.[/bold green] {len(baselines)} fixture(s) baselined."
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     _install_signal_handlers()
     args = parse_args(argv)
@@ -691,6 +775,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.dry_run:
         return dry_run(args)
+    if args.baselines_only:
+        return baselines_only(args)
     return run(args)
 
 

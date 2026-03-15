@@ -113,7 +113,7 @@ class TestCaptureBaseline:
             args=["cargo"], returncode=0, stdout="test result: ok. 5 passed; 0 failed", stderr="",
         )
 
-        with patch.object(env, "_run_cargo", return_value=fake_result):
+        with patch("environment._run_cargo_cmd", return_value=fake_result):
             result = env._capture_baseline(tmp_path)
 
         assert result is not None
@@ -125,7 +125,7 @@ class TestCaptureBaseline:
         (tmp_path / "Cargo.toml").write_text("[package]\nname = 'test'\n")
         env = BenchmarkEnvironment()
 
-        with patch.object(env, "_run_cargo", return_value=None):
+        with patch("environment._run_cargo_cmd", return_value=None):
             result = env._capture_baseline(tmp_path)
 
         assert result is not None
@@ -149,7 +149,7 @@ class TestCaptureBaseline:
                 stdout="test result: ok. 10 passed; 0 failed", stderr="",
             )
 
-        with patch.object(env, "_run_cargo", side_effect=mock_cargo):
+        with patch("environment._run_cargo_cmd", side_effect=mock_cargo):
             result = env._capture_baseline(tmp_path)
 
         assert result.coverage_pct == 36.54

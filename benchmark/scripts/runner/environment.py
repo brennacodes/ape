@@ -20,6 +20,7 @@ WorkspaceState        — frozen snapshot of workspace after a run.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -27,7 +28,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -270,12 +271,253 @@ def _parse_coverage_pct(llvm_cov_stdout: str) -> float | None:
     return None
 
 
+class BaselineCache:
+    """Persistent cache for fixture baseline metrics.
+
+    Baselines are a property of the fixture's source code, not the workflow
+    format or prompt.  This cache computes them once per fixture and stores
+    the result in the benchmark output directory.  Subsequent benchmark
+    runs load the cached result instead of re-running 5 cargo commands
+    per variant.
+
+    Invalidation is by git HEAD — if the fixture's HEAD commit changes, the
+    cache is stale and will be recomputed.
+    """
+
+    CACHE_VERSION = 1
+
+    def __init__(self, output_dir: Path | None = None, timeout: int = 300):
+        self._output_dir = output_dir
+        self._timeout = timeout
+
+    # ------------------------------------------------------------------
+    # Fingerprinting
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def fingerprint(app_path: Path) -> str:
+        """Return a content fingerprint for invalidation.
+
+        Uses git HEAD if the fixture is a git repo; otherwise hashes
+        Cargo.toml + sorted list of .rs file paths and sizes.
+        """
+        git_dir = app_path / ".git"
+        if git_dir.exists():
+            try:
+                result = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=app_path,
+                    capture_output=True, text=True, timeout=10,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    return result.stdout.strip()
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                pass
+
+        # Fallback: hash key files
+        h = hashlib.sha256()
+        cargo_toml = app_path / "Cargo.toml"
+        if cargo_toml.is_file():
+            h.update(cargo_toml.read_bytes())
+        for rs_file in sorted(app_path.rglob("*.rs")):
+            try:
+                rel = rs_file.relative_to(app_path)
+                # Skip target/ directory
+                if str(rel).startswith("target"):
+                    continue
+                h.update(str(rel).encode())
+                h.update(str(rs_file.stat().st_size).encode())
+            except (OSError, ValueError):
+                continue
+        return h.hexdigest()
+
+    # ------------------------------------------------------------------
+    # Cache I/O
+    # ------------------------------------------------------------------
+
+    def cache_path(self, app_path: Path) -> Path:
+        if self._output_dir is not None:
+            return self._output_dir / app_path.name / "baseline.json"
+        # Fallback: benchmark output directory relative to app fixture
+        return app_path.parent.parent.parent / "output" / app_path.name / "baseline.json"
+
+    def load(self, app_path: Path) -> BaselineMetrics | None:
+        """Load cached baseline if it exists and the fingerprint matches."""
+        path = self.cache_path(app_path)
+        if not path.is_file():
+            return None
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return None
+
+        if data.get("version") != self.CACHE_VERSION:
+            return None
+        if data.get("fingerprint") != self.fingerprint(app_path):
+            return None
+
+        metrics = data.get("baseline")
+        if metrics is None:
+            return None
+
+        return BaselineMetrics(**metrics)
+
+    def save(self, app_path: Path, baseline: BaselineMetrics) -> None:
+        """Write baseline and fingerprint to the cache file."""
+        data = {
+            "version": self.CACHE_VERSION,
+            "fingerprint": self.fingerprint(app_path),
+            "baseline": asdict(baseline),
+        }
+        path = self.cache_path(app_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    # ------------------------------------------------------------------
+    # Compute
+    # ------------------------------------------------------------------
+
+    def compute(self, app_path: Path) -> BaselineMetrics | None:
+        """Run baseline commands in a temporary workspace and cache the result.
+
+        Returns None if the fixture has no Cargo.toml.  Otherwise runs the
+        full cargo baseline suite in a disposable clone, caches the result,
+        and returns it.
+        """
+        if not (app_path / "Cargo.toml").is_file():
+            return None
+
+        logger = logging.getLogger("bench.baseline_cache")
+        logger.info("computing baseline for %s", app_path.name)
+
+        # Create a temporary workspace to run cargo commands in.
+        # We clone (or copy) the fixture so we don't pollute it with
+        # build artifacts.
+        workspace = Path(tempfile.mkdtemp(prefix="baseline-")).resolve()
+        try:
+            git_dir = app_path / ".git"
+            if git_dir.exists():
+                subprocess.run(
+                    ["git", "clone", "--local", str(app_path), str(workspace)],
+                    capture_output=True, text=True, timeout=300, check=True,
+                )
+            else:
+                shutil.copytree(
+                    app_path, workspace,
+                    symlinks=False, dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns(".git"),
+                )
+
+            baseline = self._run_baseline(workspace)
+            if baseline is not None:
+                self.save(app_path, baseline)
+                logger.info(
+                    "baseline cached for %s: tests=%s (exit %s), build exit %s, "
+                    "fmt exit %s, clippy exit %s, coverage=%s",
+                    app_path.name,
+                    baseline.test_count, baseline.cargo_test_exit_code,
+                    baseline.cargo_build_exit_code,
+                    baseline.cargo_fmt_exit_code,
+                    baseline.cargo_clippy_exit_code,
+                    baseline.coverage_pct,
+                )
+            return baseline
+        finally:
+            shutil.rmtree(workspace, ignore_errors=True)
+
+    def load_or_compute(self, app_path: Path) -> BaselineMetrics | None:
+        """Load from cache if valid, otherwise compute and cache."""
+        cached = self.load(app_path)
+        if cached is not None:
+            logger = logging.getLogger("bench.baseline_cache")
+            logger.info(
+                "loaded cached baseline for %s: tests=%s, coverage=%s",
+                app_path.name, cached.test_count, cached.coverage_pct,
+            )
+            return cached
+        return self.compute(app_path)
+
+    def _run_baseline(self, workspace: Path) -> BaselineMetrics:
+        """Run cargo commands in *workspace* and return metrics."""
+        test_result = _run_cargo_cmd(workspace, "test", "--no-fail-fast", timeout=self._timeout)
+        build_result = _run_cargo_cmd(workspace, "build", "--all-targets", "--all-features", timeout=self._timeout)
+        fmt_result = _run_cargo_cmd(workspace, "fmt", "--check", timeout=self._timeout)
+        clippy_result = _run_cargo_cmd(workspace, "clippy", "--all-targets", "--", "-D", "warnings", timeout=self._timeout)
+        cov_result = _run_cargo_cmd(workspace, "llvm-cov", "--summary-only", timeout=self._timeout)
+
+        test_count = _parse_test_count(test_result.stdout) if test_result else None
+        coverage_pct = _parse_coverage_pct(cov_result.stdout) if cov_result else None
+
+        return BaselineMetrics(
+            cargo_test_exit_code=test_result.returncode if test_result else None,
+            cargo_test_stdout=test_result.stdout if test_result else "",
+            cargo_test_stderr=test_result.stderr if test_result else "",
+            cargo_build_exit_code=build_result.returncode if build_result else None,
+            cargo_build_stderr=build_result.stderr if build_result else "",
+            cargo_fmt_exit_code=fmt_result.returncode if fmt_result else None,
+            cargo_fmt_stdout=fmt_result.stdout if fmt_result else "",
+            cargo_clippy_exit_code=clippy_result.returncode if clippy_result else None,
+            cargo_clippy_stderr=clippy_result.stderr if clippy_result else "",
+            cargo_llvm_cov_exit_code=cov_result.returncode if cov_result else None,
+            cargo_llvm_cov_stdout=cov_result.stdout if cov_result else "",
+            cargo_llvm_cov_stderr=cov_result.stderr if cov_result else "",
+            test_count=test_count,
+            coverage_pct=coverage_pct,
+        )
+
+
+def _run_cargo_cmd(
+    workspace: Path, *args: str, timeout: int = 300,
+) -> subprocess.CompletedProcess | None:
+    """Run a cargo subcommand, returning the CompletedProcess or None on error.
+
+    Module-level helper shared by BaselineCache and BenchmarkEnvironment.
+    """
+    import signal as _signal
+    proc = None
+    try:
+        proc = subprocess.Popen(
+            ["cargo", *args],
+            cwd=workspace,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        stdout, stderr = proc.communicate(timeout=timeout)
+        return subprocess.CompletedProcess(
+            args=proc.args,
+            returncode=proc.returncode,
+            stdout=stdout,
+            stderr=stderr,
+        )
+    except subprocess.TimeoutExpired:
+        if proc is not None:
+            try:
+                os.killpg(proc.pid, _signal.SIGTERM)
+            except (ProcessLookupError, OSError):
+                pass
+            proc.wait(timeout=5)
+        return None
+    except (FileNotFoundError, OSError):
+        return None
+
+
 class BenchmarkEnvironment:
     """Manages isolated workspace directories for benchmark runs."""
 
-    def __init__(self, base_dir: Optional[Path] = None, skip_baseline: bool = False):
+    def __init__(
+        self,
+        base_dir: Optional[Path] = None,
+        skip_baseline: bool = False,
+        precomputed_baselines: dict[str, BaselineMetrics] | None = None,
+    ):
         self.base_dir = base_dir
         self.skip_baseline = skip_baseline
+        # Map of app name -> pre-loaded BaselineMetrics.
+        # When set, capture_setup_state uses these instead of re-running
+        # cargo commands per variant.
+        self._baselines: dict[str, BaselineMetrics] = precomputed_baselines or {}
 
     def setup(
         self,
@@ -347,7 +589,7 @@ class BenchmarkEnvironment:
 
         subprocess.run(
             ["git", "clone", "--local", str(app_path), str(workspace)],
-            capture_output=True, text=True, timeout=120, check=True,
+            capture_output=True, text=True, timeout=300, check=True,
         )
 
         # --- Squash fixture history into a single orphan commit ----------
@@ -538,24 +780,30 @@ class BenchmarkEnvironment:
             return None
         return workflow_path.read_text(encoding="utf-8")
 
-    def capture_setup_state(self, workspace: Path, *, case_id: str = "") -> SetupSnapshot:
+    def capture_setup_state(self, workspace: Path, *, case_id: str = "", app_name: str = "") -> SetupSnapshot:
         """Capture a snapshot of the workspace after all setup, before the LLM runs.
 
-        This must be called AFTER ``setup()`` completes (including any
-        baseline capture) and BEFORE the prompt is submitted.  The file
-        list is a full filesystem walk — not ``git ls-tree`` — so it
-        reflects every file on disk that the LLM can encounter.
+        This must be called AFTER ``setup()`` completes and BEFORE the prompt
+        is submitted.  The file list is a full filesystem walk — not
+        ``git ls-tree`` — so it reflects every file on disk that the LLM
+        can encounter.
+
+        If a pre-computed baseline exists for *app_name*, it is used directly
+        instead of re-running cargo commands.  This avoids redundant 5-minute
+        compilations across variants that share the same fixture code.
         """
         logger = logging.getLogger("bench.environment")
         label = case_id or workspace.name
         logger.info("%s: capturing setup state", label)
 
-        # Run baseline FIRST so the file list includes any side-effects
-        # (e.g. Cargo.lock updates, generated code) from baseline commands.
-        baseline = self._capture_baseline(workspace, case_id=label)
-        if baseline is not None:
+        # Use pre-loaded baseline if available; otherwise fall back to
+        # computing it in the workspace (legacy path).
+        baseline: BaselineMetrics | None = None
+        if app_name and app_name in self._baselines:
+            baseline = self._baselines[app_name]
             logger.info(
-                "%s: baseline tests=%s (exit %s), build exit %s, fmt exit %s, clippy exit %s, coverage=%s",
+                "%s: using cached baseline: tests=%s (exit %s), build exit %s, "
+                "fmt exit %s, clippy exit %s, coverage=%s",
                 label,
                 baseline.test_count, baseline.cargo_test_exit_code,
                 baseline.cargo_build_exit_code,
@@ -564,7 +812,19 @@ class BenchmarkEnvironment:
                 baseline.coverage_pct,
             )
         else:
-            logger.info("%s: no baseline (no Cargo.toml)", label)
+            baseline = self._capture_baseline(workspace, case_id=label)
+            if baseline is not None:
+                logger.info(
+                    "%s: baseline tests=%s (exit %s), build exit %s, fmt exit %s, clippy exit %s, coverage=%s",
+                    label,
+                    baseline.test_count, baseline.cargo_test_exit_code,
+                    baseline.cargo_build_exit_code,
+                    baseline.cargo_fmt_exit_code,
+                    baseline.cargo_clippy_exit_code,
+                    baseline.coverage_pct,
+                )
+            else:
+                logger.info("%s: no baseline (no Cargo.toml)", label)
 
         # Filesystem walk — captures every file on disk so the snapshot
         # reflects exactly what the LLM can encounter.
@@ -598,78 +858,43 @@ class BenchmarkEnvironment:
         """Run cargo commands to capture the fixture's functional baseline.
 
         Returns None if the workspace has no Cargo.toml (not a Rust project).
+
+        This is the legacy per-workspace path.  Prefer pre-loading baselines
+        via ``BaselineCache`` and passing them as ``precomputed_baselines``
+        to the constructor — that avoids redundant compilations.
         """
         if self.skip_baseline or not (workspace / "Cargo.toml").is_file():
             return None
 
         logger = logging.getLogger("bench.environment")
         label = case_id or workspace.name
-        logger.info("%s: capturing baseline metrics", label)
+        logger.info("%s: capturing baseline metrics (uncached — consider using BaselineCache)", label)
 
-        test_result = self._run_cargo(workspace, "test", "--", "--no-fail-fast")
-        build_result = self._run_cargo(workspace, "build", "--all-targets", "--all-features")
-        fmt_result = self._run_cargo(workspace, "fmt", "--check")
-        clippy_result = self._run_cargo(workspace, "clippy", "--all-targets", "--", "-D", "warnings")
-        cov_result = self._run_cargo(workspace, "llvm-cov", "--summary-only")
+        test_result = _run_cargo_cmd(workspace, "test", "--no-fail-fast")
+        build_result = _run_cargo_cmd(workspace, "build", "--all-targets", "--all-features")
+        fmt_result = _run_cargo_cmd(workspace, "fmt", "--check")
+        clippy_result = _run_cargo_cmd(workspace, "clippy", "--all-targets", "--", "-D", "warnings")
+        cov_result = _run_cargo_cmd(workspace, "llvm-cov", "--summary-only")
 
         test_count = _parse_test_count(test_result.stdout) if test_result else None
         coverage_pct = _parse_coverage_pct(cov_result.stdout) if cov_result else None
 
         return BaselineMetrics(
             cargo_test_exit_code=test_result.returncode if test_result else None,
-            cargo_test_stdout=_truncate(test_result.stdout, 4000) if test_result else "",
-            cargo_test_stderr=_truncate(test_result.stderr, 2000) if test_result else "",
+            cargo_test_stdout=test_result.stdout if test_result else "",
+            cargo_test_stderr=test_result.stderr if test_result else "",
             cargo_build_exit_code=build_result.returncode if build_result else None,
-            cargo_build_stderr=_truncate(build_result.stderr, 2000) if build_result else "",
+            cargo_build_stderr=build_result.stderr if build_result else "",
             cargo_fmt_exit_code=fmt_result.returncode if fmt_result else None,
-            cargo_fmt_stdout=_truncate(fmt_result.stdout, 2000) if fmt_result else "",
+            cargo_fmt_stdout=fmt_result.stdout if fmt_result else "",
             cargo_clippy_exit_code=clippy_result.returncode if clippy_result else None,
-            cargo_clippy_stderr=_truncate(clippy_result.stderr, 2000) if clippy_result else "",
+            cargo_clippy_stderr=clippy_result.stderr if clippy_result else "",
             cargo_llvm_cov_exit_code=cov_result.returncode if cov_result else None,
-            cargo_llvm_cov_stdout=_truncate(cov_result.stdout, 2000) if cov_result else "",
-            cargo_llvm_cov_stderr=_truncate(cov_result.stderr, 2000) if cov_result else "",
+            cargo_llvm_cov_stdout=cov_result.stdout if cov_result else "",
+            cargo_llvm_cov_stderr=cov_result.stderr if cov_result else "",
             test_count=test_count,
             coverage_pct=coverage_pct,
         )
-
-    def _run_cargo(
-        self, workspace: Path, *args: str, timeout: int = 120,
-    ) -> subprocess.CompletedProcess | None:
-        """Run a cargo subcommand, returning the CompletedProcess or None on error.
-
-        Uses start_new_session so the entire process tree (compiler, test
-        binaries, etc.) can be killed on timeout.  Without this, killing
-        only the parent cargo process leaves children holding pipes open,
-        which causes subprocess.run's pipe-drain to block indefinitely.
-        """
-        import signal as _signal
-        proc = None
-        try:
-            proc = subprocess.Popen(
-                ["cargo", *args],
-                cwd=workspace,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                start_new_session=True,
-            )
-            stdout, stderr = proc.communicate(timeout=timeout)
-            return subprocess.CompletedProcess(
-                args=proc.args,
-                returncode=proc.returncode,
-                stdout=stdout,
-                stderr=stderr,
-            )
-        except subprocess.TimeoutExpired:
-            if proc is not None:
-                try:
-                    os.killpg(proc.pid, _signal.SIGTERM)
-                except (ProcessLookupError, OSError):
-                    pass
-                proc.wait(timeout=5)
-            return None
-        except (FileNotFoundError, OSError):
-            return None
 
     def capture_state(self, workspace: Path, setup_snapshot: SetupSnapshot | None = None, *, case_id: str = "") -> WorkspaceState:
         """Capture a snapshot of the workspace state after a run."""

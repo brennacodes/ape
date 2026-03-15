@@ -393,7 +393,7 @@ def _run_in_workspace(
     # Capture setup state NOW — after all setup, before prompt submission.
     setup_snapshot: SetupSnapshot | None = None
     try:
-        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id)
+        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id, app_name=case.app.name)
     except Exception:
         logger.warning("%s: failed to capture setup state", case.case_id, exc_info=True)
 

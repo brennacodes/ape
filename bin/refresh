@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Compute or refresh cached fixture baselines.
+# All arguments are passed through to benchmark/run_benchmark.py.
+#
+# Baselines are cached per-fixture and invalidated when the fixture's
+# git HEAD changes.  Use --refresh-baselines to force recomputation
+# even when the cache is valid.
+#
+# Usage:
+#   bin/refresh                                      # compute missing baselines
+#   bin/refresh --refresh-baselines                  # force recompute all
+#   bin/refresh --refresh-baselines --app bivvy      # force recompute one fixture
+#
+# Filter options (narrow which fixtures are baselined):
+#   --app NAME              Filter by app name (e.g. "bivvy")
+#   --category NAME         Filter by prompt category (e.g. "bugs")
+#   --item ID               Filter by app-config item ID
+#   --format-filter NAME    Filter by workflow format (e.g. "plain-text", "ape")
+#   --workflow NAME         Filter by workflow stem (e.g. "bivvy")
+#
+# Other:
+#   --refresh-baselines     Force recomputation (ignores valid cache)
+#   -v, --verbose           Verbose logging (default: on)
+#   -h, --help              Show help message and exit
+
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 "$REPO_ROOT/benchmark/run_benchmark.py" --baselines-only "$@"
