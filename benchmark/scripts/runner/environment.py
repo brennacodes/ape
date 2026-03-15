@@ -284,6 +284,8 @@ class BenchmarkEnvironment:
         workflow_path: Path,
         workflow_format: str,
         fixture_workflow_files: list[str] | None = None,
+        *,
+        case_id: str = "",
     ) -> Path:
         """Create an isolated workspace for a benchmark run.
 
@@ -301,14 +303,19 @@ class BenchmarkEnvironment:
 
         Returns the workspace path.
         """
+        logger = logging.getLogger("bench.environment")
+        label = case_id or app_path.name
         if self._is_git_repo(app_path):
+            logger.info("%s: setting up workspace via git clone", label)
             workspace = self._setup_via_clone(
                 app_path, workflow_path, workflow_format, fixture_workflow_files,
             )
         else:
+            logger.info("%s: setting up workspace via copy", label)
             workspace = self._setup_via_copy(
                 app_path, workflow_path, workflow_format, fixture_workflow_files,
             )
+        logger.info("%s: workspace ready", label)
         return workspace
 
     def _is_git_repo(self, path: Path) -> bool:
@@ -585,8 +592,11 @@ class BenchmarkEnvironment:
             return None
         return workflow_path.read_text(encoding="utf-8")
 
-    def capture_setup_state(self, workspace: Path) -> SetupSnapshot:
+    def capture_setup_state(self, workspace: Path, *, case_id: str = "") -> SetupSnapshot:
         """Capture a snapshot of the workspace right after setup, before the LLM runs."""
+        logger = logging.getLogger("bench.environment")
+        label = case_id or workspace.name
+        logger.info("%s: capturing setup state", label)
         file_list_raw = self._git(workspace, "ls-tree", "-r", "--name-only", "HEAD")
         file_list = tuple(
             f.strip() for f in file_list_raw.splitlines() if f.strip()
@@ -597,7 +607,20 @@ class BenchmarkEnvironment:
         claude_md = workspace / "CLAUDE.md"
         claude_md_content = claude_md.read_text(encoding="utf-8") if claude_md.is_file() else None
 
-        baseline = self._capture_baseline(workspace)
+        baseline = self._capture_baseline(workspace, case_id=label)
+        if baseline is not None:
+            logger.info(
+                "%s: baseline tests=%s (exit %s), build exit %s, fmt exit %s, clippy exit %s, coverage=%s",
+                label,
+                baseline.test_count, baseline.cargo_test_exit_code,
+                baseline.cargo_build_exit_code,
+                baseline.cargo_fmt_exit_code,
+                baseline.cargo_clippy_exit_code,
+                baseline.coverage_pct,
+            )
+        else:
+            logger.info("%s: no baseline (no Cargo.toml)", label)
+        logger.info("%s: setup state captured, %d files tracked", label, len(file_list))
 
         return SetupSnapshot(
             file_list=file_list,
@@ -607,7 +630,7 @@ class BenchmarkEnvironment:
             baseline=baseline,
         )
 
-    def _capture_baseline(self, workspace: Path) -> BaselineMetrics | None:
+    def _capture_baseline(self, workspace: Path, *, case_id: str = "") -> BaselineMetrics | None:
         """Run cargo commands to capture the fixture's functional baseline.
 
         Returns None if the workspace has no Cargo.toml (not a Rust project).
@@ -616,7 +639,8 @@ class BenchmarkEnvironment:
             return None
 
         logger = logging.getLogger("bench.environment")
-        logger.info("Capturing baseline metrics for %s", workspace.name)
+        label = case_id or workspace.name
+        logger.info("%s: capturing baseline metrics", label)
 
         test_result = self._run_cargo(workspace, "test", "--", "--no-fail-fast")
         build_result = self._run_cargo(workspace, "build", "--all-targets", "--all-features")
@@ -659,8 +683,11 @@ class BenchmarkEnvironment:
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             return None
 
-    def capture_state(self, workspace: Path, setup_snapshot: SetupSnapshot | None = None) -> WorkspaceState:
+    def capture_state(self, workspace: Path, setup_snapshot: SetupSnapshot | None = None, *, case_id: str = "") -> WorkspaceState:
         """Capture a snapshot of the workspace state after a run."""
+        logger = logging.getLogger("bench.environment")
+        label = case_id or workspace.name
+        logger.info("%s: capturing post-run workspace state", label)
         git_log = self._git(workspace, "log", "--oneline", "--all")
         git_status = self._git(workspace, "status", "--porcelain")
 
@@ -682,6 +709,11 @@ class BenchmarkEnvironment:
 
         # Capture the full diff of everything the LLM changed since initialization
         full_diff = self._git(workspace, "diff", "initial-state")
+
+        logger.info(
+            "%s: post-run state — %d committed files, %d modified files",
+            label, len(committed), len(modified),
+        )
 
         return WorkspaceState(
             git_log=git_log,

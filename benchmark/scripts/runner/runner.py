@@ -399,6 +399,7 @@ def _run_in_workspace(
     logger.debug("%s: cwd=%s", case.case_id, workspace_path)
 
     # 4. Execute CLI in isolated workspace
+    logger.info("%s: executing CLI (timeout=%ds)", case.case_id, timeout)
     import tempfile
     from datetime import datetime as _dt
     started_at = _dt.now().isoformat()
@@ -428,10 +429,15 @@ def _run_in_workspace(
     raw_output = getattr(result, "stdout", "") or ""
     exit_code = getattr(result, "returncode", 0) or 0
     stderr = getattr(result, "stderr", "") or ""
+    logger.info(
+        "%s: CLI finished in %.1fs (exit %d)",
+        case.case_id, wall_clock_ms / 1000, exit_code,
+    )
 
     # 5. Capture workspace state
+    logger.info("%s: capturing post-run workspace state", case.case_id)
     try:
-        ws = env.capture_state(workspace_path, setup_snapshot=setup_snapshot)
+        ws = env.capture_state(workspace_path, setup_snapshot=setup_snapshot, case_id=case.case_id)
         workspace_state = {
             "git_log": ws.git_log,
             "modified_files": ws.modified_files,
@@ -480,6 +486,7 @@ def _run_in_workspace(
         )
 
     # 6. Parse trace — try stdout first, then session file in workspace
+    logger.info("%s: parsing session trace", case.case_id)
     trace = None
     trace_path = None
     stale_trace = False
@@ -533,6 +540,7 @@ def _run_in_workspace(
             )
 
     # 7. Evaluate
+    logger.info("%s: evaluating %d checks", case.case_id, len(checks))
     context["workspace_state"] = workspace_state
     context["workspace_path"] = str(workspace_path)
     # Capture evaluation context for re-evaluation reproducibility
@@ -555,6 +563,7 @@ def _run_in_workspace(
         )
 
     # 8. Summarize
+    logger.info("%s: summarizing results", case.case_id)
     outcomes = check_results_to_outcomes(check_results)
     # For template cases, prompt_id encodes category/item for unique identification
     if case.category and case.item_id:
@@ -660,6 +669,7 @@ def run_case(
             case.workflow.path,
             case.workflow.format,
             fixture_workflow_files=fixture_workflow_files,
+            case_id=case.case_id,
         )
     except Exception as exc:
         return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}")
@@ -667,7 +677,7 @@ def run_case(
     # Capture workspace state right after setup, before the LLM runs
     setup_snapshot = None
     try:
-        setup_snapshot = env.capture_setup_state(workspace_path)
+        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id)
     except Exception:
         pass
 
