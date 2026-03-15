@@ -226,7 +226,7 @@ class TestFullPipeline:
 
     @pytest.fixture
     def isolated_env(self, tmp_path):
-        return BenchmarkEnvironment(base_dir=tmp_path)
+        return BenchmarkEnvironment(base_dir=tmp_path, skip_baseline=True)
 
     def test_produces_run_summary(self, case, isolated_env):
         result = run_case(case, environment=isolated_env, _execute=_make_trace_executor())
@@ -282,7 +282,7 @@ class TestPipelineErrors:
 
     @pytest.fixture
     def isolated_env(self, tmp_path):
-        return BenchmarkEnvironment(base_dir=tmp_path)
+        return BenchmarkEnvironment(base_dir=tmp_path, skip_baseline=True)
 
     def test_bad_stdout_and_no_session_returns_error(self, case, isolated_env):
         def bad_exec(cmd, timeout, cwd=None, env=None, **kwargs):

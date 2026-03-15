@@ -1,6 +1,6 @@
 # APE Linting Rules
 
-**Version:** 0.3.0
+**Version:** 0.4.0
 **Companion to:** `ape-spec.md` (Section 23: Validation Architecture)
 
 ---
@@ -80,7 +80,7 @@ A `{{ identifier }}` token does not resolve to an in-scope variable (declared vi
 
 **Severity:** ERROR
 
-Two elements share the same `id` in global scope. Global ID namespaces: `resource`, `command`, `sequence`, `step`, `template`, `output`, `action`, `criteria`.
+Two elements share the same `id` in global scope. Global ID namespaces: `resource`, `command`, `sequence`, `step`, `template`, `output`, `criteria`.
 
 ```xml
 <!-- ERROR: two commands with id="build" -->
@@ -154,18 +154,106 @@ A `<criterion>` element has neither `ref` nor `check`. Exactly one must be prese
 <criterion check="{{ test_failures == 0 }}" />
 ```
 
-### E026: `<criterion>` `ref` resolving to action or command
+### E026a: `<run>` with `ref` and body text
 
 **Severity:** ERROR
 
-A `<criterion>` uses `ref` to point at an `<action>` or `<command>`. This leaves pass/fail semantics ambiguous — nothing in the referenced element defines what constitutes success or failure. `<criterion ref>` must resolve to a `<criteria>` or `<criterion>` `id` — elements with explicit `check` expressions that define unambiguous pass/fail.
+A `<run>` element has both a `ref` attribute and non-empty body text. These are mutually exclusive — `ref` executes a declared command, body text is an inline command.
 
 ```xml
-<!-- ERROR: ref points to an action — pass/fail is undefined -->
-<action id="run-tests"><command ref="run-tests" /></action>
-<criterion ref="run-tests" />
+<!-- ERROR: ref and body text are mutually exclusive -->
+<run ref="run-tests">cargo test --all-features</run>
 
-<!-- ERROR: ref points to a command — same problem -->
+<!-- VALID: ref form -->
+<run ref="run-tests" />
+
+<!-- VALID: inline form -->
+<run>cargo test --all-features</run>
+
+<!-- VALID: inline + capture form -->
+<run set="test_failures">cargo test --all-features 2>&1 | grep -c FAILED</run>
+```
+
+### E026b: Gate `<run>` referencing `<approved-commands>`
+
+**Severity:** ERROR
+
+A `<run ref>` inside a `<gate>` references a command declared in `<approved-commands>`. Gate `<run>` elements may only reference commands from `<approved-gate-commands>`. Gate commands gather measurement data for criteria expressions — they do not determine pass/fail on their own.
+
+```xml
+<approved-commands>
+  <command id="run-tests">cargo test --all-features</command>
+</approved-commands>
+<approved-gate-commands>
+  <command id="test-failure-count">cargo test 2>&amp;1 | grep -c FAILED</command>
+</approved-gate-commands>
+
+<!-- ERROR: gate run references an approved-command -->
+<gate>
+  <run ref="run-tests" set="result" />
+  <criterion check="{{ result == 0 }}" />
+  <on-fail halt="true" />
+</gate>
+
+<!-- VALID: gate run references an approved-gate-command -->
+<gate>
+  <run ref="test-failure-count" set="test_failures" />
+  <criterion check="{{ test_failures == 0 }}" />
+  <on-fail halt="true" />
+</gate>
+```
+
+### E026c: Step-level `<run ref>` referencing `<approved-gate-commands>`
+
+**Severity:** ERROR
+
+A `<run ref>` outside a `<gate>` references a command declared in `<approved-gate-commands>`. Step-level `<run>` elements may only reference commands from `<approved-commands>`. Gate commands are for measurement only.
+
+```xml
+<!-- ERROR: step-level run references a gate command -->
+<step id="testing">
+  <run ref="test-failure-count" />
+</step>
+
+<!-- VALID: step-level run references an approved command -->
+<step id="testing">
+  <run ref="run-tests" />
+</step>
+```
+
+### E026d: `<commands>` wrapper used instead of split
+
+**Severity:** ERROR
+
+The document uses `<commands>` as a container for command declarations. As of 0.4.0, commands must be declared in `<approved-commands>` (for step-level execution) and `<approved-gate-commands>` (for gate measurement), both inside `<meta>`.
+
+```xml
+<!-- ERROR: <commands> is no longer valid -->
+<meta>
+  <commands>
+    <command id="run-tests">cargo test</command>
+  </commands>
+</meta>
+
+<!-- VALID: split into approved-commands and approved-gate-commands -->
+<meta>
+  <approved-commands>
+    <command id="run-tests">cargo test --all-features</command>
+  </approved-commands>
+  <approved-gate-commands>
+    <command id="test-failure-count">cargo test 2>&amp;1 | grep -c FAILED</command>
+  </approved-gate-commands>
+</meta>
+```
+
+### E026: `<criterion>` `ref` resolving to command
+
+**Severity:** ERROR
+
+A `<criterion>` uses `ref` to point at a `<command>`. `<criterion ref>` must resolve to a `<criteria>` or `<criterion>` `id` — elements with explicit `check` expressions that define unambiguous pass/fail. Use `<run>` inside the gate to execute measurement commands, then `<criterion check>` to evaluate the result.
+
+```xml
+<!-- ERROR: ref points to a command — pass/fail is undefined -->
 <criterion ref="build-dev" />
 
 <!-- VALID: ref points to a named criteria block -->
@@ -252,33 +340,32 @@ An `<on-pass>` carries an attribute other than `goto` or `proceed` (e.g., `retry
 
 **Severity:** ERROR
 
-An `<action>`, `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, `<each>`, or `<sequence>` contains non-whitespace text content.
+A `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, `<each>`, or `<sequence>` contains non-whitespace text content. Note: `<run>` is mixed content and may contain inline command text — it is not a structure container.
 
 ```xml
-<!-- ERROR: prose inside action -->
-<action>
-  Run the tests and check the output.
-  <command ref="run-tests" />
-</action>
+<!-- ERROR: prose inside on-fail -->
+<on-fail goto="implementation">
+  Go back and fix the tests.
+</on-fail>
 ```
 
 ### E051: Executable child inside `<instruction>`
 
 **Severity:** ERROR
 
-An `<instruction>` contains `<command>`, `<action>`, `<output>`, or a tool tag.
+An `<instruction>` contains `<run>`, `<output>`, or a tool tag.
 
-### E052: `<note>` inside `<instruction>` or `<action>`
+### E052: `<note>` inside `<instruction>`
 
 **Severity:** ERROR
 
-A `<note>` appears inside `<instruction>` or `<action>`. `<note>` is allowed only at step level or root `<ape>` level.
+A `<note>` appears inside `<instruction>`. `<note>` is allowed only at step level or root `<ape>` level.
 
 ### E053: Structural semantics in prose container
 
 **Severity:** ERROR
 
-A prose container (`<note>`, `<instruction>`, `<constraint>`, `<rule>`, `<principle>`, `<anti-pattern>`, `<description>`) contains conditional logic or flow-control directives that should be expressed structurally.
+A prose container (`<note>`, `<instruction>`, `<rule>`, `<principle>`, `<anti-pattern>`, `<description>`) contains conditional logic or flow-control directives that should be expressed structurally.
 
 The core principle is "structure over prose." If prose describes navigation, branching, or conditional behavior, the author is smuggling structure into a prose container — the inverse of E050.
 
@@ -305,9 +392,9 @@ The core principle is "structure over prose." If prose describes navigation, bra
 ```
 
 ```xml
-<!-- ERROR: conditional and flow-control in a constraint -->
-<constraint>If coverage drops below 90%, go back to implementation
-  and add tests.</constraint>
+<!-- ERROR: conditional and flow-control in a rule -->
+<rule>If coverage drops below 90%, go back to implementation
+  and add tests.</rule>
 
 <!-- VALID: structure expresses this -->
 <gate>
@@ -336,11 +423,11 @@ A `<prerequisite>` or `<prerequisites>` is not the first child element of its `<
 
 A `<default>` element appears before a `<case>` element within its `<conditional>`.
 
-### E062: `<constraint>` after prose in `<instruction>`
+### E062: Rule after prose in `<instruction>`
 
 **Severity:** ERROR
 
-A `<constraint>` inside an `<instruction>` appears after prose text or executable content.
+A `<rule>` inside an `<instruction>` appears after prose text or executable content.
 
 ---
 
@@ -360,7 +447,7 @@ The document contains an XML comment (`<!-- -->`). Use `<note>` for author-facin
 
 **Severity:** ERROR
 
-A `<meta>` element exists but is not the first child of `<ape>` (or the first child after `<preamble>`, if a preamble is present).
+A `<meta>` element exists but is not the first child of `<ape>` (or the first child after `<IMPORTANT>`, if present).
 
 ### E081: Empty `<steps>`
 
@@ -380,17 +467,17 @@ A `<description>` appears as a child of something other than `<meta>` or `<step>
 
 A `<meta>` or `<step>` contains more than one `<description>`.
 
-### E084: `<preamble>` not first
+### E084: `<IMPORTANT>` not first
 
 **Severity:** ERROR
 
-A `<preamble>` element exists but is not the first child of `<ape>`.
+An `<IMPORTANT>` element exists but is not the first child of `<ape>`.
 
-### E085: Multiple `<preamble>` elements
+### E085: Multiple `<IMPORTANT>` elements
 
 **Severity:** ERROR
 
-More than one `<preamble>` element exists in the document.
+More than one `<IMPORTANT>` element exists in the document.
 
 ---
 
@@ -402,19 +489,20 @@ These rules enforce the "Structure over prose, once" design principle. They are 
 
 **Severity:** ERROR
 
-A `<note>`, `<constraint>`, `<rule>`, `<principle>`, or `<anti-pattern>` restates behavior that a `<gate>`, `<prerequisite>`, `<conditional>`, or `<command>` definition already enforces.
+A `<note>`, `<rule>`, `<principle>`, or `<anti-pattern>` restates behavior that a `<gate>`, `<prerequisite>`, `<conditional>`, or `<command>` definition already enforces.
 
 The test: if you deleted the prose element and the document's runtime behavior would be identical — because a gate would still block, a prerequisite would still redirect, or a command definition would still prescribe the exact invocation — the prose is redundant.
 
 ```xml
 <!-- ERROR: the gate on step "testing" already prevents proceeding
-     when tests fail. This constraint adds nothing. -->
-<constraint>NEVER move on when tests are failing.</constraint>
+     when tests fail. This rule adds nothing. -->
+<rule>NEVER move on when tests are failing.</rule>
 
 <!-- ...later... -->
 <step id="testing">
-  <action><command ref="run-tests" /></action>
+  <run ref="run-tests" />
   <gate>
+    <run ref="test-failure-count" set="test_failures" />
     <criterion check="{{ test_failures == 0 }}" />
     <on-fail goto="implementation" />
   </gate>
@@ -423,12 +511,12 @@ The test: if you deleted the prose element and the document's runtime behavior w
 
 ```xml
 <!-- ERROR: the command definition already specifies the exact invocation.
-     The constraint just narrates what the structure prescribes. -->
+     The rule just narrates what the structure prescribes. -->
 <command id="run-tests" note="NO FILTERS">cargo test --all-features</command>
 
 <!-- ...later... -->
-<constraint>NEVER filter tests. Always run `cargo test --all-features` without
-  name filters.</constraint>
+<rule>NEVER filter tests. Always run `cargo test --all-features` without
+  name filters.</rule>
 ```
 
 ```xml
@@ -453,42 +541,41 @@ The test: if you deleted the prose element and the document's runtime behavior w
 
 **Severity:** ERROR
 
-The same guidance is expressed in more than one guidance element (`<note>`, `<constraint>`, `<rule>`, `<principle>`, `<anti-pattern>`). Each piece of guidance appears once, in the element whose semantics best match its nature.
+The same guidance is expressed in more than one guidance element (`<note>`, `<rule>`, `<principle>`, `<anti-pattern>`). Each piece of guidance appears once, in the element whose semantics best match its nature.
 
 ```xml
 <!-- ERROR: same idea expressed three times -->
-<constraint>NEVER skip or disable tests.</constraint>
+<rule>NEVER skip or disable tests.</rule>
 
 <principle name="Test-First">Tests define behavior before implementation.</principle>
 
 <anti-pattern>Skipping or disabling tests to make them pass.</anti-pattern>
 ```
 
-**Fix:** Choose one. "Never skip tests" is a hard prohibition — `<constraint>` is the right home. Delete the principle and anti-pattern that restate it.
+**Fix:** Choose one. "Never skip tests" is a binding requirement — `<rule>` is the right home. Delete the principle and anti-pattern that restate it.
 
 **How to evaluate:** Normalize each decorator's text content to its core directive (strip negation, imperative mood, and framing). If two or more decorators reduce to the same directive, they are redundant. The selection hierarchy:
 
 1. Can it be enforced by structure (gate, prerequisite, conditional)? Use structure. Delete all decorators.
-2. Is it a hard prohibition or requirement? → `<constraint>`
-3. Is it a thing to avoid (not a hard prohibition)? → `<anti-pattern>`
-4. Is it a style preference? → `<rule>`
-5. Is it a value or approach? → `<principle>`
-6. Is it contextual information? → `<note>`
+2. Is it a binding requirement or prohibition? → `<rule>`
+3. Is it a thing to avoid (not a binding requirement)? → `<anti-pattern>`
+4. Is it a value or approach? → `<principle>`
+5. Is it contextual information? → `<note>`
 
 ### E092: Step-level guidance duplicates document-level
 
 **Severity:** ERROR
 
-A `<note>`, `<constraint>`, `<rule>`, `<principle>`, or `<anti-pattern>` inside a `<step>` has the same semantic content as one at the document level or inside `<steps>`. Scope narrows; it does not echo.
+A `<note>`, `<rule>`, `<principle>`, or `<anti-pattern>` inside a `<step>` has the same semantic content as one at the document level or inside `<steps>`. Scope narrows; it does not echo.
 
 ```xml
-<!-- Document-level constraint -->
-<constraint>Warnings are errors. Zero tolerance.</constraint>
+<!-- Document-level rule -->
+<rule>Warnings are errors. Zero tolerance.</rule>
 
 <steps>
   <step id="linting">
-    <!-- ERROR: restates the document-level constraint -->
-    <constraint>Warnings are errors. Zero tolerance.</constraint>
+    <!-- ERROR: restates the document-level rule -->
+    <rule>Warnings are errors. Zero tolerance.</rule>
   </step>
 </steps>
 ```
@@ -509,7 +596,7 @@ A `<command>` with an `id` attribute is never referenced via `ref` anywhere in t
 
 **Severity:** WARNING
 
-A `<resource>` with an `id` is never referenced via `uses` or in any instruction/action.
+A `<resource>` with an `id` is never referenced via `uses` or in any instruction.
 
 ### W102: Declared variable never interpolated
 
@@ -529,13 +616,13 @@ A `<template>` with an `id` is never referenced via `template` attribute on `<ou
 
 An element has an `id` attribute that is never referenced anywhere in the document — not by `ref`, `goto`, `uses`, or any other referencing mechanism. Dead identifiers add noise. Either reference the `id` or remove it.
 
-This generalizes W100–W103 to all element types (actions, criteria, gates, steps, etc.). W100–W103 remain as specific cases with targeted diagnostics; W104 catches everything else.
+This generalizes W100–W103 to all element types (criteria, gates, steps, etc.). W100–W103 remain as specific cases with targeted diagnostics; W104 catches everything else.
 
 ```xml
-<!-- WARNING: action id is never referenced -->
-<action id="check-docs">
-  <command ref="build-docs" />
-</action>
+<!-- WARNING: criteria id is never referenced -->
+<criteria id="unused-checks" operator="and">
+  <criterion check="{{ a == 0 }}" />
+</criteria>
 
 <!-- VALID: id is referenced by a prerequisite -->
 <step id="build">...</step>
@@ -550,7 +637,7 @@ This generalizes W100–W103 to all element types (actions, criteria, gates, ste
 
 **Severity:** WARNING
 
-A step contains actions or commands that can fail but has no `<gate>`. If the step is purely informational, this is fine. If it executes commands, it probably needs a gate.
+A step contains `<run>` elements or tool tags that can fail but has no `<gate>`. If the step is purely informational, this is fine. If it executes commands, it probably needs a gate.
 
 ### W111: Prerequisite without `goto` or `halt`
 
@@ -576,18 +663,22 @@ A `<prerequisite>` contains text content. `<prerequisite>` is a structure contai
 
 **Severity:** WARNING
 
-The same command text appears in two or more inline `<command>` elements (no `id`/`ref`). Declare it once with an `id` and reference it.
+The same command text appears in two or more inline `<run>` elements. Declare the command once in `<approved-commands>` with an `id` and reference it with `<run ref>`.
 
 ```xml
-<!-- WARNING: same command text appears in three actions -->
-<command>cargo test --all-features</command>
-<!-- ...in another action... -->
-<command>cargo test --all-features</command>
+<!-- WARNING: same command text appears in multiple run elements -->
+<run>cargo test --all-features</run>
+<!-- ...in another step... -->
+<run>cargo test --all-features</run>
 ```
 
-**Fix:** Declare once in `<meta>`:
+**Fix:** Declare once in `<approved-commands>`:
 ```xml
-<command id="run-tests">cargo test --all-features</command>
+<approved-commands>
+  <command id="run-tests">cargo test --all-features</command>
+</approved-commands>
+<!-- ...then use: -->
+<run ref="run-tests" />
 ```
 
 ### W113: Hardcoded value appearing multiple times
@@ -614,8 +705,10 @@ A workflow that reduces every decision to a binary pass/fail gate is likely flat
   <instruction>Stage only the files related to this change.
     Write the commit message explaining WHY, not just WHAT.</instruction>
 
-  <action><command>git add -p</command></action>
-  <action><command>git commit</command></action>
+  <run>git add -p</run>
+  <run>git commit</run>
+
+  <run set="staged_count">git diff --cached --name-only | wc -l</run>
 
   <gate>
     <criterion check="{{ staged_count == 0 }}" />
@@ -630,7 +723,7 @@ A workflow that reduces every decision to a binary pass/fail gate is likely flat
      routes to the appropriate path, and the gate verifies the
      numeric outcome. -->
 <step id="commit" number="7">
-  <action><command>git add -p</command></action>
+  <run>git add -p</run>
 
   <ask-user-question var="commit_scope" type="choice">
     Review the staged changes. Is this a single atomic change
@@ -644,13 +737,15 @@ A workflow that reduces every decision to a binary pass/fail gate is likely flat
 
   <conditional on="commit_scope">
     <case value="atomic">
-      <action><command>git commit</command></action>
+      <run>git commit</run>
     </case>
     <case value="splittable">
-      <action><command>git reset HEAD</command></action>
+      <run>git reset HEAD</run>
     </case>
     <case value="incomplete" goto="implementation" />
   </conditional>
+
+  <run set="staged_count">git diff --cached --name-only | wc -l</run>
 
   <gate>
     <criterion check="{{ staged_count == 0 }}" />
@@ -683,13 +778,13 @@ An `<instructions>` wrapper contains only one `<instruction>` child. Use `<instr
 
 **Severity:** INFO
 
-A step contains no actions, no commands, and no tool tags. Consider whether it should be an instruction or constraint inside another step.
+A step contains no `<run>` elements and no tool tags. Consider whether it should be an instruction or rule inside another step.
 
 ### I123: Decorator on wrong scope
 
 **Severity:** INFO
 
-A decorator is placed at a broad scope when it applies only to a narrow one. A constraint that mentions a specific command by name probably belongs on the action containing that command, not at the document level.
+A decorator is placed at a broad scope when it applies only to a narrow one. A rule that mentions a specific command by name probably belongs on the step containing that `<run>`, not at the document level.
 
 ---
 

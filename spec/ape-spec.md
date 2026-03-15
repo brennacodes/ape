@@ -1,6 +1,6 @@
 # APE Language Specification
 
-**Version:** 0.3.0
+**Version:** 0.4.0
 **Status:** Release
 **Schema:** See `ape.xsd`
 **LLM Execution Contract:** See `ape-llms.md`
@@ -19,11 +19,11 @@ APE documents are self-contained. The file defines what tools to use, when to st
 ### Design Principles
 
 * **So easy a caveman can write it.** Tags say what they mean.
-* **Actions, Inputs, Flow Control.** The spec defines primitives in three core categories: atomic **actions** (what to *do*), **state and input dependencies** (what to *know/need*), and structured **flow control** (how to *navigate*). This model eliminates interpretive ambiguity by replacing prose suggestions with enforceable structural contracts.
+* **Execution, Inputs, Flow Control.** The spec defines primitives in three core categories: **execution** (what to *do*), **state and input dependencies** (what to *know/need*), and structured **flow control** (how to *navigate*). This model eliminates interpretive ambiguity by replacing prose suggestions with enforceable structural contracts.
 * **Prose and structure are separated.** Prose containers hold only text; structure containers hold only structure. This eliminates the illocutionary gap—intent is conveyed through structure, not conversation.
 * **The document is the engine manual.** No system prompt crutch.
 * **Flat where possible, nested where necessary.** Both always valid.
-* **Structure over prose, once.** If behavior can be enforced by structure (gates, prerequisites, command definitions, conditionals), it must not also be restated as prose (constraints, principles, anti-patterns). If guidance must be stated as prose, it is stated once, in the element that best fits its nature. Redundancy is a bug, not emphasis.
+* **Structure over prose, once.** If behavior can be enforced by structure (gates, prerequisites, command definitions, conditionals), it must not also be restated as prose (rules, principles, anti-patterns). If guidance must be stated as prose, it is stated once, in the element that best fits its nature. Redundancy is a bug, not emphasis.
 * **Permissive structure, strict validation.** The schema validates shape. A validator enforces semantics. Tooling enforces taste.
 * **Declarations live where the author puts them.** At the top for global access, inside a block for scoped access. Both are valid.
 * **Self-closing tags.** Any element with no children and no text may be self-closed.
@@ -36,9 +36,9 @@ This section provides an architectural overview of how APE's primitive categorie
 
 ### 2.1 Blocks
 
-A **block** is any element with an opening and closing tag. `<step>...</step>`, `<action>...</action>`, `<gate>...</gate>`, `<instruction>...</instruction>`—these are all blocks.
+A **block** is any element with an opening and closing tag. `<step>...</step>`, `<gate>...</gate>`, `<instruction>...</instruction>`—these are all blocks.
 
-Blocks can contain: declarations (variables, resources, commands), instructions (tasks, notes), tool tags, decorators (constraints, rules, anti-patterns), and other blocks.
+Blocks can contain: declarations (variables, resources, commands), instructions (tasks, notes), tool tags, decorators (rules, principles, anti-patterns), and other blocks.
 
 This is the fundamental structural unit. If it has open and close tags with space between, it's a block, and it can hold things.
 
@@ -66,7 +66,6 @@ APE has two classes of identifiers with different uniqueness rules:
 * `step/@id`
 * `template/@id`
 * `output/@id`
-* `action/@id`
 
 **Scoped names**—must be unique within their scope, but may shadow a parent scope's declaration of the same name:
 
@@ -86,27 +85,27 @@ APE uses a two-pass model:
 
 ### 2.5 Interleaving
 
-Containers do not enforce child ordering. A `<step>` can have its `<constraint>` before its `<instruction>`, or its `<variables>` after its `<gate>`. The schema allows interleaving; the validator enforces required children exist; `ape fmt` outputs canonical order.
+Containers do not enforce child ordering. A `<step>` can have its `<rule>` before its `<instruction>`, or its `<variables>` after its `<gate>`. The schema allows interleaving; the validator enforces required children exist; `ape fmt` outputs canonical order.
 
 **Exception:** `<prerequisite>` and `<prerequisites>` must appear before all other children in a `<step>`. Prerequisites are entry conditions—they must be evaluated before any work begins.
 
 **Exception:** `<default>` must appear after all `<case>` elements in a `<conditional>`.
 
-**Exception:** `<constraint>` must appear before prose and executable content (like `<action>`, `<output>`, `<command>`, and tool tags) when it appears inside an `<instruction>`.
+**Exception:** `<rule>` must appear before prose content when it appears inside an `<instruction>`.
 
 ### 2.6 Decorators
 
-Decorators are elements that annotate but don't alter execution directly. They map to the guidance aspect of State and Input, providing constraints or guidance. Examples include: `<constraint>`, `<rule>`, `<anti-pattern>`, `<principle>`, `<note>`. They can appear inside any block.
+Decorators are elements that annotate but don't alter execution directly. They map to the guidance aspect of State and Input, providing rules or guidance. Examples include: `<rule>`, `<anti-pattern>`, `<principle>`, `<note>`. They can appear inside any block.
 
 ### 2.7 Content Model Separation
 
-This is the fundamental architectural principle for 0.3.0: prose and structure are strictly separated.
+This is a fundamental architectural principle: prose and structure are strictly separated.
 
 **Prose containers**—`<description>`, `<title>`, `<note>`, and simple decorators—contain **only text content**. No child tags allowed.
 
-**Structure containers**—`<action>`, `<gate>`, `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<conditional>`, `<case>`, `<default>`, `<each>`, `<sequence>`, `<steps>`, `<prerequisite>`—contain **only structural children**. No bare text content (whitespace for formatting is allowed, but meaningful prose is not).
+**Structure containers**—`<gate>`, `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<conditional>`, `<case>`, `<default>`, `<each>`, `<sequence>`, `<steps>`, `<prerequisite>`—contain **only structural children**. No bare text content (whitespace for formatting is allowed, but meaningful prose is not).
 
-**Mixed-content elements**—`<step>`, `<instruction>`, `<var>`—allow both prose and structure. Their prose content is interpreted narratively; their structural children are executed. `<instruction>` is mixed content that can contain prose and guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`) but NOT executable elements.
+**Mixed-content elements**—`<step>`, `<instruction>`, `<var>`, `<run>`—allow both prose and structure. Their prose content is interpreted narratively; their structural children are executed. `<instruction>` is mixed content that can contain prose and guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`) but NOT executable elements. `<run>` is mixed content that can contain inline command text and a `set` attribute for capture.
 
 ---
 
@@ -114,7 +113,11 @@ This is the fundamental architectural principle for 0.3.0: prose and structure a
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<ape version="0.3.0" xmlns="https://ape-lang.dev/schema/0">
+<ape version="0.4.0" xmlns="https://ape-lang.dev/schema/0">
+
+  <IMPORTANT>
+  Executor-facing orientation. Teaches the LLM runtime what APE elements mean.
+  </IMPORTANT>
 
   <meta>
     <name>My Workflow</name>
@@ -123,7 +126,8 @@ This is the fundamental architectural principle for 0.3.0: prose and structure a
     <params>...</params>
     <variables>...</variables>
     <resources>...</resources>
-    <commands>...</commands>
+    <approved-commands>...</approved-commands>
+    <approved-gate-commands>...</approved-gate-commands>
   </meta>
 
   <steps>
@@ -140,22 +144,44 @@ This is the fundamental architectural principle for 0.3.0: prose and structure a
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `version` | Yes | Spec version (e.g., `0.3.0`) |
+| `version` | Yes | Spec version (e.g., `0.4.0`) |
 | `xmlns` | Yes | Namespace URI, pinned to major version |
 
-**Versioning:** The namespace is pinned to the major version (`https://ape-lang.dev/schema/0`). The `version` attribute carries the full version (`0.3.0`, `0.3.1`, etc.). Documents with different minor versions share the same namespace and are expected to be broadly compatible within a major version. Breaking changes increment the major version and the namespace.
+**Versioning:** The namespace is pinned to the major version (`https://ape-lang.dev/schema/0`). The `version` attribute carries the full version (`0.4.0`, `0.4.1`, etc.). Documents with different minor versions share the same namespace and are expected to be broadly compatible within a major version. Breaking changes increment the major version and the namespace.
 
-`<meta>` must be first if present. Everything else—`<steps>`, declarations, tool tags, `<principle>`, `<reference>`—is optional and can appear in any order. Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. In stepless documents, tool tags and commands at root level are executed in document order.
+`<IMPORTANT>` must be first if present, then `<meta>`. Everything else—`<steps>`, declarations, tool tags, `<principle>`, `<reference>`—is optional and can appear in any order. Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. In stepless documents, tool tags and `<run>` elements at root level are executed in document order.
 
-### 3.2 `<meta>`
+### 3.2 `<IMPORTANT>`
 
-If present, `<meta>` is the first child of `<ape>`. It contains document metadata and declarations. It is configuration, not execution. **Tool tags and executable instructions are not permitted inside `<meta>`.**
+Executor-facing orientation. Teaches the LLM runtime what APE elements mean before it encounters them. Prose content only.
+
+* Must be the first child of `<ape>` if present.
+* At most one per document.
+* The only all-caps tag in APE — intentional and distinctive.
+* Replaces `<preamble>` from 0.3.0.
+
+```xml
+<IMPORTANT>
+APE is an executable workflow. You are the runtime.
+
+<meta> block is configuration and declarations only.
+<instruction> tags are directives.
+<gate> tags evaluate a condition and route via on-fail (required) or on-pass.
+<run> tags execute commands, either inline or by reference.
+
+<approved-gate-commands> are the ONLY commands that can be executed from within a <gate> tag.
+</IMPORTANT>
+```
+
+### 3.3 `<meta>`
+
+If present, `<meta>` is the first child of `<ape>` (after `<IMPORTANT>`, if present). It contains document metadata and declarations. It is configuration, not execution. **Tool tags and executable instructions are not permitted inside `<meta>`.**
 
 | Child | Required | Description |
 | --- | --- | --- |
 | `<name>` | No | APE document name |
 | `<description>` | No | Purpose and context |
-| Any declaration | No | `<params>`, `<variables>`, `<resources>`, `<commands>` |
+| Any declaration | No | `<params>`, `<variables>`, `<resources>`, `<approved-commands>`, `<approved-gate-commands>` |
 
 ---
 
@@ -256,62 +282,48 @@ Common reference surfaces:
 
 ## 7. Commands
 
-Atomic operations that produce an outcome. Maps to the Action primitive category. Three modes:
+Command declarations define reusable, named shell operations. In 0.4.0, `<command>` is **declaration-only** — it defines what a command is, but does not execute it. Execution is performed by `<run>` (see Section 12).
 
-### Command Modes
-
-| Mode | Required Attributes | Body | Meaning |
-| --- | --- | --- | --- |
-| **Declare** | `id` | Required (the command text) | Defines a reusable command. May also carry `tool`, `set`. |
-| **Reference** | `ref` | Must be empty | Invokes a previously declared command. May also carry `set`. |
-| **Inline** | *(none of `id`/`ref`)* | Required (the command text) | Executes a literal command. May also carry `tool`, `set`. |
+Commands are declared inside `<approved-commands>` or `<approved-gate-commands>` in `<meta>`. This required split separates commands available for step-level execution from commands available for gate evaluation. Gate commands are evaluation-only — they gather inputs for criteria; they don't determine pass/fail on their own.
 
 ```xml
-<command id="test-all">cargo test --all-features</command>
+<approved-commands>
+  <command id="run-tests">cargo test --all-features</command>
+  <command id="build">cargo build</command>
+</approved-commands>
 
-<command id="hello" set="hello">echo "Hello"</command>
-
-<command ref="test-all" />
-
-<command ref="hello" set="greeting" />
-
-<command>echo "{{ hello }} World!"</command>
-
-<command set="file_count">find . -name '*.rs' | wc -l</command>
+<approved-gate-commands>
+  <command id="test-failure-count">cargo test --all-features 2>&amp;1 | grep "failed" | wc -l</command>
+  <command id="build-error-count">cargo build 2>&amp;1 | grep "^error" | wc -l</command>
+</approved-gate-commands>
 
 ```
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `id` | No | Unique identifier (global, for reuse) |
-| `ref` | No | Reference to a declared command. Cannot combine with `id`. Body must be empty. |
-| `set` | No | Capture stdout into a variable (see capture semantics below). Works on all modes. |
+| `id` | Yes | Unique identifier (global, for reuse) |
 | `tool` | No | Specific tool (e.g., `bash`, `file_create`) |
 
-**Mutual exclusivity rules:**
+Commands may also appear as children of `<var>` to compute variable values:
 
-* `id` and `ref` cannot both be present.
-* If `ref` is present, the element body must be empty/whitespace ("empty" means `trim(textContent) == ""`).
-* `set` is compatible with all modes (`id`, `ref`, or inline).
+```xml
+<var name="test_output"><command>cargo test --all-features 2>&amp;1</command></var>
+```
 
-**Attribute override rule:** When a reference-site attribute duplicates a declaration-site attribute, the reference site wins. This applies to `tool`. The declared command provides defaults; the call site provides overrides.
+### `<approved-commands>` and `<approved-gate-commands>`
 
-### Capture Semantics (`set`)
+Both are required children of `<meta>` (when commands are used). They replace the former `<commands>` wrapper.
 
-The `set` attribute captures command output into a named variable. The contract:
+* **`<approved-commands>`** — Commands available for step-level execution via `<run ref="...">`. These are the commands the workflow runs as part of its work.
+* **`<approved-gate-commands>`** — Commands available for gate evaluation via `<run ref="...">` inside `<gate>`. These commands gather measurement data (counts, percentages, status) that criteria expressions evaluate. They do not determine pass/fail on their own — that is the job of `<criterion check>`.
 
-* **Captures stdout only.** Stderr is not captured (it may be displayed or logged by the runtime, but does not enter the variable).
-* **Trailing newline is stripped.** A command that outputs `"hello\n"` stores `"hello"`. Interior newlines are preserved.
-* **Multiline output is a string.** The value is stored as a single string with embedded newlines, not a list.
-* **On non-zero exit:** The variable is still set to whatever stdout contained. Gate `<on-fail>` handlers should be used to handle error conditions. The `set` mechanism does not halt on failure—it captures and continues.
-
-Can appear inside `<commands>` wrapper, inside `<meta>`, or inline in any block. **Executable modes (Reference, Inline) cannot appear inside `<meta>`.**
+A `<run>` inside a `<gate>` may only reference commands from `<approved-gate-commands>`. A `<run>` outside a `<gate>` may only reference commands from `<approved-commands>`. Inline `<run>` (with command text in the body) is allowed anywhere and is not subject to this restriction.
 
 ---
 
 ## 8. Tool Tags and Behavioral Tags
 
-Tags in this section can appear inside any block **except** `<meta>` (which is configuration, not execution). They can also appear at root level in stepless documents.
+Tags in this section can appear as direct children of `<step>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, `<each>`, and `<agents-in-parallel>` — **no wrapper element needed**. They can also appear at root level in stepless documents. They cannot appear inside `<meta>` (which is configuration, not execution).
 
 There are two categories, mapping to specific primitive types:
 
@@ -476,17 +488,17 @@ The LLM enters planning mode—exploring, designing, and presenting an approach 
 
 #### `<agents-in-parallel>`
 
-Parallel Execution pattern. Run multiple actions concurrently using subagents. Resume main execution after all finish. **(Flow Control/Action hybrid)**
+Parallel Execution pattern. Run multiple tasks concurrently using subagents. Resume main execution after all finish. **(Flow Control/Execution hybrid)**
 
 ```xml
 <agents-in-parallel>
-  <action id="code-review"><command>gh pr review --comment</command></action>
-  <action id="test-write"><command>npm run generate-tests</command></action>
+  <run>gh pr review --comment</run>
+  <run>npm run generate-tests</run>
 </agents-in-parallel>
 
 ```
 
-Each `<action>` child is dispatched concurrently. Execution resumes after all complete.
+Each `<run>` child (and tool tag) is dispatched concurrently. Execution resumes after all complete.
 
 #### `<stop>`
 
@@ -520,9 +532,14 @@ A phase of execution, scaffolding the sequential flow. Maps to the Flow Control 
   <title>Specification</title>
 
   <instruction>Narrative context for the agent about what this step involves.</instruction>
-  <instructions>...</instructions>
 
-  <gate>...</gate>
+  <run ref="run-tests" />
+
+  <gate>
+    <run ref="test-failure-count" set="test_failures" />
+    <criterion check="{{ test_failures == 0 }}" />
+    <on-fail goto="implementation" />
+  </gate>
 </step>
 
 ```
@@ -579,7 +596,7 @@ A `<prerequisite>` must specify at least one of `goto` or `halt` to provide a re
 
 An instructions element containing atomic units of interpretable narrative or specific actions. Wrappers scaffold the sequential flow within a step. Maps to Flow Control category.
 
-`<instruction>` is the atomic unit of work inside a step. It contains pure prose that provides narrative context and interpretive guidance. It is a **prose container only**—it cannot contain structural children like `<action>`, `<command>`, `<output>`, or tool tags.
+`<instruction>` is the atomic unit of work inside a step. It contains pure prose that provides narrative context and interpretive guidance. It is a **prose container only**—it cannot contain structural children like `<run>`, `<command>`, `<output>`, or tool tags.
 
 `<instructions>` is a wrapper containing two or more `<instruction>` children.
 
@@ -603,11 +620,11 @@ An instructions element containing atomic units of interpretable narrative or sp
 
 ```
 
-`<instruction>` is mixed content—prose with optional guidance decorators. It may contain `<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, and `<constraint>`, but does NOT contain executable content like `<command>`, `<action>`, `<output>`, or tool tags. Note: `<note>` is allowed only at the step level or root `<ape>` level.
+`<instruction>` is mixed content—prose with optional guidance decorators. It may contain `<rule>`, `<principle>`, `<anti-pattern>`, and `<reference>`, but does NOT contain executable content like `<run>`, `<output>`, or tool tags. Note: `<note>` is allowed only at the step level or root `<ape>` level.
 
 `<instructions>` contains only `<instruction>` elements (two or more).
 
-If you need to specify **executable** work (commands, tool invocations, actions), place them in a sibling `<action>` element within the same `<step>`, not inside `<instruction>`.
+If you need to specify **executable** work (commands, tool invocations), place them in sibling `<run>` elements within the same `<step>`, not inside `<instruction>`.
 
 ### `<note>`
 
@@ -615,15 +632,62 @@ Author-facing context. Not executable, not output. Prose only.
 
 ---
 
-## 12. Actions
+## 12. Run
 
-An executable directive. Maps to Action primitive category. The LLM should perform what `<action>` says directly—no interpretive latitude, no treating it as a guide.
+`<run>` is the execution verb in APE. It replaces the former `<action>` element with a clearer, more direct semantic. Where `<command>` declares what a command is, `<run>` executes it.
 
-`<action>` is a **structure container**—it contains only executable children: `<command>`, `<resource>`, `<output>`, tool tags (`<read>`, `<write>`, `<edit>`, `<grep>`, `<glob>`, `<web-search>`, `<web-fetch>`, `<ask-user-question>`), and behavioral tags (`<interview-mode>`, `<plan-mode>`, `<agents-in-parallel>`, `<stop>`, `<subagent-stop>`). For command-level annotations inside actions, use the `note` attribute on `<command>` elements (e.g., `<command note="explanation">...</command>`).
+### Three Forms
 
-`<action>` does **not** allow bare prose text. It does **not** contain `<instruction>`, `<gate>`, `<constraint>`, `<step>`, `<conditional>`, or decision-making elements.
+| Form | Attributes | Body | Meaning |
+| --- | --- | --- | --- |
+| **Reference** | `ref` | Must be empty | Executes a declared command by ID. May also carry `set`. |
+| **Inline** | *(none)* | Required (the command text) | Executes a literal command. |
+| **Inline + Capture** | `set` | Required (the command text) | Executes a literal command and captures stdout into a variable. |
 
-`<action>` is a direct child of `<step>`, appearing alongside `<instruction>` (not inside it).
+```xml
+<!-- Reference form: execute a declared command -->
+<run ref="run-tests" />
+
+<!-- Reference form with capture -->
+<run ref="test-failure-count" set="test_failures" />
+
+<!-- Inline form: execute literal command -->
+<run>git add -p</run>
+
+<!-- Inline + capture form -->
+<run set="staged_count">git diff --cached --name-only | wc -l</run>
+
+```
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `ref` | No | Reference to a `<command>` `id` in `<approved-commands>` or `<approved-gate-commands>`. Body must be empty when present. |
+| `set` | No | Capture stdout into a named variable. Works on both reference and inline forms. |
+
+### Capture Semantics (`set`)
+
+The `set` attribute captures command output into a named variable. The contract:
+
+* **Captures stdout only.** Stderr is not captured (it may be displayed or logged by the runtime, but does not enter the variable).
+* **Trailing newline is stripped.** A command that outputs `"hello\n"` stores `"hello"`. Interior newlines are preserved.
+* **Multiline output is a string.** The value is stored as a single string with embedded newlines, not a list.
+* **On non-zero exit:** The variable is still set to whatever stdout contained. Gate `<on-fail>` handlers should be used to handle error conditions. The `set` mechanism does not halt on failure—it captures and continues.
+
+### Allowed Parents
+
+`<run>` is a direct child of:
+* `<step>` — step-level execution
+* `<gate>` — gate evaluation (must ref `<approved-gate-commands>` only)
+* `<on-fail>`, `<on-pass>` — recovery or follow-up work
+* `<case>`, `<default>` — conditional branch execution
+* `<each>` — iteration body
+* `<agents-in-parallel>` — concurrent execution
+
+### Gate Restrictions
+
+A `<run>` inside a `<gate>` may only reference commands from `<approved-gate-commands>` (or use inline commands). A `<run>` outside a `<gate>` may only reference commands from `<approved-commands>` (or use inline commands). This separation keeps command execution distinct from decision logic.
+
+### Example
 
 ```xml
 <step id="tests">
@@ -631,21 +695,16 @@ An executable directive. Maps to Action primitive category. The LLM should perfo
     Ensure all tests pass before proceeding. Review any failures carefully.
   </instruction>
 
-  <action>
-    <command ref="test-all" set="test_results" />
-  </action>
+  <run ref="run-tests" />
 
   <gate>
+    <run ref="test-failure-count" set="test_failures" />
     <criterion check="{{ test_failures == 0 }}" />
     <on-fail goto="debug" />
   </gate>
 </step>
 
 ```
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `id` | No | Optional identifier (required when referenced by `<criteria>` or `<criterion>`) |
 
 ---
 
@@ -666,15 +725,12 @@ A gate evaluates conditions and routes execution based on the result. It contain
 ```
 
 ```xml
-<!-- Reference-based: evaluates action exit-code success -->
+<!-- Gate with run for measurement and expression-based criterion -->
 <gate>
-  <criteria ref="build-check" />
+  <run ref="build-error-count" set="build_errors" />
+  <criterion check="{{ build_errors == 0 }}" />
   <on-pass goto="specification" />
-  <on-fail goto="implementation">
-    <action>
-      <read path="./build-log.txt" />
-    </action>
-  </on-fail>
+  <on-fail goto="implementation" />
 </gate>
 
 ```
@@ -699,25 +755,19 @@ A gate evaluates conditions and routes execution based on the result. It contain
 
 ### Success Semantics
 
-When a `<criterion ref>` or `<criteria ref>` points to an action or command, the gate evaluates that element's **success**. Success is defined as:
-
-* **Command success:** The command exits with code 0.
-* **Action success:** All commands within the action exit with code 0, and all tool tags within the action complete without error.
-
 When a `<criterion check>` evaluates an expression, success means the expression evaluates to `true`. There is no implicit notion of success — the `check` expression defines the exact condition.
 
 When a `<criteria ref>` points to another `<criteria>` element, the gate reuses that criteria's conditions. This enables named, reusable gate conditions.
 
+In 0.4.0, `<criterion ref>` resolves only to named `<criteria>` or `<criterion>` IDs — not to commands. Gate evaluation uses `<run>` inside the gate to execute measurement commands and capture their output into variables, then `<criterion check>` to evaluate the result.
+
 ### `<criteria>`
 
-Gate condition. Supports two forms: reference (reuse a named criteria, or evaluate an action/command's success) and compound (combine multiple `<criterion>` children).
+Gate condition. Supports two forms: reference (reuse a named criteria) and compound (combine multiple `<criterion>` children).
 
 **Reference form:**
 
 ```xml
-<!-- Evaluate action/command exit-code success -->
-<criteria ref="run-tests" />
-
 <!-- Reuse a named criteria defined elsewhere -->
 <criteria ref="linter-checks" />
 
@@ -736,7 +786,7 @@ Gate condition. Supports two forms: reference (reuse a named criteria, or evalua
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `id` | No | Optional identifier. When present, allows this criteria to be reused by other `<criteria ref>` elements. |
-| `ref` | No | ID of an `<action>`, `<command>`, or `<criteria>` to evaluate. When pointing to an action or command, evaluates exit-code success (see Success Semantics). When pointing to a criteria, reuses its conditions. Required if no `<criterion>` children. |
+| `ref` | No | ID of a `<criteria>` to reuse. Required if no `<criterion>` children. |
 | `operator` | No | How to combine criteria: `and` (all must pass) or `or` (any may pass). Required when using `<criterion>` children. |
 
 **Children (compound form):**
@@ -747,12 +797,12 @@ Gate condition. Supports two forms: reference (reuse a named criteria, or evalua
 
 ### `<criterion>`
 
-A single evaluable condition. Supports two evaluation modes: reference-based (did an action or command succeed?) and expression-based (does a boolean condition hold?).
+A single evaluable condition. Supports two evaluation modes: reference-based (reuse a named criterion) and expression-based (does a boolean condition hold?).
 
 **Reference mode:**
 
 ```xml
-<criterion ref="run-tests" />
+<criterion ref="no-test-failures" />
 
 ```
 
@@ -767,7 +817,7 @@ A single evaluable condition. Supports two evaluation modes: reference-based (di
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `id` | No | Optional identifier |
-| `ref` | No | ID of an `<action>` or `<command>` to evaluate. Success = all commands exit with code 0. Mutually exclusive with `check`. |
+| `ref` | No | ID of a named `<criteria>` or `<criterion>` to reuse. Mutually exclusive with `check`. |
 | `check` | No | Expression that evaluates to a boolean. Uses `{{ }}` interpolation with comparison operators. Mutually exclusive with `ref`. |
 
 A `<criterion>` must have exactly one of `ref` or `check`.
@@ -852,7 +902,7 @@ Structural navigation element. Points to a step to jump to as an alternative to 
 
 **`<on-pass>` default:** If no flow-control attributes are present, execution proceeds to the next step.
 
-**Content Model:** `<on-fail>` and `<on-pass>` are structure containers. They may contain `<action>` children for recovery or follow-up work. They do **not** allow bare prose text.
+**Content Model:** `<on-fail>` and `<on-pass>` are structure containers. They may contain `<run>`, tool tag, and `<goto>` children for recovery or follow-up work. They do **not** allow bare prose text.
 
 ---
 
@@ -891,7 +941,7 @@ Unified branching Construct, mapping to Flow Control. Evaluates the `on` express
 | `<case>` | Yes (≥1) | A branch. `value` attribute (required) matches against the `on` expression. |
 | `<default>` | No (≤1) | Fallback when no `<case>` matches. Mutually exclusive with `default` attribute. |
 
-**`<case>` and `<default>` content model:** Structure containers. They contain only `<action>`, `<command>`, `<sequence>`, tool tags, and behavioral tags. They do **not** allow bare prose text. Flow control attributes (`goto`, `halt`) are allowed.
+**`<case>` and `<default>` content model:** Structure containers. They contain only `<run>`, `<sequence>`, tool tags, and behavioral tags. They do **not** allow bare prose text. Flow control attributes (`goto`, `halt`) are allowed.
 
 | Attribute | Description |
 | --- | --- |
@@ -913,16 +963,14 @@ Unified branching Construct, mapping to Flow Control. Evaluates the `on` express
 
 ```xml
 <each item="target" in="{{ targets }}">
-  <action>
-    <command>cargo build --{{ target }}</command>
-  </action>
+  <run>cargo build --{{ target }}</run>
 </each>
 
 ```
 
 The `item` attribute creates a scoped variable binding available inside the `<each>` body. The `in` attribute should resolve to a list-typed variable. Maps to Flow Control.
 
-`<each>` is a structure container. It contains only `<action>`, `<command>`, `<sequence>`, tool tags, and behavioral tags. No bare prose text.
+`<each>` is a structure container. It contains only `<run>`, `<sequence>`, tool tags, and behavioral tags. No bare prose text.
 
 ---
 
@@ -945,27 +993,19 @@ Strictly ordered command list. Scaffolds Flow Control, sibling to `<instruction>
 
 ## 17. Decorators
 
-Guidance and constraint aspects of State and Input. Can appear inside any block.
-
-### `<constraint>`
-
-```xml
-<constraint>ALWAYS run without filters.</constraint>
-<constraint>NEVER use cargo test --lib.</constraint>
-
-```
-
-Prose container. Text only.
+Guidance aspects of State and Input. Can appear inside any block.
 
 ### `<rule>`
 
 ```xml
+<rule>ALWAYS run without filters.</rule>
+<rule>NEVER use cargo test --lib.</rule>
 <rule>Imperative mood.</rule>
 <rule>No type prefixes.</rule>
 
 ```
 
-Prose container. Text only. Like `<constraint>`, stands alone—proximity handles grouping.
+Binding requirement or prohibition. Text only.
 
 ### `<anti-pattern>`
 
@@ -974,7 +1014,7 @@ Prose container. Text only. Like `<constraint>`, stands alone—proximity handle
 
 ```
 
-Prose container. Text only. Like `<constraint>`, stands alone—proximity handles grouping.
+Prose container. Text only. Stands alone—proximity handles grouping.
 
 ### `<note>`
 
@@ -1103,7 +1143,7 @@ The `to` attribute declares the high-level destination kind. The `target` attrib
 
 **Relationship to `<template>`:** Templates define shape. Outputs define destination. An output *with* a template reference is "fill this shape, put it there." An output *without* a template is a direct content write. A template *without* an output is a reusable content block that can be referenced from commands or other contexts.
 
-Can appear inside `<action>`, inside `<instruction>`, or at step level.
+Can appear at step level, inside `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, or `<each>`.
 
 ---
 
@@ -1116,7 +1156,7 @@ System guidance aspect of State and Input category.
 
 ```
 
-`<principle>` stands alone like `<constraint>`—proximity handles grouping. Has a required `name` attribute.
+`<principle>` stands alone like `<rule>`—proximity handles grouping. Has a required `name` attribute.
 
 ---
 
@@ -1139,7 +1179,6 @@ A reference is a pure pointer to any element with an `id` attribute. It allows r
 **Note:** `<reference>` is the ONLY element that cannot have an `id` attribute itself. It is a pure pointer element with no content and no children.
 
 **Valid targets:** `<reference ref_id="...">` can point to:
-* Actions (`<action id="...">`)
 * Commands (`<command id="...">`)
 * Resources (`<resource id="...">`)
 * Steps (`<step id="...">`)
@@ -1149,7 +1188,7 @@ A reference is a pure pointer to any element with an `id` attribute. It allows r
 * Any other element that carries an `id` attribute
 
 **Usage contexts:** References can appear:
-* Inside `<step>`, `<action>`, `<gate>`, `<on-pass>`, `<on-fail>`, and other containers
+* Inside `<step>`, `<gate>`, `<on-pass>`, `<on-fail>`, and other containers
 * Inside `<instruction>` as a guidance decorator
 * At root level in `<ape>`
 * Inside `<meta>`
@@ -1176,7 +1215,8 @@ APE uses a layered validation model:
 
 **Document-level:**
 
-* `<meta>`, if present, is the first child of `<ape>`
+* `<IMPORTANT>`, if present, is the first child of `<ape>`
+* `<meta>`, if present, is the first child of `<ape>` after `<IMPORTANT>`
 * If `<steps>` is present, it must contain ≥ 1 `<step>`
 
 **Required children:**
@@ -1189,41 +1229,49 @@ APE uses a layered validation model:
 
 **Identity and uniqueness:**
 
-* Global IDs (`resource`, `command`, `sequence`, `step`, `template`, `output`, `action`, `criteria`) are unique across the entire document. No shadowing.
+* Global IDs (`resource`, `command`, `sequence`, `step`, `template`, `output`, `criteria`) are unique across the entire document. No shadowing.
 * Scoped names (`var/@name`, `param/@ref`) are unique within their scope. Shadowing is permitted.
 * `<case>` `value` attributes are unique within their `<conditional>`
 * Every structural element can optionally carry an `id` attribute for reference
 
 **Reference resolution:**
 
-* All `ref` attributes on `<output>`, `<write>`, `<command>`, and `<template>` resolve to a declared `id` of the correct type
+* All `ref` attributes on `<output>`, `<write>`, and `<template>` resolve to a declared `id` of the correct type
+* `<run ref="X">` resolves to a `<command>` `id` in `<approved-commands>` or `<approved-gate-commands>`
 * All `goto` attributes resolve to a `<step>` `id`
 * Each token in `uses` resolves to a `<resource>` `id`
 * `<output template="X">` resolves to a `<template>` `id`
 * `<output ref="X">` resolves to another `<output>` `id`
 * `<template ref="X">` resolves to a `<resource>` `id`
 * `<write ref="X">` resolves to a `<resource>` with write access
-* `<criteria ref="X">` resolves to an `<action>`, `<command>`, or `<criteria>` `id`
-* `<criterion ref="X">` resolves to an `<action>` or `<command>` `id`
+* `<criteria ref="X">` resolves to a `<criteria>` `id`
+* `<criterion ref="X">` resolves to a `<criteria>` or `<criterion>` `id`
 * `<criterion>` must have exactly one of `ref` or `check` — they are mutually exclusive
 * `{{ ... }}` identifiers resolve to an in-scope variable (or are explicitly runtime-provided)
 * `<param ref="X">` resolves to an identifier in the caller's scope (cross-document resolution)
 
 **Command rules:**
 
-* `id` and `ref` are mutually exclusive
-* If `ref` is present, the body must be empty (`trim(textContent) == ""`)
-* `set` is valid on any command mode
+* `<command>` is declaration-only in 0.4.0. It must have an `id` and body text. It appears only inside `<approved-commands>`, `<approved-gate-commands>`, or as a child of `<var>`.
+* Execution is performed by `<run>`, not `<command>`.
 
-**Content model rules (0.3.0 breaking changes):**
+**Run rules:**
 
-* `<instruction>` is mixed content—prose with optional guidance decorators. Allowed: `<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`. NOT allowed: `<note>` (use only at step or root level), `<command>`, `<action>`, `<output>`, or tool tags.
-* `<action>` must contain **only structure** (no bare prose text). Allowed children: `<command>`, `<resource>`, `<output>`, tool tags (`<read>`, `<write>`, `<edit>`, `<glob>`, `<grep>`, `<web-search>`, `<web-fetch>`, `<ask-user-question>`), and behavioral tags. `<note>` is not allowed inside `<action>`; use the `note` attribute on `<command>` instead.
-* `<criteria>` supports two forms: reference (to an action, command, or named criteria) and compound (with `<criterion>` children and `operator` attribute). A single `<criterion>` can appear directly in a `<gate>` without a `<criteria>` wrapper.
-* `<criterion>` supports two evaluation modes: `ref` (evaluates action/command exit-code success) and `check` (evaluates a boolean expression). Exactly one must be present.
+* `ref` and body text are mutually exclusive on `<run>`. If `ref` is present, the body must be empty.
+* `<run ref>` inside a `<gate>` must reference a command in `<approved-gate-commands>`.
+* `<run ref>` outside a `<gate>` must reference a command in `<approved-commands>`.
+* `set` is valid on any `<run>` form (reference or inline).
+
+**Content model rules (0.4.0 breaking changes):**
+
+* `<instruction>` is mixed content—prose with optional guidance decorators. Allowed: `<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`. NOT allowed: `<note>` (use only at step or root level), `<run>`, `<output>`, or tool tags.
+* `<run>` is mixed content with an optional `ref` or `set` attribute. If `ref` is present, body must be empty. If `ref` is absent, body contains inline command text.
+* `<criteria>` supports two forms: reference (to a named criteria) and compound (with `<criterion>` children and `operator` attribute). A single `<criterion>` can appear directly in a `<gate>` without a `<criteria>` wrapper.
+* `<criterion>` supports two evaluation modes: `ref` (reuses a named `<criteria>` or `<criterion>`) and `check` (evaluates a boolean expression). Exactly one must be present.
 * `<goto>` is a structural navigation element that can appear inside `<gate>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, and `<each>`.
-* `<on-fail>` and `<on-pass>` are **structure containers**. They may contain `<action>` and `<goto>` children for recovery work. No bare prose text or prose decorators like `<note>` are allowed.
-* `<case>`, `<default>`, and `<each>` are **structure containers**. No bare prose text. May contain `<action>` and `<goto>` children.
+* `<on-fail>` and `<on-pass>` are **structure containers**. They may contain `<run>`, tool tag, and `<goto>` children for recovery work. No bare prose text or prose decorators like `<note>` are allowed.
+* `<case>`, `<default>`, and `<each>` are **structure containers**. No bare prose text. May contain `<run>`, tool tag, and `<goto>` children.
+* `<gate>` may contain `<run>` children for measurement commands before the criteria evaluation.
 
 **Flow control rules:**
 
@@ -1250,9 +1298,9 @@ APE uses a layered validation model:
 * `<prerequisite>` must not contain prose—it is a structure container. Conditions and recovery paths are expressed through attributes (`ref`, `goto`, `halt`) and optional structural children (`<check>`)
 * A `<prerequisite>` must specify at least one of `goto` or `halt`
 
-**Constraint ordering:**
+**Rule ordering:**
 
-* When a `<constraint>` appears inside an `<instruction>`, it must appear before prose and executable content (like `<action>`, `<output>`, `<command>`, and tool tags)
+* When a `<rule>` appears inside an `<instruction>`, it must appear before prose content
 
 **Comment rules:**
 
@@ -1260,9 +1308,9 @@ APE uses a layered validation model:
 
 **Redundancy rules:**
 
-* A `<constraint>`, `<rule>`, `<principle>`, or `<anti-pattern>` that restates behavior already enforced by a `<gate>`, `<prerequisite>`, `<conditional>`, or `<command>` definition is a validation error. Structure enforces; prose does not need to narrate what structure already guarantees.
-* The same guidance expressed in more than one decorator type (`<constraint>`, `<rule>`, `<principle>`, `<anti-pattern>`, `<note>`) is a validation error. Choose the single element that best matches the nature of the guidance.
-* A `<constraint>` inside a `<step>` that duplicates a document-level `<constraint>` is a validation error. Scope narrows; it does not echo.
+* A `<rule>`, `<principle>`, or `<anti-pattern>` that restates behavior already enforced by a `<gate>`, `<prerequisite>`, `<conditional>`, or `<command>` definition is a validation error. Structure enforces; prose does not need to narrate what structure already guarantees.
+* The same guidance expressed in more than one decorator type (`<rule>`, `<principle>`, `<anti-pattern>`, `<note>`) is a validation error. Choose the single element that best matches the nature of the guidance.
+* A `<rule>` inside a `<step>` that duplicates a document-level `<rule>` is a validation error. Scope narrows; it does not echo.
 
 **Description rules:**
 
@@ -1290,48 +1338,58 @@ These rules are the spec's enforcement layer for everything the XSD cannot expre
 
 This section summarizes critical constraints that validators must enforce.
 
-1. **`<meta>` is always first** if present. It contains configuration (declarations and metadata) only—**no executable tool tags, commands, or instruction blocks are permitted within `<meta>`.**
-2. **`<steps>` is optional.** Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. Documents without `<steps>` are stepless and executed top to bottom—declarations, non-reused commands, and tool tags at root level are processed in document order. Reused commands (`<command id="...">`) at root level are declarations and only executed when referenced.
+1. **`<IMPORTANT>` is first if present, then `<meta>`.** `<IMPORTANT>` is the only all-caps tag in APE. It is executor-facing orientation—prose content that teaches the LLM runtime what APE elements mean before it encounters them. At most one per document. `<meta>` comes after `<IMPORTANT>` (or first if no `<IMPORTANT>`). It contains configuration (declarations and metadata) only—**no executable tool tags, `<run>` elements, or instruction blocks are permitted within `<meta>`.**
+2. **`<steps>` is optional.** Multiple `<steps>` blocks are allowed; each must contain at least one `<step>`. Documents without `<steps>` are stepless and executed top to bottom—declarations, `<run>` elements, and tool tags at root level are processed in document order.
 3. **Declarations scope to their block.** Available inside and after, not upward or backward. `<param>` declarations resolve from the caller's scope and are then locally scoped.
 4. **Two-pass resolution.** Walk the document to build registries, then walk to resolve. This means forward references (define after use) work by default.
-5. **Global IDs are globally unique.** The `resource`, `command`, `sequence`, `step`, `template`, `output`, `action`, and `criteria` IDs cannot shadow or collide across the entire document. Any element can optionally carry an `id`. Only `var/@name` and `param/@ref` support scoped shadowing.
-6. **Prose and structure are strictly separated (0.3.0 design principle).** Prose containers (`<description>`, `<title>`, `<note>`, `<constraint>`) hold only text and appear only in prose/mixed contexts (root `<ape>`, `<step>`). `<note>` is allowed at step level and root `<ape>` level only, not inside `<instruction>`. `<instruction>` is mixed content allowing guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`) but not `<note>`. Structure containers (`<action>`, `<gate>`, `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<conditional>`, `<case>`, `<default>`, `<each>`, `<sequence>`, `<steps>`) hold only structural children—no prose elements like `<note>` allowed. This eliminates the illocutionary gap—the author's intent is expressed through structure, not through conversational prose.
-7. **`<command>` identity is exclusive.** `id` and `ref` cannot both be present. If `ref` is present, the element body must be empty/whitespace ("empty" means `trim(textContent) == ""`). `set` is compatible with any mode (`id`, `ref`, or inline).
-8. **Flow control requires exactly one primary attribute.** `<on-fail>` must have exactly one primary attribute (`goto`, `retry`, `halt`, `proceed`). `<on-pass>` supports only `goto` and `proceed`. Flow-control attributes belong on the handler elements, not on prescriptive Action tags like `<action>`. Modifiers `max` and `then` require `retry`.
+5. **Global IDs are globally unique.** The `resource`, `command`, `sequence`, `step`, `template`, `output`, and `criteria` IDs cannot shadow or collide across the entire document. Any element can optionally carry an `id`. Only `var/@name` and `param/@ref` support scoped shadowing.
+6. **Prose and structure are strictly separated.** Prose containers (`<description>`, `<title>`, `<note>`) hold only text and appear only in prose/mixed contexts (root `<ape>`, `<step>`). `<note>` is allowed at step level and root `<ape>` level only, not inside `<instruction>`. `<instruction>` is mixed content allowing guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`) but not `<note>`. Structure containers (`<gate>`, `<criteria>`, `<criterion>`, `<on-fail>`, `<on-pass>`, `<conditional>`, `<case>`, `<default>`, `<each>`, `<sequence>`, `<steps>`) hold only structural children—no prose elements like `<note>` allowed. This eliminates the illocutionary gap—the author's intent is expressed through structure, not through conversational prose.
+7. **`<command>` is declaration-only (0.4.0 breaking change).** `<command>` must have an `id` and body text. It appears only inside `<approved-commands>`, `<approved-gate-commands>`, or as a child of `<var>`. Execution is performed by `<run>`.
+8. **Flow control requires exactly one primary attribute.** `<on-fail>` must have exactly one primary attribute (`goto`, `retry`, `halt`, `proceed`). `<on-pass>` supports only `goto` and `proceed`. Flow-control attributes belong on the handler elements. Modifiers `max` and `then` require `retry`.
 9. **`<on-fail>` is singular and explicit.** Exactly one `<on-fail>` child is required per `<gate>`. It must carry a primary attribute. There is no default behavior—the author must be explicit about what happens on failure.
 10. **Interleaving is allowed but ordering is paramount in specific places.** While general interleaving is valid, specific ordering must be enforced:
 * `<default>` must appear **after all `<case>` elements** in a `<conditional>`.
 * `<prerequisite>` and `<prerequisites>` must appear **before all other children** in a `<step>`.
-* `<constraint>` must appear **before prose and executable content** inside an `<instruction>`.
+* `<rule>` must appear **before prose and executable content** inside an `<instruction>`.
 
-11. **Tool tags map directly to Actions.** `<read>`, `<write>`, `<edit>`, `<glob>`, `<grep>`, `<web-search>`, `<web-fetch>`, `<ask-user-question>`. They live inside structural blocks (especially `<action>`) or at root level (in stepless docs), never inside `<meta>`.
+11. **Tool tags are direct children of containers.** `<read>`, `<write>`, `<edit>`, `<glob>`, `<grep>`, `<web-search>`, `<web-fetch>`, `<ask-user-question>`. They live as direct children of `<step>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, `<each>`, `<agents-in-parallel>`, or at root level (in stepless docs), never inside `<meta>`.
 12. **`<description>` is placement-restricted and author-facing.** Never output or interpreted by the agent. It is a child of metadata (`<meta>`) or steps (`<step>`), limited to at most one description per parent. It is not a decorator like `<note>`.
 13. **Sequences are strictly ordered Actions.** They map to the prescriptive Action category and do not permit mixed content (no prose), containing only `<command>` children.
-14. **`<action>` is an executable directive (0.3.0 breaking change).** Maps to the Action primitive category. It contains only executable children: commands, tool tags, behavioral tags, and decorators (which are annotations, not body content). It does **not** contain interpretative prose or bare text. It does **not** carry its own flow-control attributes; those live on the containing handler (e.g., `<on-pass>`, `<on-fail>`). `<action>` is now a **direct child of `<step>`** or a handler element, not a child of `<instruction>`.
-15. **`<instruction>` is now mixed content (0.3.0 breaking change).** Contains prose (text content) and guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`). It does **not** contain `<command>`, `<action>`, `<output>`, tool tags, behavioral tags, or any structural/executable children. It is a narrative anchor providing interpretive context but is NOT executable. Note that `<note>` is allowed only at the step level and root `<ape>` level — not inside `<instruction>`, `<action>`, `<on-fail>`, or `<on-pass>`.
-16. **`<criteria>` and `<criterion>` have explicit evaluation semantics (0.3.0 change).** `<criteria>` supports reference form (`<criteria ref="action-id" />` pointing to an action, command, or named criteria) and compound form (`<criteria operator="and"><criterion ... /></criteria>`). `<criterion>` supports two modes: `ref` (evaluates exit-code success of an action or command — exit code 0 = pass) and `check` (evaluates a boolean expression like `{{ test_failures == 0 }}`). `ref` and `check` are mutually exclusive on `<criterion>`. A single `<criterion>` can appear directly in a `<gate>` without a `<criteria>` wrapper. Named criteria (`<criteria id="...">`) can be reused via `<criteria ref="criteria-id" />`.
-16a. **`<goto>` is a structural navigation element (0.3.0 new).** Can appear inside `<gate>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, and `<each>` as an alternative to the `goto` attribute. Example: `<goto ref="step-id" />`.
-16b. **`<resource>` can now appear in `<action>` (0.3.0 change).** `<action>` now permits `<resource>` children as executable directives declaring resource dependencies.
-16c. **`<var>` can contain `<command>` and `<resource>` children (0.3.0 change).** A `<command>` child computes the variable value; a `<resource>` child declares a dependency. Examples: `<var name="output"><command>npm test</command></var>` or `<var name="config"><resource ref="config-file" /></var>`.
+14. **`<run>` is the execution verb (0.4.0 breaking change).** Replaces the former `<action>` element. Three forms: reference (`<run ref="cmd-id" />`), inline (`<run>command text</run>`), inline+capture (`<run set="var">command text</run>`). `<run>` is a direct child of `<step>`, `<gate>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, `<each>`, and `<agents-in-parallel>`. Inside `<gate>`, `<run ref>` must reference `<approved-gate-commands>`. Outside `<gate>`, `<run ref>` must reference `<approved-commands>`.
+15. **`<instruction>` is mixed content.** Contains prose (text content) and guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`). It does **not** contain `<run>`, `<output>`, tool tags, behavioral tags, or any structural/executable children. It is a narrative anchor providing interpretive context but is NOT executable. Note that `<note>` is allowed only at the step level and root `<ape>` level — not inside `<instruction>`, `<on-fail>`, or `<on-pass>`.
+16. **`<criteria>` and `<criterion>` have explicit evaluation semantics.** `<criteria>` supports reference form (`<criteria ref="criteria-id" />` pointing to a named criteria) and compound form (`<criteria operator="and"><criterion ... /></criteria>`). `<criterion>` supports two modes: `ref` (reuses a named `<criteria>` or `<criterion>`) and `check` (evaluates a boolean expression like `{{ test_failures == 0 }}`). `ref` and `check` are mutually exclusive on `<criterion>`. A single `<criterion>` can appear directly in a `<gate>` without a `<criteria>` wrapper. Named criteria (`<criteria id="...">`) can be reused via `<criteria ref="criteria-id" />`. Gate evaluation uses `<run>` inside the gate to execute measurement commands, then `<criterion check>` to evaluate results.
+16a. **`<goto>` is a structural navigation element.** Can appear inside `<gate>`, `<on-fail>`, `<on-pass>`, `<case>`, `<default>`, and `<each>` as an alternative to the `goto` attribute. Example: `<goto ref="step-id" />`.
+16b. **`<var>` can contain `<command>` and `<resource>` children.** A `<command>` child computes the variable value; a `<resource>` child declares a dependency. Examples: `<var name="output"><command>npm test</command></var>` or `<var name="config"><resource ref="config-file" /></var>`.
 17. **Templates define shape.** Part of prescriptive output within Actions. They contain content, format awareness, and interpolation but do not specify destination or placement within a file.
 18. **Outputs define destination.** Prescriptive Action aspect. What gets produced, where it lands (`to`, `target`), and how it's applied (`anchor`, `position`). They are prescriptive declarations of intent.
 19. **No XML comments.** APE documents must not contain XML comments (`<!-- -->`). Use `<note>` for author-facing context. Comments are invisible to validators, unsearchable by tooling, and add noise without contributing to the semantic execution model.
 20. **Variables must have values.** A `<var>` declaration must carry a value via element content, `value` attribute, or `default` attribute. Do not declare empty variables as placeholders for runtime state—use implicit creation mechanics instead.
 21. **Prerequisites are first and prose-free.** Scaffolds entry conditions (Flow Control). Prerequisites must appear before all other children within a `<step>`, serving as entry conditions evaluated before any work begins. `<prerequisite>` is a structure container—it must not contain prose. Conditions and recovery paths are expressed through attributes (`ref`, `goto`, `halt`) and optional structural children (`<check>`).
-22. **Actors removed (0.3.0 breaking change).** The `<actor>`, `<actors>`, and `<responsibilities>` elements are completely removed. The `actor` attribute is removed from all elements. Workflows are now simpler and do not specify who performs actions—execution context is external to the APE specification.
-23. **`<principle>` is a standalone decorator.** `<principle>` can appear inside any block (step, action, gate, etc.), inside `<steps>`, and inside `<instruction>`. It is also allowed at root level. It provides system guidance about values and approaches. Like `<constraint>`, it stands alone—proximity handles grouping.
-24. **Every element can have optional `id` and `ref` attributes (0.3.0 change).** Structural elements (action, gate, step, criteria, on-fail, on-pass, conditional, case, default, each, sequence, steps) can all have optional `id` attributes for reference. Only `<reference>` cannot have an `id` attribute.
-25. **No redundant guidance.** If a gate already enforces "tests must pass before proceeding," a `<constraint>` restating that is redundant. If a `<constraint>` says "never do X," an `<anti-pattern>` restating "doing X" is redundant. Each piece of guidance appears exactly once, in the element whose semantics best match its nature: hard prohibitions in `<constraint>`, things to avoid in `<anti-pattern>`, style preferences in `<rule>`, values in `<principle>`, context in `<note>`. Structural enforcement (gates, prerequisites, conditionals) supersedes all of them—what structure enforces, prose must not restate.
+22. **Actors removed (0.3.0 breaking change).** The `<actor>`, `<actors>`, and `<responsibilities>` elements were removed in 0.3.0.
+23. **`<principle>` is a standalone decorator.** `<principle>` can appear inside any block (step, action, gate, etc.), inside `<steps>`, and inside `<instruction>`. It is also allowed at root level. It provides system guidance about values and approaches. Like `<rule>`, it stands alone—proximity handles grouping.
+24. **Every element can have optional `id` and `ref` attributes.** Structural elements (gate, step, criteria, on-fail, on-pass, conditional, case, default, each, sequence, steps) can all have optional `id` attributes for reference. Only `<reference>` cannot have an `id` attribute.
+25. **No redundant guidance.** If a gate already enforces "tests must pass before proceeding," a `<rule>` restating that is redundant. If a `<rule>` says "never do X," an `<anti-pattern>` restating "doing X" is redundant. Each piece of guidance appears exactly once, in the element whose semantics best match its nature: binding requirements in `<rule>`, things to avoid in `<anti-pattern>`, guidance in `<principle>`, context in `<note>`. Structural enforcement (gates, prerequisites, conditionals) supersedes all of them—what structure enforces, prose must not restate.
 
 ---
 
-## 25. Example: Complete 0.3.0 Workflow
+## 25. Example: Complete 0.4.0 Workflow
 
-Here is a complete workflow demonstrating the 0.3.0 model with expression-based criteria, named reusable criteria, and explicit success conditions:
+Here is a complete workflow demonstrating the 0.4.0 model with `<IMPORTANT>`, `<approved-commands>`/`<approved-gate-commands>` split, `<run>` for execution, and expression-based criteria:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<ape version="0.3.0" xmlns="https://ape-lang.dev/schema/0">
+<ape version="0.4.0" xmlns="https://ape-lang.dev/schema/0">
+
+  <IMPORTANT>
+  APE is an executable workflow. You are the runtime.
+
+  <meta> block is configuration and declarations only.
+  <instruction> tags are directives.
+  <gate> tags evaluate a condition and route via on-fail (required) or on-pass.
+  <run> tags execute commands, either inline or by reference.
+
+  <approved-gate-commands> are the ONLY commands that can be executed from within a <gate> tag.
+  </IMPORTANT>
 
   <meta>
     <name>Rust Testing Workflow</name>
@@ -1346,13 +1404,15 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
       <resource id="project" type="directory" path="{{ project_root }}" access="read,write,edit" />
     </resources>
 
-    <commands>
+    <approved-commands>
       <command id="test-all">cargo test --all-features</command>
       <command id="fmt-check">cargo fmt -- --check</command>
-    </commands>
+    </approved-commands>
 
-    <var name="test_failures" type="number"><command>cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i=="failed;") sum+=$(i-1) } END { print sum+0 }'</command></var>
-    <var name="fmt_errors" type="number"><command>cargo fmt -- --check 2>&amp;1 | grep "^Diff in" | wc -l</command></var>
+    <approved-gate-commands>
+      <command id="test-failure-count">cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i=="failed;") sum+=$(i-1) } END { print sum+0 }'</command>
+      <command id="fmt-error-count">cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command>
+    </approved-gate-commands>
   </meta>
 
   <steps>
@@ -1364,11 +1424,9 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
         Be precise about inputs, outputs, and edge cases.
       </instruction>
 
-      <action>
-        <ask-user-question var="spec_complete" type="confirm">
-          Is your specification complete and committed?
-        </ask-user-question>
-      </action>
+      <ask-user-question var="spec_complete" type="confirm">
+        Is your specification complete and committed?
+      </ask-user-question>
 
       <gate>
         <criterion check="{{ spec_complete == true }}" />
@@ -1386,11 +1444,10 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
         A failing test is your contract — it drives implementation.
       </instruction>
 
-      <action>
-        <command ref="test-all" />
-      </action>
+      <run ref="test-all" />
 
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
         <criterion check="{{ test_failures > 0 }}" />
         <on-fail goto="red" />
         <on-pass proceed="true" />
@@ -1407,12 +1464,13 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
         Once all tests pass, you can refactor with confidence.
       </instruction>
 
-      <action>
-        <command ref="fmt-check" />
-        <command ref="test-all" />
-      </action>
+      <run ref="fmt-check" />
+      <run ref="test-all" />
 
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
+        <run ref="fmt-error-count" set="fmt_errors" />
+
         <criteria id="green-checks" operator="and">
           <criterion check="{{ test_failures == 0 }}" />
           <criterion check="{{ fmt_errors == 0 }}" />
@@ -1431,13 +1489,13 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
         The test suite is your safety net.
       </instruction>
 
-      <action>
-        <ask-user-question var="refactor_done" type="confirm">
-          Refactoring complete and all tests passing?
-        </ask-user-question>
-      </action>
+      <ask-user-question var="refactor_done" type="confirm">
+        Refactoring complete and all tests passing?
+      </ask-user-question>
 
       <gate>
+        <run ref="test-failure-count" set="test_failures" />
+
         <criteria operator="and">
           <criterion check="{{ refactor_done == true }}" />
           <criterion check="{{ test_failures == 0 }}" />
@@ -1452,27 +1510,37 @@ Here is a complete workflow demonstrating the 0.3.0 model with expression-based 
 
 ---
 
-## 26. Migration from 0.2.2 to 0.3.0
+## 26. Migration from 0.3.0 to 0.4.0
 
 ### Breaking Changes
 
-1. **Actors completely removed.** Delete all `<actor>`, `<actors>`, and `<responsibilities>` elements. Remove all `actor` attributes from commands, steps, and other elements.
+1. **`<action>` removed — replaced by `<run>`.** Delete all `<action>` elements. Replace `<action><command ref="X" /></action>` with `<run ref="X" />`. Replace `<action><command>inline cmd</command></action>` with `<run>inline cmd</run>`. Tool tags and behavioral tags become direct children of their containing step, handler, or case — no wrapper needed.
 
-2. **`<instruction>` is now prose-only.** Remove any `<command>`, `<action>`, `<output>`, and tool tag children from `<instruction>`. Place executable work in sibling `<action>` elements instead.
+2. **`<preamble>` renamed to `<IMPORTANT>`.** Replace `<preamble>` with `<IMPORTANT>`. It is the only all-caps tag in APE. Must be the first child of `<ape>` if present. At most one per document. Prose content.
 
-3. **`<action>` is now structure-only.** Remove any bare prose text from `<action>`. It must contain only `<command>`, `<output>`, tool tags, and behavioral tags. `<note>` is no longer allowed inside `<action>`; use the `note` attribute on `<command>` instead for command-level annotations.
+3. **`<commands>` replaced by `<approved-commands>` / `<approved-gate-commands>` split.** The plain `<commands>` wrapper is removed. Commands must be declared in one of two containers inside `<meta>`:
+   * `<approved-commands>` — for step-level execution via `<run ref>`.
+   * `<approved-gate-commands>` — for gate evaluation via `<run ref>` inside `<gate>`. Gate commands gather measurement data (counts, percentages) for criteria expressions.
 
-4. **`<action>` is now a step-level element.** Remove `<action>` from inside `<instruction>`. Place it as a sibling to `<instruction>` within the `<step>`.
+4. **`<command>` is now declaration-only.** `<command>` no longer has `ref` or `set` attributes for execution. It exists only to declare named commands with `id` inside `<approved-commands>` or `<approved-gate-commands>` (or as a child of `<var>` for computed values). All execution is via `<run>`.
 
-5. **`<criteria>` no longer contains prose.** Replace prose criteria like `<criteria>Run the test suite successfully</criteria>` with either expression-based criteria (`<criterion check="{{ test_failures == 0 }}" />`) or reference-based criteria (`<criteria ref="action-id" />`). Expression-based criteria with `check` are preferred when an explicit measurable condition exists. Reference-based criteria evaluate exit-code success (exit code 0 = pass). Named criteria (`<criteria id="...">`) can be reused via `<criteria ref="criteria-id" />`.
+5. **`<criterion ref>` no longer resolves to actions or commands.** Since `<action>` is removed, `<criterion ref>` and `<criteria ref>` resolve only to named `<criteria>` or `<criterion>` IDs. Gate evaluation uses `<run>` inside the gate to execute measurement commands, then `<criterion check>` to evaluate results.
 
-6. **`<criterion>` gains a `check` attribute.** `<criterion>` now supports two modes: `ref` (evaluates action/command exit-code success) and `check` (evaluates a boolean expression). They are mutually exclusive. A single `<criterion>` can appear directly in a `<gate>` without a `<criteria>` wrapper.
+6. **`<agents-in-parallel>` wraps `<run>` elements.** Replace `<action>` children of `<agents-in-parallel>` with `<run>` elements (and tool tags).
 
-7. **`<on-fail>` and `<on-pass>` are now structure-only.** Remove bare prose from these elements. Keep flow-control attributes (`goto`, `retry`, `halt`, `proceed`). Place recovery actions inside the element as children.
+### Migration Steps
+
+1. Replace `<preamble>` with `<IMPORTANT>`.
+2. Split `<commands>` into `<approved-commands>` and `<approved-gate-commands>`. Author gate-evaluation variants of each command that produce measurable output.
+3. Replace every `<action id="X"><command ref="Y" /></action>` with `<run ref="Y" />`.
+4. Replace every `<action><command>inline</command></action>` with `<run>inline</run>`.
+5. Move tool tags and behavioral tags out of `<action>` wrappers — they become direct children of their container.
+6. Replace `<criteria ref="action-id">` patterns with `<run>` + `<criterion check>` patterns inside gates.
+7. Update `version` to `0.4.0`.
 
 ### Non-Breaking Improvements
 
-* New `actionChildGroup` schema group validates what can appear inside `<action>`.
-* New `stepContentGroup` schema group validates what can appear at step level.
-* Enhanced validation ensures content model separation is enforced.
+* `<run>` is a clearer execution verb than `<action>`, reducing boilerplate.
+* The `<approved-commands>` / `<approved-gate-commands>` split makes gate behavior easier to reason about, validate, and author safely.
+* `<IMPORTANT>` is intentionally all-caps, making it visually prominent and unambiguous.
 

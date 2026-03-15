@@ -66,13 +66,15 @@
        ==================== -->
 
   <!-- Declarations: can appear in meta, root, steps, or any block.
-       All declarations are standalone elements; proximity handles grouping. -->
+       All declarations are standalone elements; proximity handles grouping.
+       Note: <command> is declaration-only and lives inside
+       <approved-commands> or <approved-gate-commands> in <meta>,
+       or as a child of <var> for computed values. -->
   <xs:group name="declarationGroup">
     <xs:choice>
       <xs:element name="var" type="ape:varType" />
       <xs:element name="param" type="ape:paramType" />
       <xs:element name="resource" type="ape:resourceDeclType" />
-      <xs:element name="command" type="ape:commandType" />
       <xs:element name="template" type="ape:templateType" />
     </xs:choice>
   </xs:group>
@@ -83,7 +85,6 @@
        allowed in prose/mixed contexts (instruction, step, root). -->
   <xs:group name="decoratorGroup">
     <xs:choice>
-      <xs:element name="constraint" type="xs:string" />
       <xs:element name="rule" type="xs:string" />
       <xs:element name="anti-pattern" type="xs:string" />
       <xs:element name="principle" type="ape:principleType" />
@@ -115,21 +116,11 @@
     </xs:choice>
   </xs:group>
 
-  <!-- Action children: executable elements that live inside <action> -->
-  <xs:group name="actionChildGroup">
-    <xs:choice>
-      <xs:element name="command" type="ape:commandType" />
-      <xs:element name="resource" type="ape:resourceDeclType" />
-      <xs:element name="output" type="ape:outputType" />
-      <xs:group ref="ape:toolTagGroup" />
-      <xs:group ref="ape:behaviorTagGroup" />
-    </xs:choice>
-  </xs:group>
-
   <!-- Step-level executable content: things that produce work inside a step -->
   <xs:group name="stepContentGroup">
     <xs:choice>
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
+      <xs:element name="output" type="ape:outputType" />
       <xs:element name="conditional" type="ape:conditionalType" />
       <xs:element name="each" type="ape:eachType" />
       <xs:element name="sequence" type="ape:sequenceType" />
@@ -139,14 +130,15 @@
   </xs:group>
 
   <!-- ====================
-       Preamble
+       IMPORTANT
 
        Executor-facing orientation. Teaches the LLM runtime
        what APE elements mean before it encounters them.
        Allowed only as the first child of <ape>. At most one.
+       The only all-caps tag in APE.
        ==================== -->
 
-  <xs:complexType name="preambleType">
+  <xs:complexType name="importantType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
         <xs:attribute name="id" type="ape:identifierType" />
@@ -161,15 +153,14 @@
   <xs:element name="ape">
     <xs:complexType>
       <xs:choice maxOccurs="unbounded">
-        <xs:element name="preamble" type="ape:preambleType" />
+        <xs:element name="IMPORTANT" type="ape:importantType" />
         <xs:element name="meta" type="ape:metaType" />
         <xs:element name="steps" type="ape:stepsType" />
         <xs:element name="note" type="xs:string" />
         <xs:element name="reference" type="ape:referenceType" />
         <xs:group ref="ape:declarationGroup" />
         <xs:group ref="ape:decoratorGroup" />
-        <xs:group ref="ape:toolTagGroup" />
-        <xs:group ref="ape:behaviorTagGroup" />
+        <xs:group ref="ape:stepContentGroup" />
       </xs:choice>
       <xs:attribute name="version" type="xs:string" use="required" />
     </xs:complexType>
@@ -186,10 +177,22 @@
     <xs:choice maxOccurs="unbounded">
       <xs:element name="name" type="xs:string" />
       <xs:element name="description" type="xs:string" />
+      <xs:element name="approved-commands" type="ape:approvedCommandsType" />
+      <xs:element name="approved-gate-commands" type="ape:approvedCommandsType" />
       <xs:element name="reference" type="ape:referenceType" />
       <xs:group ref="ape:declarationGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
+  </xs:complexType>
+
+  <!-- approved-commands / approved-gate-commands: containers for
+       command declarations inside <meta>. Step-level <run> elements
+       reference commands from <approved-commands>. Gate-level <run>
+       elements reference commands from <approved-gate-commands>. -->
+  <xs:complexType name="approvedCommandsType">
+    <xs:sequence>
+      <xs:element name="command" type="ape:commandType" maxOccurs="unbounded" />
+    </xs:sequence>
   </xs:complexType>
 
   <!-- ====================
@@ -239,13 +242,36 @@
        Commands
        ==================== -->
 
+  <!-- command: declaration-only. Defines a named command with body text.
+       Execution is via <run ref="command-id" />. The set and ref
+       attributes are on <run>, not on <command>. -->
   <xs:complexType name="commandType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
+        <xs:attribute name="note" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- ====================
+       Run
+
+       The execution verb. Three forms:
+       - Reference: <run ref="cmd-id" /> executes a declared command
+       - Inline: <run>command text</run> executes inline command
+       - Inline+capture: <run set="var">command text</run>
+       ref and body text are mutually exclusive.
+       Inside <gate>, ref must point to <approved-gate-commands>.
+       Outside <gate>, ref must point to <approved-commands>.
+       ==================== -->
+
+  <xs:complexType name="runType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
         <xs:attribute name="id" type="ape:identifierType" />
         <xs:attribute name="ref" type="ape:identifierType" />
         <xs:attribute name="set" type="ape:identifierType" />
-        <xs:attribute name="tool" type="xs:string" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -338,9 +364,10 @@
   </xs:complexType>
 
   <xs:complexType name="agentsInParallelType">
-    <xs:sequence>
-      <xs:element name="action" type="ape:actionType" maxOccurs="unbounded" />
-    </xs:sequence>
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="run" type="ape:runType" />
+      <xs:group ref="ape:toolTagGroup" />
+    </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
@@ -365,7 +392,7 @@
        ==================== -->
 
   <!-- stepsType: contains steps plus optional guidance decorators.
-       <rule>, <principle>, <anti-pattern>, <constraint> can appear
+       <rule>, <principle>, <anti-pattern> can appear
        as children alongside <step> elements. -->
   <xs:complexType name="stepsType">
     <xs:choice maxOccurs="unbounded">
@@ -380,8 +407,8 @@
   <!-- Step: uses xs:choice to allow interleaving of prose guidance,
        executable content, gates, declarations, and decorators.
        <instruction> is mixed content (prose + guidance decorators).
-       <action> is pure structure (executable directives).
-       They are siblings, not parent-child. -->
+       <run> is the execution verb. Tool and behavioral tags are
+       direct children. They are siblings of <instruction>. -->
   <xs:complexType name="stepType">
     <xs:choice maxOccurs="unbounded">
       <xs:element name="title" type="xs:string" />
@@ -436,9 +463,9 @@
        Instruction / Instructions
 
        <instruction> is mixed content — prose with optional
-       guidance decorators (rule, principle, anti-pattern, reference,
-       constraint). It provides interpretive context but is NOT executable.
-       It cannot contain <command>, <action>, <output>, <note>,
+       guidance decorators (rule, principle, anti-pattern, reference).
+       It provides interpretive context but is NOT executable.
+       It cannot contain <run>, <output>, <note>,
        or any tool/behavioral tags. <note> is only allowed at
        step level and root level, not inside instruction.
 
@@ -451,7 +478,6 @@
       <xs:element name="principle" type="ape:principleType" />
       <xs:element name="anti-pattern" type="xs:string" />
       <xs:element name="reference" type="ape:referenceType" />
-      <xs:element name="constraint" type="xs:string" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
@@ -466,17 +492,20 @@
   <!-- ====================
        Gate
 
-       Pure structure. Contains either <criteria> or a single <criterion>
-       (not both), plus <on-fail> (required) and optional <on-pass>.
+       Pure structure. May contain <run> children (to execute measurement
+       commands from <approved-gate-commands>), either <criteria> or a
+       single <criterion> (not both), plus <on-fail> (required) and
+       optional <on-pass>.
        <criterion> can appear directly in <gate> as shorthand for a
        single-condition gate (no <criteria> wrapper needed).
        <goto> is a structural navigation element.
        <on-fail> and <on-pass> use attributes for flow control
-       and may contain <action> and <goto> children — no prose.
+       and may contain <run> and <goto> children — no prose.
        ==================== -->
 
   <xs:complexType name="gateType">
     <xs:choice maxOccurs="unbounded">
+      <xs:element name="run" type="ape:runType" />
       <xs:element name="criteria" type="ape:criteriaType" />
       <xs:element name="criterion" type="ape:criterionType" />
       <xs:element name="on-pass" type="ape:onPassType" />
@@ -523,12 +552,13 @@
     <xs:attribute name="ref" type="ape:identifierType" use="required" />
   </xs:complexType>
 
-  <!-- on-pass: flow control attributes + optional action/goto children -->
+  <!-- on-pass: flow control attributes + optional run/goto children -->
   <xs:complexType name="onPassType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
       <xs:element name="goto" type="ape:gotoType" />
       <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:toolTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
@@ -536,12 +566,13 @@
     <xs:attribute name="proceed" type="xs:boolean" />
   </xs:complexType>
 
-  <!-- on-fail: flow control attributes + optional action/goto children -->
+  <!-- on-fail: flow control attributes + optional run/goto children -->
   <xs:complexType name="onFailType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
       <xs:element name="goto" type="ape:gotoType" />
       <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:toolTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
@@ -551,21 +582,6 @@
     <xs:attribute name="then" type="xs:string" />
     <xs:attribute name="halt" type="xs:boolean" />
     <xs:attribute name="proceed" type="xs:boolean" />
-  </xs:complexType>
-
-  <!-- action: pure-structure executable directive.
-       Contains only executable child tags. No bare prose.
-       Flow-control attributes belong on the handler, not on action.
-       Used inside steps as work to execute, and inside gate
-       handlers as recovery actions. -->
-  <xs:complexType name="actionType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="ape:actionChildGroup" />
-      <xs:group ref="ape:decoratorGroup" />
-      <xs:element name="reference" type="ape:referenceType" />
-    </xs:choice>
-    <xs:attribute name="id" type="ape:identifierType" />
-    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
@@ -585,10 +601,12 @@
 
   <xs:complexType name="caseType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="ape:actionChildGroup" />
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
+      <xs:element name="output" type="ape:outputType" />
       <xs:element name="goto" type="ape:gotoType" />
       <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:toolTagGroup" />
+      <xs:group ref="ape:behaviorTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
@@ -599,10 +617,12 @@
 
   <xs:complexType name="defaultCaseType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="ape:actionChildGroup" />
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
+      <xs:element name="output" type="ape:outputType" />
       <xs:element name="goto" type="ape:gotoType" />
       <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:toolTagGroup" />
+      <xs:group ref="ape:behaviorTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
@@ -616,10 +636,12 @@
 
   <xs:complexType name="eachType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:group ref="ape:actionChildGroup" />
-      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="run" type="ape:runType" />
+      <xs:element name="output" type="ape:outputType" />
       <xs:element name="goto" type="ape:gotoType" />
       <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:toolTagGroup" />
+      <xs:group ref="ape:behaviorTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
@@ -643,11 +665,11 @@
        Decorators
 
        All decorators are standalone elements (no plural wrappers).
-       Proximity handles grouping, matching the <constraint> pattern.
+       Proximity handles grouping, matching the <rule> pattern.
        ==================== -->
 
   <!-- principle: has a required name attribute. All other decorators
-       (constraint, rule, anti-pattern) are plain xs:string. -->
+       (rule, anti-pattern) are plain xs:string. -->
   <xs:complexType name="principleType">
     <xs:simpleContent>
       <xs:extension base="xs:string">

@@ -193,7 +193,7 @@ def case():
 @pytest.fixture
 def isolated_env(tmp_path):
     """BenchmarkEnvironment with workspaces rooted in pytest's tmp_path."""
-    return BenchmarkEnvironment(base_dir=tmp_path)
+    return BenchmarkEnvironment(base_dir=tmp_path, skip_baseline=True)
 
 
 # ---------------------------------------------------------------------------

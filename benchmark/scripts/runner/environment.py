@@ -275,8 +275,9 @@ def _parse_coverage_pct(llvm_cov_stdout: str) -> float | None:
 class BenchmarkEnvironment:
     """Manages isolated workspace directories for benchmark runs."""
 
-    def __init__(self, base_dir: Optional[Path] = None):
+    def __init__(self, base_dir: Optional[Path] = None, skip_baseline: bool = False):
         self.base_dir = base_dir
+        self.skip_baseline = skip_baseline
 
     def setup(
         self,
@@ -635,7 +636,7 @@ class BenchmarkEnvironment:
 
         Returns None if the workspace has no Cargo.toml (not a Rust project).
         """
-        if not (workspace / "Cargo.toml").is_file():
+        if self.skip_baseline or not (workspace / "Cargo.toml").is_file():
             return None
 
         logger = logging.getLogger("bench.environment")
@@ -671,16 +672,40 @@ class BenchmarkEnvironment:
     def _run_cargo(
         self, workspace: Path, *args: str, timeout: int = 120,
     ) -> subprocess.CompletedProcess | None:
-        """Run a cargo subcommand, returning the CompletedProcess or None on error."""
+        """Run a cargo subcommand, returning the CompletedProcess or None on error.
+
+        Uses start_new_session so the entire process tree (compiler, test
+        binaries, etc.) can be killed on timeout.  Without this, killing
+        only the parent cargo process leaves children holding pipes open,
+        which causes subprocess.run's pipe-drain to block indefinitely.
+        """
+        import signal as _signal
+        proc = None
         try:
-            return subprocess.run(
+            proc = subprocess.Popen(
                 ["cargo", *args],
                 cwd=workspace,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=timeout,
+                start_new_session=True,
             )
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            stdout, stderr = proc.communicate(timeout=timeout)
+            return subprocess.CompletedProcess(
+                args=proc.args,
+                returncode=proc.returncode,
+                stdout=stdout,
+                stderr=stderr,
+            )
+        except subprocess.TimeoutExpired:
+            if proc is not None:
+                try:
+                    os.killpg(proc.pid, _signal.SIGTERM)
+                except (ProcessLookupError, OSError):
+                    pass
+                proc.wait(timeout=5)
+            return None
+        except (FileNotFoundError, OSError):
             return None
 
     def capture_state(self, workspace: Path, setup_snapshot: SetupSnapshot | None = None, *, case_id: str = "") -> WorkspaceState:

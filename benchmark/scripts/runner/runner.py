@@ -245,12 +245,13 @@ def _jsonl_to_json_array(path: Path) -> None:
     """Convert a JSONL file to a JSON array in-place using jq."""
     tmp = path.with_suffix(".tmp")
     try:
-        result = subprocess.run(
-            ["jq", "-s", "."],
-            stdin=open(path, "r"),
-            stdout=open(tmp, "w"),
-            timeout=30,
-        )
+        with open(path, "r") as fin, open(tmp, "w") as fout:
+            result = subprocess.run(
+                ["jq", "-s", "."],
+                stdin=fin,
+                stdout=fout,
+                timeout=30,
+            )
         if result.returncode == 0:
             tmp.rename(path)
         else:
