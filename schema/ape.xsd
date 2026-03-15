@@ -6,7 +6,7 @@
   elementFormDefault="qualified">
 
   <!-- ============================================================
-       APE Schema v0.2.2
+       APE Schema
 
        This schema validates SHAPE, not semantics.
        Use the APE validator for: required children, reference
@@ -33,15 +33,6 @@
     </xs:restriction>
   </xs:simpleType>
 
-  <xs:simpleType name="shellType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="bash" />
-      <xs:enumeration value="sh" />
-      <xs:enumeration value="zsh" />
-      <xs:enumeration value="powershell" />
-      <xs:enumeration value="cmd" />
-    </xs:restriction>
-  </xs:simpleType>
 
   <xs:simpleType name="askType">
     <xs:restriction base="xs:string">
@@ -74,16 +65,10 @@
        can appear inside various containers.
        ==================== -->
 
-  <!-- Declarations: can appear in meta, root, steps, or any block -->
+  <!-- Declarations: can appear in meta, root, steps, or any block.
+       All declarations are standalone elements; proximity handles grouping. -->
   <xs:group name="declarationGroup">
     <xs:choice>
-      <xs:element name="actors" type="ape:actorsType" />
-      <xs:element name="params" type="ape:paramsType" />
-      <xs:element name="variables" type="ape:variablesType" />
-      <xs:element name="resources" type="ape:resourcesType" />
-      <xs:element name="commands" type="ape:commandsType" />
-      <!-- Inline (unwrapped) declarations -->
-      <xs:element name="actor" type="ape:actorType" />
       <xs:element name="var" type="ape:varType" />
       <xs:element name="param" type="ape:paramType" />
       <xs:element name="resource" type="ape:resourceDeclType" />
@@ -92,15 +77,16 @@
     </xs:choice>
   </xs:group>
 
-  <!-- Decorators: can appear inside any block -->
+  <!-- Decorators: structural guidance that can appear inside any block.
+       Singular forms are standalone; proximity handles grouping.
+       <note> is NOT in this group — it is a prose element and only
+       allowed in prose/mixed contexts (instruction, step, root). -->
   <xs:group name="decoratorGroup">
     <xs:choice>
-      <xs:element name="goal" type="xs:string" />
       <xs:element name="constraint" type="xs:string" />
-      <xs:element name="rules" type="ape:rulesType" />
-      <xs:element name="anti-patterns" type="ape:antiPatternsType" />
-      <xs:element name="note" type="xs:string" />
-      <xs:element name="rationale" type="xs:string" />
+      <xs:element name="rule" type="xs:string" />
+      <xs:element name="anti-pattern" type="xs:string" />
+      <xs:element name="principle" type="ape:principleType" />
     </xs:choice>
   </xs:group>
 
@@ -129,20 +115,44 @@
     </xs:choice>
   </xs:group>
 
-  <!-- Instruction items: things that go inside <instruction> or similar -->
-  <xs:group name="instructionGroup">
+  <!-- Action children: executable elements that live inside <action> -->
+  <xs:group name="actionChildGroup">
+    <xs:choice>
+      <xs:element name="command" type="ape:commandType" />
+      <xs:element name="resource" type="ape:resourceDeclType" />
+      <xs:element name="output" type="ape:outputType" />
+      <xs:group ref="ape:toolTagGroup" />
+      <xs:group ref="ape:behaviorTagGroup" />
+    </xs:choice>
+  </xs:group>
+
+  <!-- Step-level executable content: things that produce work inside a step -->
+  <xs:group name="stepContentGroup">
     <xs:choice>
       <xs:element name="action" type="ape:actionType" />
-      <xs:element name="output" type="ape:outputType" />
       <xs:element name="conditional" type="ape:conditionalType" />
       <xs:element name="each" type="ape:eachType" />
       <xs:element name="sequence" type="ape:sequenceType" />
       <xs:group ref="ape:toolTagGroup" />
       <xs:group ref="ape:behaviorTagGroup" />
-      <xs:group ref="ape:decoratorGroup" />
-      <xs:group ref="ape:declarationGroup" />
     </xs:choice>
   </xs:group>
+
+  <!-- ====================
+       Preamble
+
+       Executor-facing orientation. Teaches the LLM runtime
+       what APE elements mean before it encounters them.
+       Allowed only as the first child of <ape>. At most one.
+       ==================== -->
+
+  <xs:complexType name="preambleType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
 
   <!-- ====================
        Root Element
@@ -151,9 +161,10 @@
   <xs:element name="ape">
     <xs:complexType>
       <xs:choice maxOccurs="unbounded">
+        <xs:element name="preamble" type="ape:preambleType" />
         <xs:element name="meta" type="ape:metaType" />
         <xs:element name="steps" type="ape:stepsType" />
-        <xs:element name="principles" type="ape:principlesType" />
+        <xs:element name="note" type="xs:string" />
         <xs:element name="reference" type="ape:referenceType" />
         <xs:group ref="ape:declarationGroup" />
         <xs:group ref="ape:decoratorGroup" />
@@ -175,47 +186,26 @@
     <xs:choice maxOccurs="unbounded">
       <xs:element name="name" type="xs:string" />
       <xs:element name="description" type="xs:string" />
+      <xs:element name="reference" type="ape:referenceType" />
       <xs:group ref="ape:declarationGroup" />
-      <!-- Note: toolTagGroup and behaviorTagGroup intentionally excluded from meta -->
     </xs:choice>
-  </xs:complexType>
-
-  <!-- ====================
-       Actors
-       ==================== -->
-
-  <xs:complexType name="actorsType">
-    <xs:sequence>
-      <xs:element name="actor" type="ape:actorType" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="actorType">
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="description" type="xs:string" />
-      <xs:element name="responsibilities" type="ape:responsibilitiesType" />
-    </xs:choice>
-    <xs:attribute name="id" type="ape:identifierType" use="required" />
-    <xs:attribute name="type" type="xs:string" />
-  </xs:complexType>
-
-  <xs:complexType name="responsibilitiesType">
-    <xs:sequence>
-      <xs:element name="responsibility" type="xs:string" maxOccurs="unbounded" />
-    </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
        Variables
        ==================== -->
 
-  <xs:complexType name="variablesType">
-    <xs:sequence>
-      <xs:element name="var" type="ape:varType" minOccurs="2" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
+  <!-- var: mixed content. Can contain text, <command>, and <resource> children.
+       A command child computes the variable's value.
+       A resource child declares a resource dependency for the value. -->
   <xs:complexType name="varType" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="command" type="ape:commandType" />
+      <xs:element name="resource" type="ape:resourceDeclType" />
+      <xs:element name="reference" type="ape:referenceType" />
+    </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="name" type="ape:identifierType" use="required" />
     <xs:attribute name="type" type="ape:variableTypeEnum" default="string" />
     <xs:attribute name="value" type="xs:string" />
@@ -226,13 +216,8 @@
        Parameters
        ==================== -->
 
-  <xs:complexType name="paramsType">
-    <xs:sequence>
-      <xs:element name="param" type="ape:paramType" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
   <xs:complexType name="paramType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" use="required" />
     <xs:attribute name="default" type="xs:string" />
     <xs:attribute name="required" type="xs:boolean" default="true" />
@@ -242,30 +227,17 @@
        Resources
        ==================== -->
 
-  <xs:complexType name="resourcesType">
-    <xs:sequence>
-      <xs:element name="resource" type="ape:resourceDeclType" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
   <xs:complexType name="resourceDeclType">
     <xs:attribute name="id" type="ape:identifierType" use="required" />
     <xs:attribute name="type" type="xs:string" use="required" />
     <xs:attribute name="path" type="xs:string" />
     <xs:attribute name="access" type="xs:string" />
     <xs:attribute name="required" type="xs:boolean" default="true" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
        Commands
        ==================== -->
-
-  <xs:complexType name="commandsType">
-    <xs:sequence>
-      <xs:element name="command" type="ape:commandType" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
 
   <xs:complexType name="commandType">
     <xs:simpleContent>
@@ -273,10 +245,7 @@
         <xs:attribute name="id" type="ape:identifierType" />
         <xs:attribute name="ref" type="ape:identifierType" />
         <xs:attribute name="set" type="ape:identifierType" />
-        <xs:attribute name="actor" type="ape:identifierType" />
         <xs:attribute name="tool" type="xs:string" />
-        <xs:attribute name="note" type="xs:string" />
-        <xs:attribute name="shell" type="ape:shellType" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -285,21 +254,19 @@
        Tool Tags
        ==================== -->
 
-  <!-- Tool tag types -->
-
   <xs:complexType name="readType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="path" type="xs:string" use="required" />
     <xs:attribute name="var" type="ape:identifierType" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="writeType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
         <xs:attribute name="path" type="xs:string" />
         <xs:attribute name="ref" type="ape:identifierType" />
         <xs:attribute name="mode" type="ape:writeModeType" default="create" />
-        <xs:attribute name="actor" type="ape:identifierType" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -307,36 +274,36 @@
   <xs:complexType name="editType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
         <xs:attribute name="path" type="xs:string" use="required" />
-        <xs:attribute name="actor" type="ape:identifierType" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
 
   <xs:complexType name="globType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="pattern" type="xs:string" use="required" />
     <xs:attribute name="var" type="ape:identifierType" />
     <xs:attribute name="path" type="xs:string" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="grepType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="pattern" type="xs:string" use="required" />
     <xs:attribute name="var" type="ape:identifierType" />
     <xs:attribute name="path" type="xs:string" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="webSearchType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="query" type="xs:string" use="required" />
     <xs:attribute name="var" type="ape:identifierType" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="webFetchType">
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="url" type="xs:string" use="required" />
     <xs:attribute name="var" type="ape:identifierType" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="askUserQuestionType" mixed="true">
@@ -351,9 +318,9 @@
         </xs:complexType>
       </xs:element>
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="var" type="ape:identifierType" />
     <xs:attribute name="type" type="ape:askType" default="text" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- Behavioral tag types -->
@@ -362,30 +329,33 @@
     <xs:sequence>
       <xs:element name="ask-user-question" type="ape:askUserQuestionType" maxOccurs="unbounded" />
     </xs:sequence>
-    <xs:attribute name="actor" type="ape:identifierType" />
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="target" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="planModeType" mixed="true">
-    <xs:attribute name="actor" type="ape:identifierType" />
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="agentsInParallelType">
     <xs:sequence>
       <xs:element name="action" type="ape:actionType" maxOccurs="unbounded" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="stopType">
     <xs:simpleContent>
-      <xs:extension base="xs:string" />
+      <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
+      </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
 
   <xs:complexType name="subagentStopType">
     <xs:simpleContent>
       <xs:extension base="xs:string">
-        <xs:attribute name="actor" type="ape:identifierType" />
+        <xs:attribute name="id" type="ape:identifierType" />
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -394,13 +364,24 @@
        Steps
        ==================== -->
 
+  <!-- stepsType: contains steps plus optional guidance decorators.
+       <rule>, <principle>, <anti-pattern>, <constraint> can appear
+       as children alongside <step> elements. -->
   <xs:complexType name="stepsType">
-    <xs:sequence>
-      <xs:element name="step" type="ape:stepType" maxOccurs="unbounded" />
-    </xs:sequence>
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="step" type="ape:stepType" />
+      <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:decoratorGroup" />
+    </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
-  <!-- Step uses xs:choice to allow interleaving -->
+  <!-- Step: uses xs:choice to allow interleaving of prose guidance,
+       executable content, gates, declarations, and decorators.
+       <instruction> is mixed content (prose + guidance decorators).
+       <action> is pure structure (executable directives).
+       They are siblings, not parent-child. -->
   <xs:complexType name="stepType">
     <xs:choice maxOccurs="unbounded">
       <xs:element name="title" type="xs:string" />
@@ -410,15 +391,16 @@
       <xs:element name="instructions" type="ape:instructionsType" />
       <xs:element name="description" type="xs:string" />
       <xs:element name="gate" type="ape:gateType" />
+      <xs:element name="note" type="xs:string" />
+      <xs:element name="reference" type="ape:referenceType" />
+      <xs:group ref="ape:stepContentGroup" />
       <xs:group ref="ape:declarationGroup" />
       <xs:group ref="ape:decoratorGroup" />
-      <xs:group ref="ape:toolTagGroup" />
-      <xs:group ref="ape:behaviorTagGroup" />
     </xs:choice>
     <xs:attribute name="id" type="ape:identifierType" use="required" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="number" type="xs:positiveInteger" />
     <xs:attribute name="uses" type="xs:string" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
@@ -429,12 +411,14 @@
     <xs:sequence>
       <xs:element name="prerequisite" type="ape:prerequisiteType" maxOccurs="unbounded" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="prerequisiteType" mixed="true">
     <xs:sequence>
       <xs:element name="check" type="ape:checkType" minOccurs="0" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
     <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="goto" type="ape:identifierType" />
     <xs:attribute name="halt" type="xs:boolean" />
@@ -444,57 +428,123 @@
     <xs:sequence>
       <xs:element name="command" type="ape:commandType" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
        Instruction / Instructions
 
-       <instruction> is the atomic unit of work.
-       One or more may appear directly inside a step.
-       <instructions> is an optional wrapper (2+ children).
+       <instruction> is mixed content — prose with optional
+       guidance decorators (rule, principle, anti-pattern, reference,
+       constraint). It provides interpretive context but is NOT executable.
+       It cannot contain <command>, <action>, <output>, <note>,
+       or any tool/behavioral tags. <note> is only allowed at
+       step level and root level, not inside instruction.
+
+       <instructions> is an optional wrapper for 2+ instructions.
        ==================== -->
 
   <xs:complexType name="instructionType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="rule" type="xs:string" />
+      <xs:element name="principle" type="ape:principleType" />
+      <xs:element name="anti-pattern" type="xs:string" />
+      <xs:element name="reference" type="ape:referenceType" />
+      <xs:element name="constraint" type="xs:string" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <xs:complexType name="instructionsType">
     <xs:sequence>
       <xs:element name="instruction" type="ape:instructionType" minOccurs="2" maxOccurs="unbounded" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
        Gate
+
+       Pure structure. Contains either <criteria> or a single <criterion>
+       (not both), plus <on-fail> (required) and optional <on-pass>.
+       <criterion> can appear directly in <gate> as shorthand for a
+       single-condition gate (no <criteria> wrapper needed).
+       <goto> is a structural navigation element.
+       <on-fail> and <on-pass> use attributes for flow control
+       and may contain <action> and <goto> children — no prose.
        ==================== -->
 
   <xs:complexType name="gateType">
     <xs:choice maxOccurs="unbounded">
-      <xs:element name="criteria" type="xs:string" />
+      <xs:element name="criteria" type="ape:criteriaType" />
+      <xs:element name="criterion" type="ape:criterionType" />
       <xs:element name="on-pass" type="ape:onPassType" />
       <xs:element name="on-fail" type="ape:onFailType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
       <xs:group ref="ape:decoratorGroup" />
     </xs:choice>
-    <xs:attribute name="actor" type="ape:identifierType" />
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
-  <!-- on-pass: flat or nested -->
-  <xs:complexType name="onPassType" mixed="true">
+  <!-- criteria: compound form or reference form.
+       Compound form: <criteria operator="and"><criterion ... /></criteria>
+         The operator attribute specifies how criteria combine (and/or).
+       Named criteria: <criteria id="name" operator="and">...</criteria>
+         can be reused via <criteria ref="name" /> from other gates.
+       Reference form: <criteria ref="criteria-id" />
+         ref resolves to a named <criteria> or <criterion> element. -->
+  <xs:complexType name="criteriaType">
+    <xs:sequence>
+      <xs:element name="criterion" type="ape:criterionType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
+    <xs:attribute name="operator" type="xs:string" />
+  </xs:complexType>
+
+  <!-- criterion: single evaluable condition.
+       check: boolean expression using {{ }} syntax with comparison operators.
+       ref: resolves to a named <criteria> or <criterion> id.
+       ref and check are mutually exclusive. Exactly one must be present.
+       Can appear as child of <criteria> or directly in <gate> (shorthand). -->
+  <xs:complexType name="criterionType">
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
+    <xs:attribute name="check" type="xs:string" />
+  </xs:complexType>
+
+  <!-- goto: structural navigation element. Points to a step id.
+       Can appear in gates, handlers, cases, and iteration. -->
+  <xs:complexType name="gotoType">
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" use="required" />
+  </xs:complexType>
+
+  <!-- on-pass: flow control attributes + optional action/goto children -->
+  <xs:complexType name="onPassType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="action" type="ape:actionType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="goto" type="ape:identifierType" />
     <xs:attribute name="proceed" type="xs:boolean" />
   </xs:complexType>
 
-  <!-- on-fail: flat or nested -->
-  <xs:complexType name="onFailType" mixed="true">
+  <!-- on-fail: flow control attributes + optional action/goto children -->
+  <xs:complexType name="onFailType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="reason" type="xs:string" />
       <xs:element name="action" type="ape:actionType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="goto" type="ape:identifierType" />
     <xs:attribute name="retry" type="xs:boolean" />
     <xs:attribute name="max" type="xs:positiveInteger" />
@@ -503,18 +553,19 @@
     <xs:attribute name="proceed" type="xs:boolean" />
   </xs:complexType>
 
-  <!-- action: executable directive — commands, tool tags, outputs, text.
-       Used inside instructions as a specific thing to do (no interpretive
-       latitude), and inside gate handlers as content to execute.
-       Flow-control attributes belong on the handler, not on action. -->
-  <xs:complexType name="actionType" mixed="true">
+  <!-- action: pure-structure executable directive.
+       Contains only executable child tags. No bare prose.
+       Flow-control attributes belong on the handler, not on action.
+       Used inside steps as work to execute, and inside gate
+       handlers as recovery actions. -->
+  <xs:complexType name="actionType">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="command" type="ape:commandType" />
-      <xs:element name="output" type="ape:outputType" />
-      <xs:group ref="ape:toolTagGroup" />
-      <xs:group ref="ape:behaviorTagGroup" />
+      <xs:group ref="ape:actionChildGroup" />
+      <xs:group ref="ape:decoratorGroup" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
-    <xs:attribute name="actor" type="ape:identifierType" />
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
@@ -526,23 +577,35 @@
       <xs:element name="case" type="ape:caseType" maxOccurs="unbounded" />
       <xs:element name="default" type="ape:defaultCaseType" minOccurs="0" />
     </xs:sequence>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="on" type="xs:string" use="required" />
     <xs:attribute name="default" type="xs:string" />
   </xs:complexType>
 
-  <xs:complexType name="caseType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
+  <xs:complexType name="caseType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="ape:actionChildGroup" />
+      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="value" type="xs:string" use="required" />
     <xs:attribute name="goto" type="ape:identifierType" />
     <xs:attribute name="halt" type="xs:boolean" />
   </xs:complexType>
 
-  <xs:complexType name="defaultCaseType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
+  <xs:complexType name="defaultCaseType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="ape:actionChildGroup" />
+      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="goto" type="ape:identifierType" />
     <xs:attribute name="halt" type="xs:boolean" />
   </xs:complexType>
@@ -551,10 +614,15 @@
        Iteration
        ==================== -->
 
-  <xs:complexType name="eachType" mixed="true">
-    <xs:choice maxOccurs="unbounded">
-      <xs:group ref="ape:instructionGroup" />
+  <xs:complexType name="eachType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:group ref="ape:actionChildGroup" />
+      <xs:element name="action" type="ape:actionType" />
+      <xs:element name="goto" type="ape:gotoType" />
+      <xs:element name="reference" type="ape:referenceType" />
     </xs:choice>
+    <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
     <xs:attribute name="item" type="ape:identifierType" use="required" />
     <xs:attribute name="in" type="xs:string" use="required" />
   </xs:complexType>
@@ -568,53 +636,37 @@
       <xs:element name="command" type="ape:commandType" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="id" type="ape:identifierType" />
+    <xs:attribute name="ref" type="ape:identifierType" />
   </xs:complexType>
 
   <!-- ====================
        Decorators
+
+       All decorators are standalone elements (no plural wrappers).
+       Proximity handles grouping, matching the <constraint> pattern.
        ==================== -->
 
-  <xs:complexType name="rulesType">
-    <xs:sequence>
-      <xs:element name="rule" type="xs:string" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
-  <xs:complexType name="antiPatternsType">
-    <xs:sequence>
-      <xs:element name="anti-pattern" type="xs:string" maxOccurs="unbounded" />
-    </xs:sequence>
-  </xs:complexType>
-
-  <!-- ====================
-       Principles
-       ==================== -->
-
-  <xs:complexType name="principlesType">
-    <xs:sequence>
-      <xs:element name="principle" maxOccurs="unbounded">
-        <xs:complexType>
-          <xs:simpleContent>
-            <xs:extension base="xs:string">
-              <xs:attribute name="name" type="xs:string" use="required" />
-            </xs:extension>
-          </xs:simpleContent>
-        </xs:complexType>
-      </xs:element>
-    </xs:sequence>
+  <!-- principle: has a required name attribute. All other decorators
+       (constraint, rule, anti-pattern) are plain xs:string. -->
+  <xs:complexType name="principleType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="id" type="ape:identifierType" />
+        <xs:attribute name="name" type="xs:string" use="required" />
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
 
   <!-- ====================
        Reference
+
+       A pointer to any element with an id.
+       Requires ref_id attribute. Cannot have an id attribute.
+       Can be a child of any container element.
        ==================== -->
 
   <xs:complexType name="referenceType">
-    <xs:simpleContent>
-      <xs:extension base="xs:string">
-        <xs:attribute name="id" type="ape:identifierType" use="required" />
-        <xs:attribute name="path" type="xs:string" use="required" />
-      </xs:extension>
-    </xs:simpleContent>
+    <xs:attribute name="ref_id" type="ape:identifierType" use="required" />
   </xs:complexType>
 
   <!-- ====================
@@ -637,6 +689,7 @@
   <xs:complexType name="outputType" mixed="true">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="command" type="ape:commandType" />
+      <xs:element name="reference" type="ape:referenceType" />
       <xs:group ref="ape:toolTagGroup" />
       <xs:group ref="ape:behaviorTagGroup" />
     </xs:choice>
@@ -648,7 +701,6 @@
     <xs:attribute name="format" type="xs:string" />
     <xs:attribute name="anchor" type="xs:string" />
     <xs:attribute name="position" type="ape:outputPositionType" default="append" />
-    <xs:attribute name="actor" type="ape:identifierType" />
   </xs:complexType>
 
 </xs:schema>

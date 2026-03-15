@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ape version="0.3.0" xmlns="https://ape-lang.dev/schema/0">
+
+  <preamble>
+APE is an executable workflow. You are the runtime.
+
+Meta is configuration and declarations only. Tags declared here are available globally but not executed until referenced.
+
+Instruction and action are both directives. Instruction: do what it says. Action: execute its children.
+
+Gates evaluate a condition and route via on-fail (required) or on-pass. Pass/fail must be unambiguous. Exactly one of ref or check per criterion.
+
+Conditionals branch on a value via case children, with an optional default.
+
+Process steps in order.
+  </preamble>
+
+  <meta>
+    <name>Bivvy Development Workflow</name>
+    <description>Atomic, test-driven development workflow for building Bivvy. Tests first, prove failure, implement, document, verify, commit. Each commit is code + tests + docs for one logical change.</description>
+
+    <command id="run-tests">cargo test --all-features</command>
+    <var name="test_failures" type="number"><command>cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i=="failed;") sum+=$(i-1) } END { print sum+0 }'</command></var>
+    <var name="min_coverage" type="number" default="90" />
+  </meta>
+
+  <constraint>NEVER skip, disable, or modify tests to make them pass.</constraint>
+  <constraint>NEVER stray from the implementation plan without explicit approval.</constraint>
+
+  <principle name="Small-Steps">Many small commits over few large ones.</principle>
+
+  <anti-pattern>Creating the full project structure upfront.</anti-pattern>
+  <anti-pattern>Using deprecated APIs without checking dependency versions.</anti-pattern>
+
+  <steps>
+
+    <step number="1" id="specification">
+
+      <instruction>Write or update test files that specify the intended behavior.</instruction>
+
+      <action><command ref="run-tests" /></action>
+
+      <gate>
+        <criterion check="{{ test_failures == 0 }}" />
+        <on-fail goto="implementation" />
+        <on-pass goto="specification" />
+      </gate>
+    </step>
+
+    <step number="2" id="implementation">
+      <prerequisite ref="specification" goto="specification" />
+
+      <instruction>Write the minimum implementation to pass failing tests.</instruction>
+
+      <action><command ref="run-tests" /></action>
+
+      <gate>
+        <criterion check="{{ test_failures == 0 }}" />
+        <on-fail retry="true" max="3" then="halt" />
+        <on-pass goto="documentation" />
+      </gate>
+    </step>
+
+    <step number="3" id="documentation">
+      <prerequisite ref="implementation" goto="implementation" />
+
+      <rule>Developer docs go in source tree (rustdoc + source READMEs), never in `docs/`.</rule>
+      <rule>User-facing docs go in `docs/`, never in source READMEs.</rule>
+
+      <anti-pattern>Documenting "what" the code does — the code should show that.</anti-pattern>
+
+      <instructions>
+        <instruction>Add `///` doc comments to all public items (structs, functions, modules).</instruction>
+        <instruction>Document all commands, config options, and user-visible features in docs/. Write for end users — never reference internals.</instruction>
+        <instruction>Maintain README.md in source directories covering subsystem design.</instruction>
+        <instruction>Limit inline comments to non-obvious rationale.</instruction>
+      </instructions>
+
+      <action><command>cargo doc --no-deps --all-features</command></action>
+
+      <var name="doc_errors" type="number"><command>cargo doc --no-deps --all-features 2>&amp;1 | grep -c "^error"</command></var>
+
+      <gate>
+        <criterion check="{{ doc_errors == 0 }}" />
+        <on-fail retry="true" max="2" then="halt" />
+        <on-pass goto="linting" />
+      </gate>
+    </step>
+
+    <step number="4" id="linting">
+      <prerequisite ref="documentation" goto="documentation" />
+
+      <action><command>cargo fmt -- --check</command></action>
+
+      <action><command>cargo clippy --all-targets --all-features -- -D warnings</command></action>
+
+      <var name="fmt_errors" type="number"><command>cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command></var>
+      <var name="clippy_errors" type="number"><command>cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
+
+      <gate>
+        <criteria operator="and">
+          <criterion check="{{ fmt_errors == 0 }}" />
+          <criterion check="{{ clippy_errors == 0 }}" />
+        </criteria>
+        <on-fail goto="implementation" />
+        <on-pass goto="testing" />
+      </gate>
+    </step>
+
+    <step number="5" id="testing">
+      <prerequisite ref="linting" goto="linting" />
+
+      <action><command ref="run-tests" /></action>
+      <action><command>cargo llvm-cov --all-features</command></action>
+
+      <var name="coverage_pct" type="number"><command>cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; exit } }'</command></var>
+
+      <gate>
+        <criteria operator="and">
+          <criterion check="{{ test_failures == 0 }}" />
+          <criterion check="{{ coverage_pct >= min_coverage }}" />
+        </criteria>
+        <on-fail goto="implementation" />
+        <on-pass goto="build" />
+      </gate>
+    </step>
+
+    <step number="6" id="build">
+      <prerequisite ref="testing" goto="testing" />
+
+      <action><command>cargo build --all-targets --all-features</command></action>
+      <action><command>cargo build --release</command></action>
+
+      <var name="build_dev_errors" type="number"><command>cargo build --all-targets --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
+      <var name="build_release_errors" type="number"><command>cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
+
+      <gate>
+        <criteria operator="and">
+          <criterion check="{{ build_dev_errors == 0 }}" />
+          <criterion check="{{ build_release_errors == 0 }}" />
+        </criteria>
+        <on-fail goto="linting" />
+        <on-pass goto="commit" />
+      </gate>
+    </step>
+
+    <step number="7" id="commit">
+      <prerequisite ref="build" goto="build" />
+
+      <rule>Imperative mood ("Add feature" not "Added feature").</rule>
+      <rule>50 characters or less for the subject line.</rule>
+      <rule>Capitalize first letter, no period at end.</rule>
+      <rule>No type prefixes (no "feat:", "fix:", etc.).</rule>
+      <rule>Blank line between subject and body. Body wraps at 72 characters.</rule>
+
+      <instruction>Stage only the files related to this change. Write the commit message explaining WHY, not just WHAT.</instruction>
+
+      <action><command>git add -p</command></action>
+      <action><command>git commit</command></action>
+
+      <var name="staged_count" type="number"><command>git diff --cached --name-only | wc -l</command></var>
+
+      <gate>
+        <criterion check="{{ staged_count == 0 }}" />
+        <on-fail retry="true" max="1" then="halt" />
+      </gate>
+    </step>
+
+    <step number="8" id="post-commit">
+      <prerequisite ref="commit" goto="commit" />
+
+      <action><command ref="run-tests" /></action>
+      <action><command>cargo build</command></action>
+      <action><command>git log -1 --stat</command></action>
+
+      <var name="build_basic_errors" type="number"><command>cargo build 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command></var>
+
+      <gate>
+        <criteria operator="and">
+          <criterion check="{{ test_failures == 0 }}" />
+          <criterion check="{{ build_basic_errors == 0 }}" />
+        </criteria>
+        <on-pass goto="specification" />
+        <on-fail goto="implementation" />
+      </gate>
+    </step>
+
+  </steps>
+</ape>

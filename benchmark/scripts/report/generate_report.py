@@ -52,7 +52,7 @@ def _group_runs(recorder: Recorder) -> dict[str, dict[str, list[RunRecord]]]:
     return dict(groups)
 
 
-def _compute_metrics_for_group(runs: list[RunRecord]) -> dict:
+def _compute_metrics_for_group(runs: list[RunRecord], recorder: Recorder | None = None) -> dict:
     """Compute metrics for a list of runs in the same condition."""
     from tokens import summarize_token_data
     from latency import compute_latency_metrics
@@ -62,7 +62,19 @@ def _compute_metrics_for_group(runs: list[RunRecord]) -> dict:
     token_summary = summarize_token_data(runs)
     wall_times = [r.wall_clock_ms for r in runs if r.wall_clock_ms > 0]
     latency = compute_latency_metrics(wall_times)
-    outputs = [r.raw_output for r in runs if r.raw_output]
+
+    # Load stream outputs for consistency analysis
+    outputs: list[str] = []
+    for r in runs:
+        if recorder:
+            try:
+                raw = recorder.load_raw_output(r.fixture_id, r.format, r.prompt_id, r.run_id)
+                if raw:
+                    outputs.append(raw)
+                    continue
+            except (FileNotFoundError, OSError):
+                pass
+        # Fallback: no raw_output available
     consistency = compute_consistency(outputs)
     reliability = compute_reliability(runs)
 
@@ -189,7 +201,7 @@ def generate_report(results_dir: Path, output_dir: Path) -> int:
 
         # Compute per-condition metrics
         for fmt, runs in format_runs.items():
-            metrics = _compute_metrics_for_group(runs)
+            metrics = _compute_metrics_for_group(runs, recorder=recorder)
             logger.info(
                 "  %s: %d runs, mean_pass_rate=%.1f%%",
                 fmt, metrics["n_runs"], metrics["mean_pass_rate"] * 100,

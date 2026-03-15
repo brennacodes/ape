@@ -5,12 +5,12 @@ description: >
   deliberately neutral about workflow sequence — it says *what* is wrong,
   not *how* to approach the fix.
 prompt: |
-  For some reason, ${presentation}. Can you fix this? ${optional_modifier}
+  For some reason, ${presentation}. Can you fix this?
 conditions:
   explicit_edit_requested: true
   involves_codebase_search: true
-# NOTE: Some bug items have optional_modifier that reinforces verification
-# ("Make sure to test your fix..."). This cannot be accurately declared as
-# a template-level override because only 2 of 3 items carry the modifier.
-# Account for modifier-reinforced items in data analysis by cross-referencing
-# which items have optional_modifier in the app-config.
+# NOTE: Removed ${optional_modifier} placeholder and optional_modifier fields
+# from app-config items (interactive_prompt_panic, race_condition_in_cache)
+# to prevent contamination of the no-workflow baseline condition. The modifier
+# text ("Make sure to test...") constitutes workflow guidance that should not
+# appear in the control condition. This ensures proper experimental isolation.

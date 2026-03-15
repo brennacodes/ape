@@ -126,14 +126,32 @@ def _make_trace_file(session_dir: Path, name: str = "trace.jsonl") -> Path:
     return trace_file
 
 
-def _trace_execute(cmd, timeout, cwd=None, env=None):
+def _write_stream_file(stream_path, content):
+    """Write JSONL content to stream file and convert to JSON array."""
+    if stream_path is None:
+        return
+    stream_path.parent.mkdir(parents=True, exist_ok=True)
+    events = []
+    for line in content.splitlines():
+        line = line.strip()
+        if line:
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+    stream_path.write_text(json.dumps(events, indent=2), encoding="utf-8")
+
+
+def _trace_execute(cmd, timeout, cwd=None, env=None, **kwargs):
     """Mock executor that returns a valid trace as stdout."""
+    trace = _make_trace_stdout()
+    _write_stream_file(kwargs.get("stream_path"), trace)
     return subprocess.CompletedProcess(
-        args=cmd, returncode=0, stdout=_make_trace_stdout(), stderr="",
+        args=cmd, returncode=0, stdout=trace, stderr="",
     )
 
 
-def _noop_execute(cmd, timeout, cwd=None, env=None):
+def _noop_execute(cmd, timeout, cwd=None, env=None, **kwargs):
     """Mock executor that returns empty stdout (no trace)."""
     return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
 
@@ -289,7 +307,7 @@ class TestRunCase:
         case = _make_case(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        def timeout_execute(cmd, timeout, cwd=None, env=None):
+        def timeout_execute(cmd, timeout, cwd=None, env=None, **kwargs):
             raise subprocess.TimeoutExpired(cmd=cmd, timeout=timeout)
 
         result = run_case(case, environment=env, _execute=timeout_execute)
@@ -299,7 +317,7 @@ class TestRunCase:
         case = _make_case(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        def error_execute(cmd, timeout, cwd=None, env=None):
+        def error_execute(cmd, timeout, cwd=None, env=None, **kwargs):
             raise OSError("cannot find claude")
 
         result = run_case(case, environment=env, _execute=error_execute)
@@ -327,7 +345,7 @@ class TestRunCase:
         case = _make_case(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        def fail_execute(cmd, timeout, cwd=None, env=None):
+        def fail_execute(cmd, timeout, cwd=None, env=None, **kwargs):
             return subprocess.CompletedProcess(
                 args=cmd, returncode=1, stdout="", stderr="something broke",
             )

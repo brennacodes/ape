@@ -1,4 +1,4 @@
-# APE Conversion Guide
+# APE Conversion Guide (0.3.0)
 
 > This file teaches you how to **convert** existing documents into APE — system prompts, runbooks, process docs, CLAUDE.md files, or any other structured text.
 > For writing APE from scratch, see `ape-authoring.md`. For the full language reference, see `ape-spec.md`. For execution, see `ape-llms.md`.
@@ -32,13 +32,12 @@ When reading source material, you will encounter text that needs to become APE. 
 | Source text pattern | APE element | Why |
 |---|---|---|
 | A literal shell command: `npm test` | `<command>npm test</command>` | Concrete, executable, copy-pasteable |
-| A specific directive: "Edit the config file to add X" | `<action>Edit the config file to add X</action>` | Specific and direct — the LLM should do exactly this |
-| A narrative instruction: "Review the diff and decide what needs changing" | `<instruction>Review the diff and decide what needs changing</instruction>` | Allows interpretive latitude — the LLM decides *how* |
-| A stated objective: "The goal is to ensure test coverage" | `<goal>Ensure test coverage</goal>` | Decorator — states the *why*, not the *what* or *how* |
+| A specific directive: "Edit the config" | `<action><edit path="config.yaml" /></action>` | Structure, no latitude for interpretation |
+| A narrative instruction: "Review the diff and decide" | `<instruction>Review the diff and decide what needs changing.</instruction>` | Prose, interpretive latitude allowed |
 
-**The escalation:** `<command>` (atomic, executable) < `<action>` (directive, no latitude) < `<instruction>` (narrative, latitude allowed) < `<goal>` (objective, not executable).
+**The escalation:** `<command>` (atomic, executable) < `<action>` (directive, no latitude) < `<instruction>` (narrative, latitude allowed).
 
-`<command>` and `<action>` live inside `<instruction>`. They are the concrete anchors; the instruction is the narrative wrapper. A step's work is expressed through instructions. The step's purpose is expressed through `<goal>`.
+`<command>` and `<action>` are concrete anchors; an `<instruction>` provides the narrative context. A step's work is expressed through instructions.
 
 ### "Something must be true"
 
@@ -66,20 +65,23 @@ These are the four enforcement mechanisms. They are not interchangeable:
 
 **`<var>` vs `<param>`:** Variables are values this document defines and controls — even if they have no default and need to be resolved at runtime. Parameters are values this document *requires from whoever invokes it*. If the document is standalone, you almost certainly want `<var>`. If an external system invokes your document and must provide a value, that's a `<param>`.
 
+A `<var>` can also contain `<command>` children for computed values — the result of the command becomes the variable's value.
+
 ### "There's a rule or guideline"
 
 | Source text pattern | APE element | Why |
 |---|---|---|
 | "NEVER do X" / "ALWAYS do Y" | `<constraint>` | Hard, non-negotiable restriction |
-| "Follow these style rules: ..." | `<rules><rule>...</rule></rules>` | Behavioral rules — the LLM should follow them |
-| "Common mistake: doing Y instead of Z" | `<anti-patterns><anti-pattern>...</anti-pattern></anti-patterns>` | What to avoid — the inverse of rules |
+| "Follow these style rules: ..." | `<rule>...</rule>` | Behavioral rules — the LLM should follow them |
+| "Common mistake: doing Y instead of Z" | `<anti-pattern>...</anti-pattern>` | What to avoid — the inverse of rules |
 | "Note: this only works on Linux" | `<note>` | Author-facing context — not executable, not output |
-| "We do this because..." | `<rationale>` | Explains *why* — helps the LLM make better judgments |
-| "The principle is: each commit is atomic" | `<principles><principle name="...">...</principle></principles>` | Overarching values for the whole document |
+| "The principle is: each commit is atomic" | `<principle name="...">...</principle>` | Overarching values for the whole document |
 
 **`<constraint>` vs `<rule>`:** Constraints are absolute — "NEVER," "ALWAYS," hard prohibitions. Rules are behavioral guidance — "prefer X over Y," "use imperative mood." The LLM treats constraints as non-negotiable. Rules inform judgment.
 
-**Placement matters.** Place decorators as close to their subject as possible. A constraint about a specific command goes inside the instruction containing that command, not on the step. A constraint that applies to every step in the workflow goes at root level, outside `<steps>`.
+**Placement matters.** Place decorators as close to their subject as possible. A constraint about a specific command goes inside the instruction containing that command, not on the step. A constraint that applies to every step in the workflow goes at root level, outside `<steps>`. Note that `<principle>` can appear inside any block (step, action, instruction, etc.), not just at root level.
+
+**`<reference>` redefined:** In 0.3.0, `<reference>` uses the `ref_id` attribute to point to any element with an id. It no longer uses `id` or `path` attributes. Example: `<reference ref_id="some-action" />`.
 
 ### "There's output to produce"
 
@@ -99,39 +101,44 @@ These are the four enforcement mechanisms. They are not interchangeable:
 
 ### `<instruction>` vs `<action>`
 
-This is the most important distinction for conversion.
+This is the most important distinction for 0.3.0 conversion.
 
-`<instruction>` allows interpretive latitude. It says "here is what needs to happen" and the LLM decides how. It can contain prose, commands, actions, conditionals, tool tags, behavioral tags — anything.
+In 0.3.0, `<instruction>` and `<action>` are **siblings within a step**, not parent-child. They serve opposite purposes:
 
-`<action>` is a direct directive. It says "do exactly this." The LLM should perform it as stated, not treat it as a suggestion. It contains things that *happen* — text, commands, tool tags, behavioral tags, outputs. It does not contain structural or decision-making elements.
+- `<instruction>` contains **prose only** — narrative context, interpretive latitude, guidance. Can include guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`) but no executable children. `<note>` is allowed only at the step or root `<ape>` level.
+- `<action>` contains **structure only** — executable children like `<command>`, `<output>`, tool tags, and behavioral tags. No bare prose text or prose decorators like `<note>`. For command-level annotations within actions, use the `note` attribute on `<command>` elements.
+
+Together, they express both the narrative context and the concrete execution needed for a phase of work.
 
 ```xml
-<!-- Instruction: interpretive latitude -->
+<!-- Instruction: interpretive latitude (prose only) -->
 <instruction>
   Review the test output and determine what needs fixing.
   Focus on failures that indicate missing functionality rather than flaky tests.
 </instruction>
 
-<!-- Action: no latitude, execute as stated -->
-<action>
-  Run the test suite and capture the output.
-  <command ref="run-tests" />
+<!-- Action: no latitude, execute as stated (structure only) -->
+<action id="run-tests">
+  <command>npm test</command>
 </action>
 ```
 
-**When converting:** If the source says "figure out X" or "decide Y" — that is an `<instruction>`. If the source says "do X" or "run Y" — that is an `<action>` (possibly inside an `<instruction>`).
+**When converting:**
+- If the source says "figure out X" or "decide Y" or "review and understand Z" — that is an `<instruction>`.
+- If the source says "do X" or "run Y" or "execute Z" — that is an `<action>`.
+- If the source contains both narrative ("first understand the problem") and executable directives ("then fix it") — split them. The narrative becomes `<instruction>`, the executable parts become `<action>`.
 
-`<action>` lives *inside* `<instruction>`. It is not a sibling or alternative — it is a concrete anchor within the narrative. An instruction can contain multiple actions alongside prose. An action does not contain instructions.
+An `<instruction>` and an `<action>` can both exist in the same step, side by side. They are not alternatives; they are complementary. A step with only interpretation has just an `<instruction>`. A step with only execution has just an `<action>`. A step with both has both.
 
 ### `<prerequisite>` vs `<conditional>` vs `<gate>`
 
 These three handle different aspects of "what must be true."
 
-**Prerequisite:** "This step cannot start unless X." It is a dependency declaration — it points at another step or describes a precondition. It does not decide anything or route anywhere. It either blocks or it does not.
+**Prerequisite:** "This step cannot start unless X." It is a dependency declaration — it points at another step and specifies a recovery path. It is a structure container with no prose. It either blocks or it does not.
 
 ```xml
 <!-- Step 4 cannot start until step 3 passes -->
-<prerequisite ref="prove-failure">Tests must fail before implementing.</prerequisite>
+<prerequisite ref="prove-failure" goto="prove-failure" />
 ```
 
 **Conditional:** "Based on the value of X, do different things." It routes during work. The value already exists — the conditional just selects a path. It does not judge quality, it does not retry, it does not enforce.
@@ -147,39 +154,37 @@ These three handle different aspects of "what must be true."
 **Gate:** "The work is done — does it meet the bar?" It evaluates completed work and enforces quality. It can retry (because the work can be redone), halt (because the bar was not met), or route to recovery steps. It is the bouncer at the door between steps.
 
 ```xml
-<!-- Evaluate whether work meets criteria -->
+<!-- Evaluate whether work meets criteria (expression-based) -->
 <gate>
-  <criteria>All tests pass with no filtered tests.</criteria>
-  <on-fail retry="true" max="3" then="halt">Tests failing.</on-fail>
+  <criterion check="{{ test_failures == 0 }}" />
+  <on-fail retry="true" max="3" then="halt" />
 </gate>
 ```
 
 **Key test:** Is the value known before work starts? That is a **prerequisite** (before) or **conditional** (during). Does the value depend on the outcome of work just performed? That is a **gate**.
 
-### `<goal>` vs `<instruction>` vs `<description>`
+### `<instruction>` vs `<description>`
 
-These all "describe" something but serve completely different purposes.
+These both "describe" something but serve completely different purposes.
 
-- `<goal>` states the *objective* — why this step/block exists. It is a decorator. Not executed, but it shapes the LLM's understanding of purpose. Can appear inside any block.
-- `<instruction>` states the *work* — what to do. It is executed. It allows interpretive latitude.
-- `<description>` states *what something is* — author-facing metadata. Never executed, never output. Only valid inside `<meta>`, `<step>`, and `<actor>`.
+- `<instruction>` states the *work* — what to do (prose only). It is executed. It allows interpretive latitude.
+- `<description>` states *what something is* — author-facing metadata. Never executed, never output. Only valid inside `<meta>` and `<step>`.
 
 ```xml
 <step id="verify" number="5">
   <title>Verify Build</title>
   <description>Runs the build and test suite to confirm the implementation.</description>
-  <goal>Confirm the implementation is correct before proceeding.</goal>
   <instruction>
-    <action>
-      Run the build and test suite.
-      <command ref="run-build" />
-      <command ref="run-tests" />
-    </action>
+    Verify that the build completes without errors and all tests pass.
   </instruction>
+  <action id="build-and-test">
+    <command>npm run build</command>
+    <command>npm test</command>
+  </action>
 </step>
 ```
 
-**When converting:** "The purpose of this step is..." becomes `<goal>`. "This step does X and Y" becomes `<instruction>`. "This is the verification step" (metadata that adds nothing beyond the title) is either `<description>` if it adds real context, or omitted entirely if it restates what `<title>` already says.
+**When converting:** "This step does X and Y" becomes `<instruction>` (if narrative) or `<action>` (if executable). "This is the verification step" (metadata that adds nothing beyond the title) is either `<description>` if it adds real context, or omitted entirely if it restates what `<title>` already says.
 
 ### Singular vs Plural Forms
 
@@ -187,16 +192,15 @@ APE uses a consistent pattern: **singular** for one item, **plural wrapper** for
 
 | Singular | Plural wrapper | Rule |
 |---|---|---|
-| `<instruction>` | `<instructions>` | A step contains exactly one `<instruction>` OR one `<instructions>` (never both) |
+| `<instruction>` | `<instructions>` | A step contains bare `<instruction>` elements; use wrapper only if organizing a large group |
 | `<prerequisite>` | `<prerequisites>` | One dependency inline, two or more in the wrapper |
 | `<command>` | `<commands>` | Wrapper for declaring multiple commands together |
 | `<var>` | `<variables>` | Wrapper requires 2+ children; use inline `<var>` for a single variable |
 | `<resource>` | `<resources>` | Wrapper for declaring multiple resources together |
-| `<actor>` | `<actors>` | Wrapper for declaring multiple actors together |
 | `<param>` | `<params>` | Wrapper for declaring multiple parameters together |
-| `<rule>` | `<rules>` | Rules always need the wrapper (rules are a set) |
-| `<anti-pattern>` | `<anti-patterns>` | Anti-patterns always need the wrapper |
-| `<principle>` | `<principles>` | Principles always need the wrapper |
+| `<rule>` | *(none)* | Standalone like `<constraint>`; proximity handles grouping |
+| `<anti-pattern>` | *(none)* | Standalone like `<constraint>`; proximity handles grouping |
+| `<principle>` | *(none)* | Standalone like `<constraint>`; proximity handles grouping |
 
 **The key distinction:** For declarations (`<command>`, `<var>`, etc.), the plural form is a convenience wrapper — you can also place singular declarations directly in any block without a wrapper. For `<instruction>`, the `<instructions>` wrapper is optional — multiple bare `<instruction>` elements are also valid.
 
@@ -214,40 +218,6 @@ APE uses a consistent pattern: **singular** for one item, **plural wrapper** for
   <instruction>Do the second thing.</instruction>
 </instructions>
 ```
-
----
-
-## When to Use Actors (and When Not To)
-
-Actors are needed when **multiple participants interact** and you need to specify who does what. If the entire workflow is executed by a single LLM agent, actors add noise.
-
-**Declare actors when:**
-- A human approves, reviews, or provides input during the workflow
-- A CI service runs commands that the LLM cannot
-- Subagents handle specialized tasks
-- The workflow involves handoffs between participants
-
-**Skip actors when:**
-- A single LLM agent does everything
-- There is no human interaction
-- The source document does not distinguish between participants
-
-**If you declare actors, use them.** The default actor is the first one declared. Do not put `actor="claude"` on every step when `claude` is already the first actor — it is redundant. Only specify `actor` on steps or actions where the actor *differs* from the default.
-
-```xml
-<!-- WRONG: actor on every element when it's already the default -->
-<actor id="claude" type="agent" />  <!-- first = default -->
-<step actor="claude">               <!-- redundant -->
-  <action actor="claude">           <!-- redundant -->
-
-<!-- RIGHT: only specify when different from default -->
-<actor id="claude" type="agent" />
-<step>
-  <action>...</action>
-  <action actor="developer">Get human approval</action>
-```
-
-**Do not declare actors that are never referenced.** If you declare a `developer` actor but no step, action, gate, or ask-user-question ever uses `actor="developer"`, the declaration is waste. Either the workflow genuinely involves the developer (and you should reference them somewhere) or it does not (and you should not declare them).
 
 ---
 
@@ -319,11 +289,11 @@ Every "if," "when," "decide whether," or "depending on" in the source is a candi
 
 ```xml
 <!-- WRONG: conditional logic buried in prose -->
-<action>
+<instruction>
   Decide whether the user is asking for:
   - Information/recommendations only, or
   - Actual edits/implementation.
-</action>
+</instruction>
 
 <!-- RIGHT: structural conditional -->
 <conditional on="{{ request_type }}" default="investigate">
@@ -342,41 +312,75 @@ If the source mentions a threshold, a path, a name, or any other value that appe
 <!-- WRONG: value hardcoded in prose -->
 <criteria>Coverage is above 80%</criteria>
 
-<!-- RIGHT: value extracted to a variable -->
+<!-- RIGHT: value extracted to a variable, checked with expression -->
 <var name="coverage_threshold" type="number" default="80" />
+<var name="coverage" type="number"><command>npm test -- --coverage 2>&amp;1 | grep "Stmts" | awk '{print $4}'</command></var>
 ...
-<criteria>Coverage is above {{ coverage_threshold }}%</criteria>
+<criterion check="{{ coverage >= coverage_threshold }}" />
 ```
 
 ### Gates Hiding in Prose
 
 "Make sure X," "verify that Y," "confirm Z before continuing" — these are gates, not instructions. If the source says something must be true before proceeding, that is enforcement. Do not leave it as prose inside an `<action>`.
 
+In 0.3.0, `<criteria>` no longer contains prose. Prefer expression-based criteria (`check`) when a measurable condition exists — it makes the pass/fail condition explicit and unambiguous. Use reference-based criteria (`ref`) when you only need to check exit-code success.
+
 ```xml
 <!-- WRONG: quality check buried in prose -->
-<action>
+<instruction>
   Make sure all tests pass before moving on.
   If they don't, go back and fix them.
-</action>
+</instruction>
 
-<!-- RIGHT: structural gate -->
+<!-- RIGHT: expression-based gate with explicit condition -->
+<var name="test_failures" type="number"><command>npm test 2>&amp;1 | grep "failing" | wc -l</command></var>
+<action>
+  <command>npm test</command>
+</action>
 <gate>
-  <criteria>All tests pass.</criteria>
-  <on-fail goto="implementation">Tests failing — fix and retry.</on-fail>
+  <criterion check="{{ test_failures == 0 }}" />
+  <on-fail goto="implementation" />
 </gate>
+
+<!-- RIGHT: reference-based gate (checks exit code 0) -->
+<action id="verify-tests">
+  <command>npm test</command>
+</action>
+<gate>
+  <criteria ref="verify-tests" />
+  <on-fail goto="implementation" />
+</gate>
+
+<!-- Compound criteria: multiple conditions -->
+<gate>
+  <criteria operator="and">
+    <criterion check="{{ test_failures == 0 }}" />
+    <criterion check="{{ coverage >= coverage_threshold }}" />
+  </criteria>
+  <on-fail goto="implementation" />
+</gate>
+
+<!-- goto as an element (alternative to attribute) -->
+<on-fail>
+  <goto ref="implementation" />
+</on-fail>
 ```
 
 ### Commands Hiding in Prose
 
-If the source describes running something — "execute the linter," "run the build," "check the output of X" — and that something is a concrete tool invocation, it is a `<command>`, not prose inside `<action>`.
+If the source describes running something — "execute the linter," "run the build," "check the output of X" — and that something is a concrete tool invocation, it is a `<command>`, not prose inside `<instruction>`.
+
+In 0.3.0, distinguish clearly: narrative instruction (prose only) vs executable action (structure only).
 
 ```xml
-<!-- WRONG: command buried in description -->
-<action>Run cargo test with all features enabled to verify.</action>
+<!-- WRONG: command buried in prose instruction -->
+<instruction>Run cargo test with all features enabled to verify.</instruction>
 
-<!-- RIGHT: command extracted -->
-<action>
-  Verify all features work.
+<!-- RIGHT: instruction for context, action for execution -->
+<instruction>
+  Verify all features work correctly.
+</instruction>
+<action id="verify-features">
   <command>cargo test --all-features</command>
 </action>
 ```
@@ -397,11 +401,11 @@ If the same command appears in multiple places, declare it once and reference it
 
 **Symptom:** Every section of the source becomes a `<step>`. Every sentence becomes an `<action>`. The structure is identical to the original — just wrapped in tags.
 
-**Fix:** Steps are phases with gates. Instructions allow latitude. Actions are directives. Commands execute. Match the element to the *nature* of the content, not its position in the source.
+**Fix:** Steps are phases with gates. Instructions allow latitude and are prose-only. Actions are directives containing structure only. Commands execute. Match the element to the *nature* of the content, not its position in the source.
 
 ### 2. Unused Declarations
 
-**Symptom:** Variables, actors, or resources declared in `<meta>` that are never referenced anywhere in the document.
+**Symptom:** Variables, resources, or parameters declared in `<meta>` that are never referenced anywhere in the document.
 
 **Fix:** Every declaration must be used. If `<var name="deliverable">` exists, `{{ deliverable }}` must appear somewhere, or `<ask-user-question var="deliverable">` must set it. If not, remove the declaration.
 
@@ -421,7 +425,13 @@ If the same command appears in multiple places, declare it once and reference it
 
 **Symptom:** The same guidance expressed as a `<constraint>`, a `<rule>`, an `<anti-pattern>`, AND prose in an `<instruction>`.
 
-**Fix:** Say it once. Choose the element that best matches the nature of the guidance. Hard prohibitions are constraints. Style preferences are rules. Things to avoid are anti-patterns. Context is notes. Do not repeat the same message in multiple forms.
+**Fix:** Say it once. Choose the element that best matches the nature of the guidance. Hard prohibitions are constraints. Style preferences are rules. Things to avoid are anti-patterns. Context is notes. Do not repeat the same message in multiple forms. This is a validation error per the spec's redundancy rules.
+
+### 5a. Prose Restating Structure
+
+**Symptom:** A `<constraint>` says "NEVER move on when tests are failing" but a `<gate>` on the same step already makes it impossible to proceed without passing tests. Or a `<constraint>` says "always run `cargo test --all-features`" but the `<command id="run-tests">` already defines that exact invocation.
+
+**Fix:** Delete the prose. Gates enforce. Command definitions prescribe. Prerequisites block. Conditionals branch. If structure already makes a behavior mandatory or impossible, a decorator restating that behavior is redundant noise. Trust the structure you built.
 
 ### 6. Over-Stepping
 
@@ -429,23 +439,63 @@ If the same command appears in multiple places, declare it once and reference it
 
 **Fix:** Merge related work into fewer, more substantial steps. A step should represent a phase with a meaningful body of work. "Keep scope tight" is a constraint, not a step. "Use parallel tool calls" is a rule, not a step. "Summarize work completed" is an instruction inside the final step, not its own step.
 
-### 7. Default Actor Noise
-
-**Symptom:** `actor="claude"` on every step, every action, every command — when `claude` is the first (and therefore default) actor.
-
-**Fix:** Only specify `actor` when it differs from the default. The default is the first actor declared.
-
-### 8. Section-Header Comments
+### 7. Section-Header Comments
 
 **Symptom:** XML comments like `<!-- Security checks -->` or `<!-- Phase 2: Implementation -->` above steps or sections.
 
 **Fix:** XML comments are not permitted in APE documents. The step `id` and `<title>` (if present) already name the section. If additional context is needed, use `<note>`.
 
-### 9. Placeholder Variable Declarations
+### 8. Placeholder Variable Declarations
 
 **Symptom:** `<var name="result" type="string" />` with no value, no default, and no content — declared "for later" or "for runtime resolution."
 
 **Fix:** A `<var>` must carry a value. If a value is captured at runtime via `<ask-user-question var>` or `<command set>`, no `<var>` declaration is needed — those mechanisms create the variable implicitly.
+
+### 9. Prose Inside Actions
+
+**Symptom:** `<action>` containing bare text like "Run the tests and check the output. Make sure they all pass." Or `<action>` containing `<note>` elements.
+
+**Fix:** In 0.3.0, `<action>` is pure structure. It can only contain executable children: `<command>`, `<output>`, tool tags, and behavioral tags. No prose elements like `<note>` are allowed inside `<action>`. Narrative guidance goes in `<instruction>`, which is a sibling of the `<action>`, not a parent. For contextual notes, place `<note>` at the step level or root `<ape>` level. For command-level annotations within actions, use the `note` attribute on `<command>` elements.
+
+```xml
+<!-- WRONG: prose inside action -->
+<action>
+  Run the tests and check the output.
+  Make sure they all pass before continuing.
+</action>
+
+<!-- RIGHT: prose in instruction, structure in action -->
+<instruction>
+  Ensure all tests pass before continuing to the next phase.
+</instruction>
+<action id="run-tests">
+  <command>npm test</command>
+</action>
+```
+
+### 10. Criteria with Prose
+
+**Symptom:** `<criteria>All tests must pass and coverage must be above 80%.</criteria>`
+
+**Fix:** In 0.3.0, `<criteria>` no longer contains prose. Use expression-based criteria for explicit measurable conditions, or reference-based criteria for exit-code checks.
+
+```xml
+<!-- WRONG: prose inside criteria -->
+<criteria>All tests must pass and coverage must be above 80%.</criteria>
+
+<!-- RIGHT: expression-based criteria with explicit conditions -->
+<var name="test_failures" type="number"><command>npm test 2>&amp;1 | grep "failing" | wc -l</command></var>
+<var name="coverage" type="number"><command>npm test -- --coverage 2>&amp;1 | grep "Stmts" | awk '{print $4}'</command></var>
+<var name="coverage_threshold" type="number" default="80" />
+
+<gate>
+  <criteria operator="and">
+    <criterion check="{{ test_failures == 0 }}" />
+    <criterion check="{{ coverage >= coverage_threshold }}" />
+  </criteria>
+  <on-fail goto="implementation" />
+</gate>
+```
 
 ---
 
@@ -455,23 +505,25 @@ After converting, verify:
 
 **Structure:**
 - [ ] Every step represents a real phase of work (not a single rule or constraint)
-- [ ] Every step that can fail has a `<gate>` with `<criteria>` and a single `<on-fail>`
+- [ ] Every step that can fail has a `<gate>` with `<criteria>` or `<criterion>` and `<on-fail>`
 - [ ] Every "if/when/decide" in the source is a `<conditional>`, not prose
-- [ ] Every concrete command is a `<command>`, not text inside `<action>`
+- [ ] Every concrete command is a `<command>`, not text inside `<instruction>`
+- [ ] `<instruction>` contains only prose and guidance decorators (`<rule>`, `<principle>`, `<anti-pattern>`, `<reference>`, `<constraint>`) — no executable children like `<command>`, and no `<note>` (use at step or root level only)
+- [ ] `<action>` contains only structure — no bare prose text or prose decorators like `<note>`; use the `note` attribute on `<command>` for command-level annotations
 - [ ] Singular/plural forms are correct (`<instruction>` vs `<instructions>`, etc.)
 
 **Declarations:**
 - [ ] Every declared variable is both set and referenced
 - [ ] Every declared resource is referenced via `uses` or in instructions
-- [ ] Every declared actor is referenced via `actor` attributes somewhere
 - [ ] Every declared command with `id` is referenced via `ref` somewhere
 - [ ] Values that appear more than once are variables, not hardcoded
 
 **Cleanliness:**
 - [ ] No XML comments anywhere in the document
-- [ ] No `actor` attributes on elements where the actor matches the default
 - [ ] No descriptions that restate what the element's attributes already say
-- [ ] No guidance repeated across multiple decorator types
+- [ ] No guidance repeated across multiple decorator types (constraint, rule, anti-pattern, note)
+- [ ] No decorator restates what a gate, prerequisite, conditional, or command definition already enforces
+- [ ] No step-level decorator duplicates a document-level decorator
 - [ ] No steps that should be constraints, rules, or instructions in another step
 
 **Variables:**
@@ -481,7 +533,8 @@ After converting, verify:
 
 **Prerequisites:**
 - [ ] Prerequisites are the first children in their step
-- [ ] Prerequisite text describes both the condition and the consequence of it not being met
+- [ ] Prerequisites contain no prose—conditions and recovery paths use attributes (`ref`, `goto`, `halt`) and optional structural children (`<check>`)
+- [ ] Every prerequisite specifies at least one of `goto` or `halt`
 
 **Ordering:**
 - [ ] Constraints inside instructions appear before prose and executable content
@@ -492,3 +545,5 @@ After converting, verify:
 - [ ] Dependencies between steps are `<prerequisite>`, not just implied ordering
 - [ ] Configurable values have `<var>` with sensible defaults
 - [ ] Output format expectations use `<template>` and `<output>`
+- [ ] Criteria use `check` for explicit measurable conditions or `ref` for exit-code success — never bare prose
+- [ ] Named criteria (`<criteria id="...">`) are used when the same conditions appear in multiple gates

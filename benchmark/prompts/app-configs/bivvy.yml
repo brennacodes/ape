@@ -1,0 +1,67 @@
+app:
+  name: bivvy
+  description: Interactive development environment setup automation CLI tool written in Rust
+  location: /Users/brenna/Documents/personal/ai-stuff/ape copy/benchmark/fixtures/apps/bivvy
+  commands:
+    start: "cargo run"
+    watch: "cargo check"
+
+workflow_files:
+  - CLAUDE.md
+  - .claude/bivvy-dev-workflow.md
+
+bugs:
+  silent_yaml_failure:
+    description: Silent failure on invalid YAML — the config loader swallows YAML parsing errors and falls back to default config without warning
+    presentation: the app falls back to default config without any warning when my .bivvy.yml is invalid
+    location: src/config/loader.rs
+    impact: Users are confused when their config changes are ignored
+  interactive_prompt_panic:
+    description: Panic on EOF in interactive prompts — hitting Ctrl+D during a dialoguer prompt unwraps an error and panics
+    presentation: the interactive prompt panics with an unwrap error when I press Ctrl+D
+    location: src/ui/prompts.rs
+    impact: Ugly crash instead of graceful exit
+  race_condition_in_cache:
+    description: Race condition in cache invalidation — concurrent tool installations can corrupt the local state index
+    presentation: the cache sometimes gets corrupted when running multiple tool installations at once
+    location: src/cache/store.rs
+    impact: Corrupted state, requiring manual wipe
+
+untested_code:
+  env_file_parser:
+    description: Environment file parser — custom logic for parsing .env files has edge cases with quotes and escaped characters
+    location: src/config/env_file.rs
+    risk: Misparsing secrets or config values
+  dependency_resolver:
+    description: Dependency resolver — recursive resolution of tool dependencies could infinite loop on circular references
+    location: src/runner/dependency.rs
+    risk: Infinite hangs during setup
+  telemetry_batching:
+    description: Telemetry batching — offline queueing of telemetry events drops events randomly if the file lock is held
+    location: src/runner/telemetry.rs
+    risk: Data loss for analytics
+
+architectural_issues:
+  hardcoded_home_dir:
+    description: Hardcoded ~/.bivvy paths instead of using dirs::data_dir() or standard XDG paths
+    locations: src/cache/store.rs, src/state/store.rs
+    risk: Pollutes user home directory, ignores platform conventions
+  tight_coupling_ui_runner:
+    description: Tight coupling between Runner and UI — the runner module directly instantiates terminal spinners and prompts instead of using a trait
+    locations: src/runner/workflow.rs, src/ui/terminal.rs
+    risk: Hard to test runner logic in isolation, impossible to run headless easily
+  inconsistent_error_handling:
+    description: Inconsistent error handling — mixture of anyhow::Result, Box<dyn Error>, and custom error enums across module boundaries
+    locations: src/error.rs, src/detection/runner.rs
+    risk: Poor error context for end users, brittle match statements
+
+new_features:
+  toml_config_support:
+    feature: TOML configuration support — allow users to use bivvy.toml instead of bivvy.yml, parsing it with the toml crate
+    impact: Better ecosystem fit for Rust developers
+  dry_run_mode:
+    feature: Dry run mode — add a --dry-run flag that prints what would be installed or changed without actually executing the shell commands
+    impact: Safer onboarding for new users
+  github_actions_formatter:
+    feature: "GitHub Actions output formatter — add an output mode that emits ::error:: annotations for CI environments"
+    impact: Better CI integration

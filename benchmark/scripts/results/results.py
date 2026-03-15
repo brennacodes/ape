@@ -4,6 +4,11 @@ Aggregate and summarize benchmark evaluation results.
 Takes a list of CheckResults (from the evaluator) and produces structured
 summaries for human review and cross-format comparison.
 
+Integrates statistical analysis (Section 6.2.5 of APE Benchmark Audit):
+- Pairwise format comparisons with bootstrap CIs
+- Holm-Bonferroni multiple comparison correction
+- Cohen's d effect sizes
+
 Public API
 ----------
 summarize_run(results, metadata) -> RunSummary
@@ -12,11 +17,17 @@ summarize_run(results, metadata) -> RunSummary
 summarize_comparison(summaries) -> ComparisonSummary
     Compare RunSummaries across formats for the same fixture + prompt.
 
+compute_statistical_report(comparison) -> StatisticalReport
+    Analyze format differences with statistical tests and corrections.
+
 format_run_summary(summary) -> str
     Human-readable text for one run.
 
 format_comparison(comparison) -> str
     Human-readable comparison table across formats.
+
+format_statistical_report(report) -> str
+    Human-readable statistical analysis with Rich markup.
 
 write_json(summary_or_comparison, path)
     Serialize to JSON for machine consumption.
@@ -43,6 +54,11 @@ class CheckOutcome:
     passed: Optional[bool]   # None = skipped
     skip_reason: Optional[str]
     detail: Optional[str] = None  # explanation of why the check failed
+    category: Optional[str] = None  # "adherence" | "tool_usage" | None for unknown
+    metric_value: Any = None  # resolved metric data used for determination
+    target_value: Any = None  # resolved target data compared against
+    operator: Optional[str] = None  # operator applied to metric/target
+    eval_trace: Optional[list[dict]] = None  # structured audit trail
 
 
 @dataclass
@@ -58,6 +74,18 @@ class RunMetadata:
 
 
 @dataclass
+class CategoryScore:
+    """Scores for a single category of checks within a run."""
+
+    category: str
+    total: int
+    passed: int
+    failed: int
+    skipped: int
+    pass_rate: float         # passed / (total - skipped), 0.0 if all skipped
+
+
+@dataclass
 class RunSummary:
     """Aggregated results for a single benchmark run."""
 
@@ -68,6 +96,7 @@ class RunSummary:
     skipped: int
     pass_rate: float         # passed / (total - skipped), 0.0 if all skipped
     outcomes: list[CheckOutcome]
+    category_scores: dict[str, CategoryScore] = field(default_factory=dict)
 
 
 @dataclass
@@ -90,6 +119,7 @@ class ComparisonSummary:
     prompt_id: str
     formats: list[FormatScore]
     per_check: dict[str, dict[str, Optional[bool]]]  # {check_id: {format: passed}}
+    per_category: dict[str, dict[str, CategoryScore]] = field(default_factory=dict)  # {category: {format: CategoryScore}}
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +128,12 @@ class ComparisonSummary:
 
 def make_outcome(check_id: str, phase: str, passed: Optional[bool],
                  skip_reason: Optional[str],
-                 detail: Optional[str] = None) -> CheckOutcome:
+                 detail: Optional[str] = None,
+                 category: Optional[str] = None,
+                 metric_value: Any = None,
+                 target_value: Any = None,
+                 operator: Optional[str] = None,
+                 eval_trace: Optional[list[dict]] = None) -> CheckOutcome:
     """Create a CheckOutcome from individual fields."""
     return CheckOutcome(
         check_id=check_id,
@@ -106,6 +141,11 @@ def make_outcome(check_id: str, phase: str, passed: Optional[bool],
         passed=passed,
         skip_reason=skip_reason,
         detail=detail,
+        category=category,
+        metric_value=metric_value,
+        target_value=target_value,
+        operator=operator,
+        eval_trace=eval_trace,
     )
 
 
@@ -114,6 +154,7 @@ def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSum
     Aggregate a list of CheckOutcomes into a RunSummary.
 
     Pass rate is computed over evaluated (non-skipped) checks only.
+    Computes per-category scores if category information is available.
     """
     total = len(outcomes)
     passed = sum(1 for o in outcomes if o.passed is True)
@@ -123,6 +164,9 @@ def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSum
     evaluated = total - skipped
     pass_rate = (passed / evaluated) if evaluated > 0 else 0.0
 
+    # Compute per-category scores
+    category_scores = _summarize_run_by_category(outcomes)
+
     return RunSummary(
         metadata=metadata,
         total=total,
@@ -131,7 +175,44 @@ def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSum
         skipped=skipped,
         pass_rate=round(pass_rate, 4),
         outcomes=outcomes,
+        category_scores=category_scores,
     )
+
+
+def _summarize_run_by_category(outcomes: list[CheckOutcome]) -> dict[str, CategoryScore]:
+    """
+    Compute category-level scores from a list of CheckOutcomes.
+
+    Returns a dict mapping category name to CategoryScore. Only includes
+    outcomes with a non-None category.
+    """
+    by_category: dict[str, list[CheckOutcome]] = {}
+    for outcome in outcomes:
+        cat = outcome.category or "uncategorized"
+        if cat not in by_category:
+            by_category[cat] = []
+        by_category[cat].append(outcome)
+
+    result = {}
+    for cat, cat_outcomes in by_category.items():
+        total = len(cat_outcomes)
+        passed = sum(1 for o in cat_outcomes if o.passed is True)
+        skipped = sum(1 for o in cat_outcomes if o.passed is None)
+        failed = total - passed - skipped
+
+        evaluated = total - skipped
+        cat_pass_rate = (passed / evaluated) if evaluated > 0 else 0.0
+
+        result[cat] = CategoryScore(
+            category=cat,
+            total=total,
+            passed=passed,
+            failed=failed,
+            skipped=skipped,
+            pass_rate=round(cat_pass_rate, 4),
+        )
+
+    return result
 
 
 def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
@@ -186,11 +267,24 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
                 outcome.passed if outcome else None
             )
 
+    # Build per-category cross-format view
+    per_category: dict[str, dict[str, CategoryScore]] = {}
+    all_categories: set[str] = set()
+    for s in summaries:
+        all_categories.update(s.category_scores.keys())
+
+    for cat in all_categories:
+        per_category[cat] = {}
+        for s in summaries:
+            if cat in s.category_scores:
+                per_category[cat][s.metadata.format] = s.category_scores[cat]
+
     return ComparisonSummary(
         fixture_id=fixture_id,
         prompt_id=prompt_id,
         formats=formats,
         per_check=per_check,
+        per_category=per_category,
     )
 
 
@@ -235,6 +329,17 @@ def format_run_summary(summary: RunSummary, record: Any = None) -> str:
         f"(of {summary.total})"
     )
     lines.append(f"  Rate:    [{rate_color}]{summary.pass_rate:.1%}[/{rate_color}]")
+
+    # Category breakdown
+    if summary.category_scores:
+        lines.append("  [bold]By Category:[/bold]")
+        for cat_name in sorted(summary.category_scores.keys()):
+            cat_score = summary.category_scores[cat_name]
+            cat_color = "green" if cat_score.pass_rate >= 0.9 else "yellow" if cat_score.pass_rate >= 0.5 else "red"
+            lines.append(
+                f"    [cyan]{cat_name}[/cyan]: [{cat_color}]{cat_score.pass_rate:.1%}[/{cat_color}]  "
+                f"({cat_score.passed}/{cat_score.total - cat_score.skipped})"
+            )
 
     # Timing / tokens / cost from RunRecord
     if record is not None:
@@ -312,7 +417,92 @@ def format_comparison(comparison: ComparisonSummary) -> str:
         summary_row += f"  {f.pass_rate:.1%}{'':<10s}"
     lines.append(summary_row)
 
+    # Category comparison section
+    if comparison.per_category:
+        lines.append("")
+        lines.append("Category Breakdown:")
+        lines.append("")
+        for cat_name in sorted(comparison.per_category.keys()):
+            cat_results = comparison.per_category[cat_name]
+            lines.append(f"  {cat_name}:")
+            for fmt in fmt_names:
+                if fmt in cat_results:
+                    score = cat_results[fmt]
+                    lines.append(
+                        f"    {fmt}: {score.pass_rate:.1%} ({score.passed}/{score.total - score.skipped})"
+                    )
+
     return "\n".join(lines)
+
+
+def compute_statistical_report(
+    comparison: ComparisonSummary,
+    alpha: float = 0.05,
+    n_bootstrap: int = 10000,
+) -> Any:
+    """
+    Compute statistical analysis (Section 6.2.5) for a format comparison.
+
+    Performs pairwise comparisons of formats using bootstrap CIs, permutation tests,
+    and Holm-Bonferroni correction. This requires the statistical_report module.
+
+    Parameters
+    ----------
+    comparison : ComparisonSummary
+        The comparison to analyze.
+    alpha : float
+        Significance level.
+    n_bootstrap : int
+        Number of bootstrap resamples.
+
+    Returns
+    -------
+    StatisticalReport
+        Complete statistical analysis with corrections. Returns None if statistical
+        analysis is not available (optional dependency).
+    """
+    try:
+        from statistical_report import analyze_format_effects
+    except ImportError:
+        return None
+
+    # Build format_scores dict: {format_name: [pass_rate per run]}
+    # For now, we use a single pass_rate per format from the comparison.
+    # This is a placeholder; in a full pipeline, you'd pass per-run data.
+    format_scores = {
+        f.format: [f.pass_rate]
+        for f in comparison.formats
+    }
+
+    try:
+        return analyze_format_effects(format_scores, alpha=alpha, n_bootstrap=n_bootstrap)
+    except (ValueError, RuntimeError):
+        # If statistical analysis fails (e.g., insufficient samples), return None
+        return None
+
+
+def format_statistical_report(report: Any) -> str:
+    """
+    Format a statistical report for human display.
+
+    Parameters
+    ----------
+    report : StatisticalReport
+        The report to format.
+
+    Returns
+    -------
+    str
+        Rich-formatted text.
+    """
+    if report is None:
+        return "[yellow]Statistical analysis not available.[/yellow]"
+
+    try:
+        from statistical_report import format_statistical_report as format_report
+        return format_report(report)
+    except ImportError:
+        return "[yellow]Statistical analysis module not available.[/yellow]"
 
 
 # ---------------------------------------------------------------------------

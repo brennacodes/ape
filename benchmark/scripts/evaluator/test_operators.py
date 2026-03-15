@@ -13,12 +13,15 @@ from operators import (
     # scalar operators
     op_eq, op_neq, op_gt, op_gte, op_lt, op_lte,
     # collection operators
-    op_exists_before, op_exists_after, op_exists_between,
+    op_exists_before, op_exists_after, op_exists_between, op_followed_by,
     op_strictly_precedes, op_strictly_ordered_subset,
     op_subset_of, op_each_preceded_by_within_N_steps,
-    op_precedes_per_path, op_not_contains, op_regex_not_match,
+    op_precedes_per_path, op_only_via, op_not_contains, op_regex_not_match,
+    op_regex_match, op_imperative_mood, op_valid_format,
     op_has_key, op_has_key_any, op_contains, op_contains_count_gte,
     op_first_search_broader_than_final,
+    # VacuousResult
+    VacuousResult,
     # dispatch
     ALL_OPERATORS, SCALAR_OPERATORS, COLLECTION_OPERATORS,
 )
@@ -186,13 +189,17 @@ class TestExistsBefore:
         assert op_exists_before([3], [3]) is False
 
     def test_b_empty_vacuously_true(self):
-        assert op_exists_before([1, 2], []) is True
+        result = op_exists_before([1, 2], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_a_empty_b_non_empty(self):
         assert op_exists_before([], [3]) is False
 
     def test_both_empty(self):
-        assert op_exists_before([], []) is True
+        result = op_exists_before([], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_min_a_before_min_b(self):
         # Even if some a > b, it passes if min(a) < min(b)
@@ -210,13 +217,17 @@ class TestExistsAfter:
         assert op_exists_after([1], [5]) is False
 
     def test_b_empty_vacuously_true(self):
-        assert op_exists_after([1], []) is True
+        result = op_exists_after([1], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_a_empty_b_non_empty(self):
         assert op_exists_after([], [1]) is False
 
     def test_both_empty(self):
-        assert op_exists_after([], []) is True
+        result = op_exists_after([], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_max_a_after_max_b(self):
         assert op_exists_after([1, 10], [5]) is True
@@ -261,6 +272,38 @@ class TestExistsBetween:
 
 
 # ===========================================================================
+# followed_by
+# ===========================================================================
+
+class TestFollowedBy:
+    def test_a_before_b(self):
+        assert op_followed_by([1], [5]) is True
+
+    def test_a_after_b(self):
+        assert op_followed_by([5], [1]) is False
+
+    def test_a_equal_to_b(self):
+        assert op_followed_by([3], [3]) is False
+
+    def test_a_empty(self):
+        assert op_followed_by([], [5]) is False
+
+    def test_b_empty(self):
+        assert op_followed_by([1], []) is False
+
+    def test_both_empty(self):
+        assert op_followed_by([], []) is False
+
+    def test_min_a_before_max_b(self):
+        # min(A)=1 < max(B)=5 → True
+        assert op_followed_by([1, 10], [3, 5]) is True
+
+    def test_min_a_after_max_b(self):
+        # min(A)=6 > max(B)=5 → False
+        assert op_followed_by([6, 10], [3, 5]) is False
+
+
+# ===========================================================================
 # strictly_precedes
 # ===========================================================================
 
@@ -275,13 +318,19 @@ class TestStrictlyPrecedes:
         assert op_strictly_precedes([5], [1]) is False
 
     def test_a_empty(self):
-        assert op_strictly_precedes([], [1, 2]) is True
+        result = op_strictly_precedes([], [1, 2])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_b_empty(self):
-        assert op_strictly_precedes([1, 2], []) is True
+        result = op_strictly_precedes([1, 2], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_both_empty(self):
-        assert op_strictly_precedes([], []) is True
+        result = op_strictly_precedes([], [])
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_adjacent(self):
         # max(a)=3 < min(b)=4 → True
@@ -394,7 +443,9 @@ class TestEachPrecededByWithinNSteps:
         assert op_each_preceded_by_within_N_steps([5], [7], window=10) is False
 
     def test_a_empty(self):
-        assert op_each_preceded_by_within_N_steps([], [1, 2], window=5) is True
+        result = op_each_preceded_by_within_N_steps([], [1, 2], window=5)
+        assert isinstance(result, VacuousResult) or result is True
+        assert result == True
 
     def test_multiple_a_all_satisfied(self):
         assert op_each_preceded_by_within_N_steps([3, 7], [2, 6], window=2) is True
@@ -651,6 +702,306 @@ class TestFirstSearchBroaderThanFinal:
 
 
 # ===========================================================================
+# regex_match
+# ===========================================================================
+
+class TestRegexMatch:
+    def test_all_match(self):
+        assert op_regex_match(["foo.py", "bar.py"], r"\.py$") is True
+
+    def test_some_not_match(self):
+        assert op_regex_match(["foo.py", "bar.md"], r"\.py$") is False
+
+    def test_none_match(self):
+        assert op_regex_match(["foo.md", "bar.md"], r"\.py$") is False
+
+    def test_empty_list(self):
+        assert op_regex_match([], r"\.py$") is True
+
+    def test_single_string_match(self):
+        assert op_regex_match("foo.py", r"\.py$") is True
+
+    def test_single_string_no_match(self):
+        assert op_regex_match("foo.md", r"\.py$") is False
+
+    def test_single_string_not_wrapped(self):
+        # Should wrap in list automatically
+        assert op_regex_match("hello", r"^h") is True
+
+    def test_pattern_with_groups(self):
+        pattern = r"^[A-Z].*[^.]$"
+        assert op_regex_match(["Add feature"], pattern) is True
+        assert op_regex_match(["add feature"], pattern) is False
+
+    def test_multiple_strings_all_match(self):
+        pattern = r"^[A-Z]"
+        assert op_regex_match(["Add feature", "Fix bug", "Update docs"], pattern) is True
+
+    def test_multiple_strings_one_fails(self):
+        pattern = r"^[A-Z]"
+        assert op_regex_match(["Add feature", "fix bug"], pattern) is False
+
+
+# ===========================================================================
+# imperative_mood
+# ===========================================================================
+
+class TestImperativeMood:
+    def test_imperative_add(self):
+        assert op_imperative_mood("Add feature", True) is True
+
+    def test_imperative_fix(self):
+        assert op_imperative_mood("Fix bug", True) is True
+
+    def test_past_tense_added(self):
+        assert op_imperative_mood("Added feature", True) is False
+
+    def test_past_tense_fixed(self):
+        assert op_imperative_mood("Fixed bug", True) is False
+
+    def test_gerund_adding(self):
+        assert op_imperative_mood("Adding feature", True) is False
+
+    def test_gerund_fixing(self):
+        assert op_imperative_mood("Fixing bug", True) is False
+
+    def test_third_person_adds(self):
+        assert op_imperative_mood("Adds feature", True) is False
+
+    def test_third_person_fixes(self):
+        assert op_imperative_mood("Fixes bug", True) is False
+
+    def test_target_false_with_past_tense(self):
+        assert op_imperative_mood("Added feature", False) is True
+
+    def test_target_false_with_imperative(self):
+        assert op_imperative_mood("Add feature", False) is False
+
+    def test_empty_string(self):
+        assert op_imperative_mood("", True) is False
+
+    def test_list_all_imperative(self):
+        assert op_imperative_mood(["Add feature", "Fix bug"], True) is True
+
+    def test_list_some_imperative(self):
+        assert op_imperative_mood(["Add feature", "Fixed bug"], True) is False
+
+    def test_list_empty(self):
+        assert op_imperative_mood([], True) is False
+
+    def test_list_empty_target_false(self):
+        assert op_imperative_mood([], False) is True
+
+    def test_list_target_false_all_not_imperative(self):
+        assert op_imperative_mood(["Added feature", "Fixed bug"], False) is True
+
+    def test_common_imperative_verbs(self):
+        imperative_verbs = ["Create", "Remove", "Move", "Make", "Get", "Set", "Put", "Run", "Use"]
+        for verb in imperative_verbs:
+            assert op_imperative_mood(f"{verb} something", True) is True
+
+    def test_common_past_tense(self):
+        past_tense = ["Updated", "Improved", "Converted", "Deleted", "Renamed", "Replaced"]
+        for verb in past_tense:
+            assert op_imperative_mood(f"{verb} something", True) is False
+
+    def test_word_like_red_not_past_tense(self):
+        # "Red" ends in -ed but is not past tense (too short)
+        assert op_imperative_mood("Red flag", True) is True
+
+
+# ===========================================================================
+# valid_format
+# ===========================================================================
+
+class TestValidFormat:
+    def test_dict_valid_format(self):
+        body_format = {
+            'has_body': True,
+            'has_blank_line': True,
+            'max_line_length': 72
+        }
+        assert op_valid_format(body_format, True) is True
+
+    def test_dict_no_blank_line(self):
+        body_format = {
+            'has_body': True,
+            'has_blank_line': False,
+            'max_line_length': 72
+        }
+        assert op_valid_format(body_format, True) is False
+
+    def test_dict_line_too_long(self):
+        body_format = {
+            'has_body': True,
+            'has_blank_line': True,
+            'max_line_length': 80
+        }
+        assert op_valid_format(body_format, True) is False
+
+    def test_dict_no_body(self):
+        body_format = {
+            'has_body': False,
+            'has_blank_line': False,
+            'max_line_length': 0
+        }
+        assert op_valid_format(body_format, True) is True
+
+    def test_dict_target_false_valid(self):
+        body_format = {
+            'has_body': True,
+            'has_blank_line': True,
+            'max_line_length': 72
+        }
+        assert op_valid_format(body_format, False) is False
+
+    def test_dict_target_false_invalid(self):
+        body_format = {
+            'has_body': True,
+            'has_blank_line': False,
+            'max_line_length': 72
+        }
+        assert op_valid_format(body_format, False) is True
+
+    def test_string_single_line(self):
+        assert op_valid_format("Add feature", True) is True
+
+    def test_string_with_blank_line_valid(self):
+        commit_msg = "Add feature\n\nThis commit adds a new feature\nwith multiple lines"
+        assert op_valid_format(commit_msg, True) is True
+
+    def test_string_no_blank_line_invalid(self):
+        commit_msg = "Add feature\nThis should have blank line"
+        assert op_valid_format(commit_msg, True) is False
+
+    def test_string_body_line_too_long(self):
+        commit_msg = "Add feature\n\nThis is a very long line that exceeds the 72 character limit and should fail validation"
+        assert op_valid_format(commit_msg, True) is False
+
+    def test_string_body_line_exactly_72(self):
+        commit_msg = "Add feature\n\n" + "x" * 72
+        assert op_valid_format(commit_msg, True) is True
+
+    def test_string_body_line_73_chars(self):
+        commit_msg = "Add feature\n\n" + "x" * 73
+        assert op_valid_format(commit_msg, True) is False
+
+    def test_string_target_false(self):
+        commit_msg = "Add feature\n\nValid body"
+        assert op_valid_format(commit_msg, False) is False
+
+    def test_list_all_valid(self):
+        formats = [
+            {'has_body': False, 'has_blank_line': False, 'max_line_length': 0},
+            {'has_body': True, 'has_blank_line': True, 'max_line_length': 60}
+        ]
+        assert op_valid_format(formats, True) is True
+
+    def test_list_one_invalid(self):
+        formats = [
+            {'has_body': False, 'has_blank_line': False, 'max_line_length': 0},
+            {'has_body': True, 'has_blank_line': False, 'max_line_length': 60}
+        ]
+        assert op_valid_format(formats, True) is False
+
+    def test_list_empty(self):
+        assert op_valid_format([], True) is True
+
+    def test_list_empty_target_false(self):
+        assert op_valid_format([], False) is False
+
+    def test_dict_missing_keys_defaults(self):
+        # Missing keys should default to False/0
+        body_format = {'has_body': False}
+        assert op_valid_format(body_format, True) is True
+
+    def test_invalid_type(self):
+        assert op_valid_format(123, True) is False
+
+
+# ===========================================================================
+# VacuousResult
+# ===========================================================================
+
+class TestVacuousResult:
+    def test_vacuous_result_bool_true(self):
+        vr = VacuousResult("test reason")
+        assert bool(vr) is True
+
+    def test_vacuous_result_equality_with_true(self):
+        vr = VacuousResult("test reason")
+        assert vr == True
+
+    def test_vacuous_result_equality_with_false(self):
+        vr = VacuousResult("test reason")
+        assert not (vr == False)
+
+    def test_vacuous_result_equality_with_same_reason(self):
+        vr1 = VacuousResult("same reason")
+        vr2 = VacuousResult("same reason")
+        assert vr1 == vr2
+
+    def test_vacuous_result_equality_with_different_reason(self):
+        vr1 = VacuousResult("reason 1")
+        vr2 = VacuousResult("reason 2")
+        assert vr1 != vr2
+
+    def test_vacuous_result_isinstance(self):
+        vr = VacuousResult("test")
+        assert isinstance(vr, VacuousResult)
+
+    def test_vacuous_result_not_bool_instance(self):
+        vr = VacuousResult("test")
+        assert not isinstance(vr, bool)
+
+    def test_vacuous_result_repr(self):
+        vr = VacuousResult("test reason")
+        assert "VacuousResult" in repr(vr)
+        assert "test reason" in repr(vr)
+
+    def test_vacuous_result_hash(self):
+        vr1 = VacuousResult("reason")
+        vr2 = VacuousResult("reason")
+        assert hash(vr1) == hash(vr2)
+
+    def test_vacuous_result_different_hash(self):
+        vr1 = VacuousResult("reason 1")
+        vr2 = VacuousResult("reason 2")
+        assert hash(vr1) != hash(vr2)
+
+    def test_vacuous_result_in_set(self):
+        vr1 = VacuousResult("reason")
+        vr2 = VacuousResult("reason")
+        s = {vr1}
+        assert vr2 in s
+
+    def test_exists_before_vacuous(self):
+        result = op_exists_before([1, 2], [])
+        assert isinstance(result, VacuousResult)
+        assert bool(result) is True
+
+    def test_exists_after_vacuous(self):
+        result = op_exists_after([1, 2], [])
+        assert isinstance(result, VacuousResult)
+        assert bool(result) is True
+
+    def test_strictly_precedes_vacuous(self):
+        result = op_strictly_precedes([], [1, 2])
+        assert isinstance(result, VacuousResult)
+        assert bool(result) is True
+
+    def test_each_preceded_by_within_N_steps_vacuous(self):
+        result = op_each_preceded_by_within_N_steps([], [1, 2], window=5)
+        assert isinstance(result, VacuousResult)
+        assert bool(result) is True
+
+    def test_only_via_vacuous(self):
+        result = op_only_via([], [1, 2])
+        assert isinstance(result, VacuousResult)
+        assert bool(result) is True
+
+
+# ===========================================================================
 # Dispatch tables completeness
 # ===========================================================================
 
@@ -659,11 +1010,13 @@ class TestDispatchTables:
         expected = {
             "eq", "neq", "gt", "gte", "lt", "lte",
             "exists_before", "exists_after", "exists_between",
+            "followed_by",
             "strictly_precedes", "strictly_ordered_subset",
             "subset_of", "each_preceded_by_within_N_steps",
             "precedes_per_path", "not_contains", "regex_not_match",
+            "regex_match", "imperative_mood", "valid_format",
             "has_key", "has_key_any", "contains", "contains_count_gte",
-            "first_search_broader_than_final",
+            "first_search_broader_than_final", "only_via",
         }
         assert set(ALL_OPERATORS.keys()) == expected
 

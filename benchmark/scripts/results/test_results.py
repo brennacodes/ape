@@ -12,6 +12,7 @@ from results import (
     CheckOutcome,
     RunMetadata,
     RunSummary,
+    CategoryScore,
     FormatScore,
     ComparisonSummary,
     make_outcome,
@@ -48,8 +49,24 @@ def _fail(check_id, phase="p"):
     return make_outcome(check_id, phase, False, None)
 
 
-def _skip(check_id, phase="p", reason="not applicable"):
-    return make_outcome(check_id, phase, None, reason)
+def _skip(check_id, phase="p", reason="not applicable", category=None):
+    return make_outcome(check_id, phase, None, reason, category=category)
+
+
+def _pass_adherence(check_id, phase="p"):
+    return make_outcome(check_id, phase, True, None, category="adherence")
+
+
+def _pass_tool_usage(check_id, phase="p"):
+    return make_outcome(check_id, phase, True, None, category="tool_usage")
+
+
+def _fail_adherence(check_id, phase="p"):
+    return make_outcome(check_id, phase, False, None, category="adherence")
+
+
+def _fail_tool_usage(check_id, phase="p"):
+    return make_outcome(check_id, phase, False, None, category="tool_usage")
 
 
 # ===========================================================================
@@ -435,3 +452,173 @@ class TestRunMetadata:
         assert m.format == "plain-text"
         assert m.prompt_id == "centminmod-bug-fix"
         assert m.model == "claude-sonnet-4-20250514"
+
+
+# ===========================================================================
+# Category scoring
+# ===========================================================================
+
+class TestCategoryScoring:
+    def test_categorized_outcomes_produce_category_scores(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            _pass_adherence("c2"),
+            _fail_adherence("c3"),
+            _pass_tool_usage("c4"),
+            _fail_tool_usage("c5"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert "adherence" in s.category_scores
+        assert "tool_usage" in s.category_scores
+
+    def test_adherence_category_score(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            _pass_adherence("c2"),
+            _fail_adherence("c3"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        adh = s.category_scores["adherence"]
+        assert adh.category == "adherence"
+        assert adh.total == 3
+        assert adh.passed == 2
+        assert adh.failed == 1
+        assert adh.skipped == 0
+        assert adh.pass_rate == round(2 / 3, 4)
+
+    def test_tool_usage_category_score(self):
+        outcomes = [
+            _pass_tool_usage("c1"),
+            _fail_tool_usage("c2"),
+            _fail_tool_usage("c3"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        tool = s.category_scores["tool_usage"]
+        assert tool.total == 3
+        assert tool.passed == 1
+        assert tool.failed == 2
+        assert tool.pass_rate == round(1 / 3, 4)
+
+    def test_category_scores_with_skipped(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            _skip("c2", category="adherence"),
+            _fail_adherence("c3"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        adh = s.category_scores["adherence"]
+        # pass_rate = 1 / (3 - 1) = 0.5
+        assert adh.skipped == 1
+        assert adh.pass_rate == round(0.5, 4)
+
+    def test_uncategorized_outcomes_grouped_together(self):
+        outcomes = [
+            make_outcome("c1", "p", True, None),  # no category
+            make_outcome("c2", "p", False, None),  # no category
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert "uncategorized" in s.category_scores
+        unc = s.category_scores["uncategorized"]
+        assert unc.total == 2
+        assert unc.passed == 1
+        assert unc.failed == 1
+
+    def test_mixed_categories_and_uncategorized(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            make_outcome("c2", "p", True, None),  # uncategorized
+            _pass_tool_usage("c3"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert len(s.category_scores) == 3
+        assert s.category_scores["adherence"].total == 1
+        assert s.category_scores["tool_usage"].total == 1
+        assert s.category_scores["uncategorized"].total == 1
+
+
+# ===========================================================================
+# Category comparison
+# ===========================================================================
+
+class TestCategoryComparison:
+    def test_category_scores_in_comparison(self):
+        s1 = summarize_run(
+            [_pass_adherence("c1"), _fail_tool_usage("c2")],
+            _meta(fmt="plain-text"),
+        )
+        s2 = summarize_run(
+            [_pass_adherence("c1"), _pass_tool_usage("c2")],
+            _meta(fmt="ape"),
+        )
+        comp = summarize_comparison([s1, s2])
+        assert "adherence" in comp.per_category
+        assert "tool_usage" in comp.per_category
+
+    def test_per_category_cross_format(self):
+        s1 = summarize_run(
+            [_pass_adherence("c1"), _fail_tool_usage("c2")],
+            _meta(fmt="plain-text"),
+        )
+        s2 = summarize_run(
+            [_pass_adherence("c1"), _pass_tool_usage("c2")],
+            _meta(fmt="ape"),
+        )
+        comp = summarize_comparison([s1, s2])
+        # Check adherence category scores for both formats
+        adh_scores = comp.per_category["adherence"]
+        assert "plain-text" in adh_scores
+        assert "ape" in adh_scores
+        assert adh_scores["plain-text"].pass_rate == 1.0
+        assert adh_scores["ape"].pass_rate == 1.0
+
+    def test_per_category_mismatched_formats(self):
+        # One format has a category that the other doesn't
+        s1 = summarize_run(
+            [_pass_adherence("c1"), _pass_tool_usage("c2")],
+            _meta(fmt="plain-text"),
+        )
+        s2 = summarize_run(
+            [_pass_adherence("c1")],  # no tool_usage check
+            _meta(fmt="ape"),
+        )
+        comp = summarize_comparison([s1, s2])
+        # Both categories should be in per_category
+        assert "adherence" in comp.per_category
+        assert "tool_usage" in comp.per_category
+        # tool_usage should have plain-text but not ape
+        tool_scores = comp.per_category["tool_usage"]
+        assert "plain-text" in tool_scores
+        assert "ape" not in tool_scores
+
+
+# ===========================================================================
+# Format with categories
+# ===========================================================================
+
+class TestFormatWithCategories:
+    def test_run_summary_shows_category_breakdown(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            _fail_adherence("c2"),
+            _pass_tool_usage("c3"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        text = format_run_summary(s)
+        assert "By Category:" in text
+        assert "adherence" in text
+        assert "tool_usage" in text
+
+    def test_comparison_shows_category_breakdown(self):
+        s1 = summarize_run(
+            [_pass_adherence("c1"), _fail_tool_usage("c2")],
+            _meta(fmt="plain-text"),
+        )
+        s2 = summarize_run(
+            [_pass_adherence("c1"), _pass_tool_usage("c2")],
+            _meta(fmt="ape"),
+        )
+        comp = summarize_comparison([s1, s2])
+        text = format_comparison(comp)
+        assert "Category Breakdown:" in text
+        assert "adherence" in text
+        assert "tool_usage" in text

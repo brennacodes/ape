@@ -74,7 +74,7 @@ from results import (  # noqa: E402
     RunMetadata, RunSummary, CheckOutcome,
     make_outcome, summarize_run, write_json,
 )
-from environment import BenchmarkEnvironment  # noqa: E402
+from environment import BenchmarkEnvironment, SetupSnapshot  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +95,11 @@ class CaseResult:
     workspace_state: dict = field(default_factory=dict)
     run_id: int = 0
     stale_trace: bool = False
+    prompt_text: str = ""
+    eval_conditions: dict = field(default_factory=dict)
+    eval_variables: dict = field(default_factory=dict)
+    started_at: str = ""
+    stream_path: Optional[Path] = None
 
 
 # ---------------------------------------------------------------------------
@@ -145,18 +150,33 @@ def execute_cli(
     timeout: int = 900,
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
+    on_output: Any = None,
+    stream_path: Path | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a Claude Code CLI command as a subprocess.
 
     Uses Popen with start_new_session=True so each child gets its own
     process group, allowing clean shutdown of the entire tree on
     Ctrl+C / SIGTERM.
+
+    If *on_output* is provided it is called with each stdout line as it
+    arrives, enabling live progress display.
+
+    If *stream_path* is provided, each stdout line is tee'd to that file
+    as it arrives (JSONL).  After the process exits the file is converted
+    to a valid JSON array via ``jq -s '.'``.
     """
     if _shutting_down:
         raise KeyboardInterrupt("Shutdown in progress")
     if env is None:
         env = os.environ.copy()
         env.pop("CLAUDECODE", None)
+
+    stream_file = None
+    if stream_path is not None:
+        stream_path.parent.mkdir(parents=True, exist_ok=True)
+        stream_file = open(stream_path, "w", encoding="utf-8")
+
     proc = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -169,12 +189,40 @@ def execute_cli(
     with _process_lock:
         _active_processes.add(proc)
     try:
-        stdout, stderr = proc.communicate(timeout=timeout)
+        # Always stream line-by-line so we can tee to file + on_output.
+        stderr_chunks: list[str] = []
+
+        def _drain_stderr():
+            for line in proc.stderr:
+                stderr_chunks.append(line)
+
+        stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
+        stderr_thread.start()
+
+        stdout_lines: list[str] = []
+        deadline = time.monotonic() + timeout
+        for line in proc.stdout:
+            if time.monotonic() > deadline:
+                _kill_process_group(proc)
+                proc.wait()
+                raise subprocess.TimeoutExpired(command, timeout)
+            stdout_lines.append(line)
+            if stream_file is not None:
+                stream_file.write(line)
+                stream_file.flush()
+            if on_output is not None:
+                try:
+                    on_output(line)
+                except Exception:
+                    pass
+
+        proc.wait()
+        stderr_thread.join(timeout=5)
         return subprocess.CompletedProcess(
             args=command,
             returncode=proc.returncode,
-            stdout=stdout,
-            stderr=stderr,
+            stdout="".join(stdout_lines),
+            stderr="".join(stderr_chunks),
         )
     except subprocess.TimeoutExpired:
         _kill_process_group(proc)
@@ -187,6 +235,109 @@ def execute_cli(
     finally:
         with _process_lock:
             _active_processes.discard(proc)
+        if stream_file is not None:
+            stream_file.close()
+        if stream_path is not None and stream_path.exists():
+            _jsonl_to_json_array(stream_path)
+
+
+def _jsonl_to_json_array(path: Path) -> None:
+    """Convert a JSONL file to a JSON array in-place using jq."""
+    tmp = path.with_suffix(".tmp")
+    try:
+        result = subprocess.run(
+            ["jq", "-s", "."],
+            stdin=open(path, "r"),
+            stdout=open(tmp, "w"),
+            timeout=30,
+        )
+        if result.returncode == 0:
+            tmp.rename(path)
+        else:
+            tmp.unlink(missing_ok=True)
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        # jq not available or failed — fall back to Python
+        tmp.unlink(missing_ok=True)
+        _jsonl_to_json_array_python(path)
+
+
+def _jsonl_to_json_array_python(path: Path) -> None:
+    """Fallback: convert JSONL to JSON array using Python (when jq is unavailable)."""
+    import json as _json
+    events = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(_json.loads(line))
+            except _json.JSONDecodeError:
+                continue
+    with open(path, "w", encoding="utf-8") as f:
+        _json.dump(events, f, indent=2)
+
+
+def is_auth_error(error_message: str) -> bool:
+    """Return True if the error message indicates an authentication failure."""
+    auth_indicators = [
+        "authentication_error",
+        "authentication_failed",
+        "OAuth token has expired",
+        "invalid_api_key",
+        "api key",
+        "unauthorized",
+        "401",
+    ]
+    lower = error_message.lower()
+    return any(indicator.lower() in lower for indicator in auth_indicators)
+
+
+def _extract_cli_error(raw_output: str, stderr: str, exit_code: int) -> str:
+    """Extract a human-readable error from CLI output when it exits non-zero.
+
+    Parses the stream-json output to find the actual error message rather
+    than naively truncating the first line (which is usually the init JSON).
+    """
+    import json as _json
+
+    # Prefer stderr if available
+    if stderr.strip():
+        return f"CLI exited with code {exit_code}: {stderr.strip().splitlines()[0]}"
+
+    # Parse stream-json lines looking for error information
+    if raw_output.strip():
+        for line in raw_output.strip().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = _json.loads(line)
+            except _json.JSONDecodeError:
+                continue
+            if not isinstance(obj, dict):
+                continue
+
+            # Check for result messages with errors
+            if obj.get("type") == "result" and obj.get("is_error"):
+                result_text = obj.get("result", "")
+                if result_text:
+                    return f"CLI exited with code {exit_code}: {result_text}"
+
+            # Check for assistant messages with error field
+            if obj.get("error"):
+                msg = obj.get("message", {})
+                content = msg.get("content", [])
+                if isinstance(content, list):
+                    for block in content:
+                        if isinstance(block, dict) and block.get("type") == "text":
+                            return f"CLI exited with code {exit_code}: {block.get('text', '')}"
+                error_type = obj.get("error", "")
+                return f"CLI exited with code {exit_code}: {error_type}"
+
+    # Fallback: first 200 chars of raw output
+    fallback = raw_output[:200] or "no output"
+    return f"CLI exited with code {exit_code}: {fallback}"
 
 
 def check_results_to_outcomes(results: list[CheckResult]) -> list[CheckOutcome]:
@@ -198,6 +349,10 @@ def check_results_to_outcomes(results: list[CheckResult]) -> list[CheckOutcome]:
             passed=r.passed,
             skip_reason=r.skip_reason,
             detail=r.detail,
+            metric_value=r.metric_value,
+            target_value=r.target_value,
+            operator=r.operator,
+            eval_trace=r.eval_trace,
         )
         for r in results
     ]
@@ -214,6 +369,8 @@ def _run_in_workspace(
     model: str,
     timeout: int,
     max_turns: int | None,
+    on_output: Any = None,
+    setup_snapshot: SetupSnapshot | None = None,
 ) -> CaseResult:
     """Execute a test case inside an already-created workspace.
 
@@ -242,17 +399,28 @@ def _run_in_workspace(
     logger.debug("%s: cwd=%s", case.case_id, workspace_path)
 
     # 4. Execute CLI in isolated workspace
+    import tempfile
+    from datetime import datetime as _dt
+    started_at = _dt.now().isoformat()
     cli_start = time.time()
     t0 = time.perf_counter_ns()
     cli_env = env.build_env(workspace_path)
+    # Stream file goes outside the workspace so it survives teardown
+    stream_fd, stream_tmp = tempfile.mkstemp(suffix=".json", prefix="bench-stream-")
+    os.close(stream_fd)
+    stream_file = Path(stream_tmp)
     try:
-        result = executor(command, timeout, cwd=workspace_path, env=cli_env)
+        kwargs: dict[str, Any] = dict(cwd=workspace_path, env=cli_env)
+        if on_output is not None:
+            kwargs["on_output"] = on_output
+        kwargs["stream_path"] = stream_file
+        result = executor(command, timeout, **kwargs)
     except subprocess.TimeoutExpired:
         logger.warning("CLI timeout for %s after %ds", case.case_id, timeout)
-        return CaseResult(case=case, summary=None, trace_path=None, error="CLI timeout")
+        return CaseResult(case=case, summary=None, trace_path=None, error="CLI timeout", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file)
     except Exception as exc:
         logger.warning("CLI error for %s: %s", case.case_id, exc)
-        return CaseResult(case=case, summary=None, trace_path=None, error=f"CLI error: {exc}")
+        return CaseResult(case=case, summary=None, trace_path=None, error=f"CLI error: {exc}", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file)
     finally:
         wall_clock_ns = time.perf_counter_ns() - t0
 
@@ -263,25 +431,52 @@ def _run_in_workspace(
 
     # 5. Capture workspace state
     try:
-        ws = env.capture_state(workspace_path)
+        ws = env.capture_state(workspace_path, setup_snapshot=setup_snapshot)
         workspace_state = {
             "git_log": ws.git_log,
             "modified_files": ws.modified_files,
             "git_status": ws.git_status,
             "committed_files": ws.committed_files,
+            "full_diff": ws.full_diff,
         }
+        if ws.before is not None:
+            before_dict: dict[str, Any] = {
+                "file_list": list(ws.before.file_list),
+                "git_log": ws.before.git_log,
+                "git_status": ws.before.git_status,
+                "claude_md_content": ws.before.claude_md_content,
+            }
+            if ws.before.baseline is not None:
+                from dataclasses import asdict
+                before_dict["baseline"] = asdict(ws.before.baseline)
+            workspace_state["before"] = before_dict
+    except Exception:
+        pass
+
+    # 5b. Check memory isolation — flag if any memory files were created
+    try:
+        memory_leak = env.check_memory_leak(workspace_path)
+        if memory_leak:
+            workspace_state["memory_leak"] = memory_leak
+            logger.warning(
+                "Memory isolation failure for %s: %s",
+                case.case_id, memory_leak,
+            )
     except Exception:
         pass
 
     if exit_code != 0:
-        first_line = stderr.strip().splitlines()[0] if stderr.strip() else raw_output[:200] or "no output"
-        logger.warning("CLI exited %d for %s: %s", exit_code, case.case_id, first_line)
+        error_detail = _extract_cli_error(raw_output, stderr, exit_code)
+        logger.warning("CLI exited %d for %s: %s", exit_code, case.case_id, error_detail)
         return CaseResult(
             case=case, summary=None, trace_path=None,
-            error=f"CLI exited with code {exit_code}: {first_line}",
+            error=error_detail,
             wall_clock_ms=wall_clock_ms, raw_output=raw_output,
             exit_code=exit_code, stderr=stderr,
             workspace_state=workspace_state,
+            prompt_text=full_prompt,
+            started_at=started_at,
+            stream_path=stream_file,
         )
 
     # 6. Parse trace — try stdout first, then session file in workspace
@@ -314,6 +509,9 @@ def _run_in_workspace(
                 wall_clock_ms=wall_clock_ms, raw_output=raw_output,
                 exit_code=exit_code, stderr=stderr,
                 workspace_state=workspace_state,
+                prompt_text=full_prompt,
+                started_at=started_at,
+                stream_path=stream_file,
             )
 
         if trace_path.stat().st_mtime < cli_start:
@@ -329,11 +527,17 @@ def _run_in_workspace(
                 wall_clock_ms=wall_clock_ms, raw_output=raw_output,
                 exit_code=exit_code, stderr=stderr,
                 workspace_state=workspace_state,
+                prompt_text=full_prompt,
+                started_at=started_at,
+                stream_path=stream_file,
             )
 
     # 7. Evaluate
     context["workspace_state"] = workspace_state
     context["workspace_path"] = str(workspace_path)
+    # Capture evaluation context for re-evaluation reproducibility
+    eval_conditions = dict(context.get("conditions", {}))
+    eval_variables = dict(context.get("variables", {}))
     try:
         check_results = evaluate(trace, checks, context)
     except Exception as exc:
@@ -343,6 +547,11 @@ def _run_in_workspace(
             wall_clock_ms=wall_clock_ms, raw_output=raw_output,
             exit_code=exit_code, stderr=stderr,
             workspace_state=workspace_state,
+            prompt_text=full_prompt,
+            eval_conditions=eval_conditions,
+            eval_variables=eval_variables,
+            started_at=started_at,
+            stream_path=stream_file,
         )
 
     # 8. Summarize
@@ -368,6 +577,11 @@ def _run_in_workspace(
         exit_code=exit_code, stderr=stderr,
         workspace_state=workspace_state,
         stale_trace=stale_trace,
+        prompt_text=full_prompt,
+        eval_conditions=eval_conditions,
+        eval_variables=eval_variables,
+        started_at=started_at,
+        stream_path=stream_file,
     )
 
 
@@ -378,6 +592,7 @@ def run_case(
     max_turns: int | None = None,
     environment: BenchmarkEnvironment | None = None,
     _execute: Any = None,
+    on_output: Any = None,
 ) -> CaseResult:
     """Execute one TestCase end-to-end in an isolated workspace.
 
@@ -409,6 +624,7 @@ def run_case(
 
     # For template cases, load app-config and interpolate prompt + context
     app_config_variables = None
+    fixture_workflow_files: list[str] | None = None
     if case.category and case.item_id and case.app_config_path:
         try:
             ac_data = load_app_config(case.app_config_path)
@@ -416,6 +632,7 @@ def run_case(
                 ac_data, case.category, case.item_id,
             )
             prompt_text = interpolate_prompt(prompt_text, app_config_variables)
+            fixture_workflow_files = ac_data.get("workflow_files")
             logger.debug(
                 "%s: interpolated prompt for %s/%s (%d vars)",
                 case.case_id, case.category, case.item_id,
@@ -423,6 +640,13 @@ def run_case(
             )
         except Exception as exc:
             logger.warning("App-config interpolation error for %s: %s", case.case_id, exc)
+    elif case.app_config_path:
+        # Non-template case but app config exists — still load workflow_files
+        try:
+            ac_data = load_app_config(case.app_config_path)
+            fixture_workflow_files = ac_data.get("workflow_files")
+        except Exception:
+            pass
 
     context = build_context(
         prompt_data, config_data,
@@ -435,9 +659,17 @@ def run_case(
             case.app.path,
             case.workflow.path,
             case.workflow.format,
+            fixture_workflow_files=fixture_workflow_files,
         )
     except Exception as exc:
         return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}")
+
+    # Capture workspace state right after setup, before the LLM runs
+    setup_snapshot = None
+    try:
+        setup_snapshot = env.capture_setup_state(workspace_path)
+    except Exception:
+        pass
 
     # Wrap entire workspace lifecycle in try/finally so teardown is
     # guaranteed even on unexpected exceptions.
@@ -445,6 +677,8 @@ def run_case(
         return _run_in_workspace(
             case, workspace_path, env, executor,
             prompt_text, checks, context, model, timeout, max_turns,
+            on_output=on_output,
+            setup_snapshot=setup_snapshot,
         )
     finally:
         env.teardown(workspace_path)
@@ -457,10 +691,11 @@ def run_all(
     max_turns: int | None = None,
     environment: BenchmarkEnvironment | None = None,
     _execute: Any = None,
+    on_output: Any = None,
 ) -> list[CaseResult]:
     """Run multiple cases sequentially."""
     return [
-        run_case(case, model, timeout, max_turns, environment, _execute)
+        run_case(case, model, timeout, max_turns, environment, _execute, on_output=on_output)
         for case in cases
     ]
 
@@ -474,14 +709,21 @@ def run_parallel(
     delay_s: float = 10.0,
     environment: BenchmarkEnvironment | None = None,
     _execute: Any = None,
+    on_output: Any = None,
+    on_output_factory: Any = None,
 ) -> Iterator[CaseResult]:
     """Run multiple cases concurrently with rate limiting.
 
     Yields each CaseResult as it completes so callers can persist
     results incrementally instead of waiting for the entire suite.
+
+    *on_output_factory*, when provided, is called with a TestCase and
+    must return a callback ``(line: str) -> None`` for that case.  This
+    is preferred over *on_output* for parallel runs because it produces
+    per-case callbacks that know which case each line belongs to.
     """
     if workers <= 1:
-        yield from run_all(cases, model, timeout, max_turns, environment, _execute)
+        yield from run_all(cases, model, timeout, max_turns, environment, _execute, on_output=on_output)
         return
 
     logger.info(
@@ -499,7 +741,8 @@ def run_parallel(
             if wait > 0:
                 time.sleep(wait)
             last_launch[0] = time.monotonic()
-        return run_case(case, model, timeout, max_turns, environment, _execute)
+        cb = on_output_factory(case) if on_output_factory else on_output
+        return run_case(case, model, timeout, max_turns, environment, _execute, on_output=cb)
 
     completed = 0
     total = len(cases)

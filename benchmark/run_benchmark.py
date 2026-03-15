@@ -27,9 +27,15 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import json as _json
+import threading
+
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.panel import Panel
+from rich.live import Live
+from rich.table import Table
+from rich.text import Text
 
 console = Console()
 logger = logging.getLogger("bench")
@@ -47,6 +53,7 @@ from coordinator import (
 )
 from runner import (
     run_case, run_all, run_parallel, DEFAULT_MODEL, CaseResult, shutdown_all,
+    is_auth_error,
 )
 from environment import BenchmarkEnvironment
 from results import format_run_summary, write_json
@@ -74,7 +81,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--results-dir", type=Path, default=Path(_HERE) / "output",
         help="Directory for structured result storage.",
     )
-    parser.add_argument("--timeout", type=float, default=15, help="Per-case timeout in minutes (default: 15).")
+    parser.add_argument("--timeout", type=float, default=20, help="Per-case timeout in minutes (default: 20).")
     parser.add_argument("--max-turns", type=int, default=None, help="Max CLI turns.")
     parser.add_argument("--dry-run", action="store_true", help="Show cases without executing.")
     parser.add_argument("--workers", type=int, default=4, help="Parallel workers (1=sequential).")
@@ -115,6 +122,189 @@ def _build_filters(args: argparse.Namespace) -> dict[str, str]:
     if args.workflow:
         filters["workflow"] = args.workflow
     return filters
+
+
+def _summarize_stream_line(line: str) -> str | None:
+    """Extract a short human-readable status from a stream-json JSONL line.
+
+    Returns None for lines that don't carry useful progress info.
+    """
+    line = line.strip()
+    if not line:
+        return None
+    try:
+        obj = _json.loads(line)
+    except _json.JSONDecodeError:
+        return None
+    if not isinstance(obj, dict):
+        return None
+
+    msg = obj.get("message", {})
+    content = msg.get("content", [])
+    if isinstance(content, str):
+        snippet = content[:80]
+        return f"prompt: {snippet}..." if len(content) > 80 else f"prompt: {snippet}"
+
+    if not isinstance(content, list):
+        return None
+
+    for block in content:
+        btype = block.get("type")
+        if btype == "tool_use":
+            name = block.get("name", "?")
+            inp = block.get("input", {})
+            if name == "Bash":
+                cmd = inp.get("command", "")
+                if len(cmd) > 60:
+                    cmd = cmd[:57] + "..."
+                return f"Bash: {cmd}"
+            elif name in ("Read", "Write", "Edit"):
+                path = inp.get("file_path", "")
+                if path:
+                    # Show just the filename or last 2 path components
+                    parts = path.rsplit("/", 2)
+                    short = "/".join(parts[-2:]) if len(parts) > 1 else path
+                    return f"{name}: {short}"
+                return name
+            elif name in ("Grep", "Glob"):
+                pattern = inp.get("pattern", "")
+                return f"{name}: {pattern[:50]}"
+            else:
+                return f"{name}"
+        elif btype == "text":
+            text = block.get("text", "").strip()
+            if text:
+                if len(text) > 70:
+                    text = text[:67] + "..."
+                return f"text: {text}"
+        elif btype == "thinking":
+            return "thinking..."
+
+    return None
+
+
+class LiveProgress:
+    """Thread-safe live progress display for benchmark cases.
+
+    Shows one status line per active case (parallel) or a single
+    status line (sequential), replacing in-place using Rich Live.
+    """
+
+    def __init__(self, console: Console, total: int, parallel: bool = False):
+        self._console = console
+        self._total = total
+        self._parallel = parallel
+        self._lock = threading.Lock()
+        # case_id -> latest status string
+        self._statuses: dict[str, str] = {}
+        self._completed = 0
+        self._live: Live | None = None
+
+    def start(self) -> None:
+        self._live = Live(
+            self._render(),
+            console=self._console,
+            refresh_per_second=4,
+            transient=True,
+        )
+        self._live.start()
+
+    def stop(self) -> None:
+        if self._live:
+            self._live.stop()
+            self._live = None
+
+    def set_active(self, case_id: str) -> None:
+        with self._lock:
+            self._statuses[case_id] = "starting..."
+        self._refresh()
+
+    def update(self, case_id: str, line: str) -> None:
+        summary = _summarize_stream_line(line)
+        if summary is None:
+            return
+        with self._lock:
+            self._statuses[case_id] = summary
+        self._refresh()
+
+    def mark_done(self, case_id: str, result_line: str) -> None:
+        with self._lock:
+            self._statuses.pop(case_id, None)
+            self._completed += 1
+        self._refresh()
+
+    def _render(self) -> Table:
+        table = Table.grid(padding=(0, 1))
+        table.add_column(style="dim", width=12)
+        table.add_column()
+        with self._lock:
+            progress = f"[{self._completed}/{self._total}]"
+            if not self._statuses:
+                table.add_row(progress, "waiting...")
+            else:
+                for i, (cid, status) in enumerate(self._statuses.items()):
+                    # Shorten case_id for display
+                    short_id = cid if len(cid) <= 40 else "..." + cid[-37:]
+                    prefix = progress if i == 0 else ""
+                    table.add_row(prefix, Text(f"{short_id}  {status}", style="cyan"))
+        return table
+
+    def _refresh(self) -> None:
+        if self._live:
+            self._live.update(self._render())
+
+    def make_callback(self, case_id: str):
+        """Return an on_output callback bound to a specific case_id."""
+        def _cb(line: str) -> None:
+            self.update(case_id, line)
+        return _cb
+
+
+def preflight_auth_check() -> tuple[bool, str]:
+    """Run a lightweight CLI command to verify authentication works.
+
+    Returns (ok, message) — ok is True if auth is valid, False otherwise.
+    """
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["claude", "-p", "Say OK", "--max-turns", "1",
+             "--output-format", "stream-json", "--verbose",
+             "--include-partial-messages",
+             "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode == 0:
+            return True, "Authentication OK"
+
+        # Parse stream-json output for the actual error
+        for line in (result.stdout or "").strip().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = _json.loads(line)
+            except _json.JSONDecodeError:
+                continue
+            if isinstance(obj, dict):
+                if obj.get("type") == "result" and obj.get("is_error"):
+                    return False, obj.get("result", "Unknown auth error")
+                if obj.get("error"):
+                    msg = obj.get("message", {})
+                    content = msg.get("content", [])
+                    if isinstance(content, list):
+                        for block in content:
+                            if isinstance(block, dict) and block.get("type") == "text":
+                                return False, block.get("text", "Unknown auth error")
+
+        stderr_msg = result.stderr.strip().splitlines()[0] if result.stderr.strip() else ""
+        return False, stderr_msg or f"CLI exited with code {result.returncode}"
+    except FileNotFoundError:
+        return False, "'claude' command not found — is Claude Code installed and on PATH?"
+    except subprocess.TimeoutExpired:
+        return False, "Auth check timed out after 30s"
+    except Exception as exc:
+        return False, f"Auth check failed: {exc}"
 
 
 def discover(benchmark_root: Path, filters: dict[str, str] | None = None):
@@ -189,38 +379,70 @@ def _save_result(
     args: argparse.Namespace,
 ) -> RunRecord | None:
     """Persist a single CaseResult to disk immediately. Returns the RunRecord or None."""
-    if not result.summary:
-        return None
+    fixture_id = result.case.app.name
+    fmt = result.case.workflow.format
+    if result.case.category and result.case.item_id:
+        prompt_id = f"{result.case.category}/{result.case.item_id}"
+    else:
+        prompt_id = result.case.prompt.prompt_id
 
-    run_id = recorder.next_run_id(
-        result.summary.metadata.fixture_id,
-        result.summary.metadata.format,
-        result.summary.metadata.prompt_id,
-    )
-    record = RunRecord.from_run_summary(
-        result.summary, run_id,
-        wall_clock_ms=result.wall_clock_ms,
-        raw_output=result.raw_output,
-        exit_code=result.exit_code,
-        stderr=result.stderr,
-        workspace_state=result.workspace_state,
-        max_turns_configured=args.max_turns or 0,
-    )
-    recorder.save_run(record)
+    run_id = recorder.next_run_id(fixture_id, fmt, prompt_id)
+    completed_at = datetime.now().isoformat()
+    started_at = getattr(result, "started_at", "") or ""
 
-    if result.trace_path and result.trace_path.exists():
-        try:
-            import json
-            with open(result.trace_path, "r", encoding="utf-8") as f:
-                trace_data = [json.loads(line) for line in f if line.strip()]
-            recorder.save_trace(record, trace_data)
-        except Exception:
-            logger.debug("Failed to save trace for %s", result.case.case_id)
+    if result.summary:
+        record = RunRecord.from_run_summary(
+            result.summary, run_id,
+            wall_clock_ms=result.wall_clock_ms,
+            exit_code=result.exit_code,
+            stderr=result.stderr,
+            workspace_state=result.workspace_state,
+            max_turns_configured=args.max_turns or 0,
+            prompt_text=result.prompt_text,
+            eval_conditions=result.eval_conditions,
+            eval_variables=result.eval_variables,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+    else:
+        # Error case — no summary but still capture everything we have.
+        record = RunRecord(
+            fixture_id=fixture_id,
+            format=fmt,
+            prompt_id=prompt_id,
+            run_id=run_id,
+            error=result.error or "",
+            exit_code=result.exit_code,
+            stderr=result.stderr,
+            wall_clock_ms=result.wall_clock_ms,
+            workspace_state=result.workspace_state,
+            model=args.model,
+            max_turns_configured=args.max_turns or 0,
+            timestamp=datetime.now().isoformat(),
+            prompt_text=result.prompt_text,
+            eval_conditions=result.eval_conditions,
+            eval_variables=result.eval_variables,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+
+    recorder.save_run(record, stream_path=result.stream_path, raw_output=result.raw_output)
 
     return record
 
 
 def _enrich_with_tokens(recorder: Recorder, records: list[RunRecord]) -> None:
+    """Enrich records with token data from session logs (legacy fallback).
+
+    Token data is now extracted from the stream result event during save_run(),
+    so this is only needed for records that weren't saved with stream data.
+    """
+    # Skip if all records already have token data from stream extraction
+    needs_enrichment = [r for r in records if r.session_id and r.input_tokens == 0]
+    if not needs_enrichment:
+        logger.info("All %d records already have token data from stream", len(records))
+        return
+
     try:
         _runner_dir = os.path.join(_SCRIPTS, "runner")
         if _runner_dir not in sys.path:
@@ -232,9 +454,7 @@ def _enrich_with_tokens(recorder: Recorder, records: list[RunRecord]) -> None:
 
     parser = SessionLogParser()
     enriched = 0
-    for record in records:
-        if not record.session_id:
-            continue
+    for record in needs_enrichment:
         summary = parser.parse_session(record.session_id)
         if summary is None:
             continue
@@ -259,6 +479,16 @@ def run(args: argparse.Namespace) -> int:
     if not cases:
         console.print("[red]No cases discovered.[/red] Nothing to run.")
         return 1
+
+    # Pre-flight: verify authentication before running any cases
+    console.print("[dim]Verifying authentication...[/dim]", end=" ")
+    auth_ok, auth_msg = preflight_auth_check()
+    if not auth_ok:
+        console.print("[red]FAILED[/red]")
+        console.print(f"\n[red bold]Authentication error:[/red bold] {auth_msg}")
+        console.print("\n[yellow]Hint:[/yellow] Run [bold]claude[/bold] in a terminal to re-authenticate, then retry.")
+        return 1
+    console.print("[green]OK[/green]")
 
     environment = BenchmarkEnvironment()
 
@@ -288,39 +518,59 @@ def run(args: argparse.Namespace) -> int:
             if record:
                 records.append(record)
 
-    if args.workers > 1:
-        for result in run_parallel(
-            cases,
-            model=args.model,
-            timeout=timeout_seconds,
-            max_turns=args.max_turns,
-            workers=args.workers,
-            delay_s=args.delay,
-            environment=environment,
-        ):
-            _on_result(result)
-    else:
-        for i, case in enumerate(cases, 1):
-            logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), case.case_id)
-            result = run_case(
-                case,
+    progress = LiveProgress(console, len(cases), parallel=args.workers > 1)
+    progress.start()
+
+    try:
+        if args.workers > 1:
+            def _make_cb(case):
+                progress.set_active(case.case_id)
+                return progress.make_callback(case.case_id)
+
+            for result in run_parallel(
+                cases,
                 model=args.model,
                 timeout=timeout_seconds,
                 max_turns=args.max_turns,
+                workers=args.workers,
+                delay_s=args.delay,
                 environment=environment,
-            )
-            _on_result(result)
-            if result.error:
-                logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i, len(cases), case.case_id, result.error)
-            else:
-                s = result.summary
-                t = _format_duration(result.wall_clock_ms)
-                warn = " [yellow](stale trace)[/yellow]" if result.stale_trace else ""
-                logger.info(
-                    "[%d/%d] DONE %s  pass=%d fail=%d skip=%d rate=%.0f%% %s%s",
-                    i, len(cases), case.case_id,
-                    s.passed, s.failed, s.skipped, s.pass_rate * 100, t, warn,
+                on_output_factory=_make_cb,
+            ):
+                cid = result.case.case_id
+                if result.error:
+                    progress.mark_done(cid, f"ERROR: {result.error}")
+                else:
+                    s = result.summary
+                    progress.mark_done(cid, f"pass={s.passed}/{s.total}")
+                _on_result(result)
+        else:
+            for i, case in enumerate(cases, 1):
+                progress.set_active(case.case_id)
+                logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), case.case_id)
+                result = run_case(
+                    case,
+                    model=args.model,
+                    timeout=timeout_seconds,
+                    max_turns=args.max_turns,
+                    environment=environment,
+                    on_output=progress.make_callback(case.case_id),
                 )
+                progress.mark_done(case.case_id, "")
+                _on_result(result)
+                if result.error:
+                    logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i, len(cases), case.case_id, result.error)
+                else:
+                    s = result.summary
+                    t = _format_duration(result.wall_clock_ms)
+                    warn = " [yellow](stale trace)[/yellow]" if result.stale_trace else ""
+                    logger.info(
+                        "[%d/%d] DONE %s  pass=%d fail=%d skip=%d rate=%.0f%% %s%s",
+                        i, len(cases), case.case_id,
+                        s.passed, s.failed, s.skipped, s.pass_rate * 100, t, warn,
+                    )
+    finally:
+        progress.stop()
 
     if args.enrich_tokens and records and not args.legacy_output:
         _enrich_with_tokens(recorder, records)
@@ -354,9 +604,17 @@ def run(args: argparse.Namespace) -> int:
     succeeded = sum(1 for r in results if r.error is None)
     failed = sum(1 for r in results if r.error is not None)
 
+    # Detect if all failures are auth-related
+    auth_failures = [r for r in results if r.error and is_auth_error(r.error)]
+
     console.rule(style="dim")
     if failed == 0:
         console.print(f"[bold green]Done.[/bold green] {succeeded} succeeded, {failed} failed.")
+    elif auth_failures and len(auth_failures) == failed:
+        console.print(
+            f"[bold red]Done.[/bold red] All {failed} cases failed due to authentication errors.\n"
+            f"[yellow]Hint:[/yellow] Run [bold]claude[/bold] in a terminal to re-authenticate, then retry."
+        )
     else:
         console.print(f"[bold yellow]Done.[/bold yellow] {succeeded} succeeded, [red]{failed} failed[/red].")
 

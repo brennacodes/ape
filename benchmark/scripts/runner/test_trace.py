@@ -20,6 +20,7 @@ from trace import (
     parse_trace_jsonl,
     _parse_event,
     _merge_consecutive_events,
+    _build_raw_event_maps,
 )
 
 
@@ -685,3 +686,617 @@ class TestMergeConsecutiveEvents:
         ])
         trace = parse_trace_jsonl(text)
         assert any(ev.is_parallel_batch for ev in trace.events)
+
+
+# ---------------------------------------------------------------------------
+# Trace.result_for_tool_call
+# ---------------------------------------------------------------------------
+
+class TestResultForToolCall:
+    def test_finds_matching_result(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t123"),
+            _tool_result("t123", "file1.txt\nfile2.txt"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        result = trace.result_for_tool_call(tc)
+        assert result is not None
+        assert result.tool_use_id == "t123"
+        assert "file1.txt" in result.content
+
+    def test_returns_none_when_no_match(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t123"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        result = trace.result_for_tool_call(tc)
+        assert result is None
+
+    def test_returns_correct_result_among_many(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _assistant_tool_use("Bash", {"command": "pwd"}, tool_id="t2"),
+            _tool_result("t1", "output1"),
+            _tool_result("t2", "output2"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc2 = [tc for tc in trace.all_tool_calls("Bash") if tc.tool_use_id == "t2"][0]
+        result = trace.result_for_tool_call(tc2)
+        assert result is not None
+        assert result.content == "output2"
+
+
+# ---------------------------------------------------------------------------
+# Trace.all_tool_results
+# ---------------------------------------------------------------------------
+
+class TestAllToolResults:
+    def test_returns_all_results_in_order(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _tool_result("t1", "output1"),
+            _assistant_tool_use("Bash", {"command": "pwd"}, tool_id="t2"),
+            _tool_result("t2", "output2"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.all_tool_results()
+        assert len(results) == 2
+        assert results[0].content == "output1"
+        assert results[1].content == "output2"
+
+    def test_returns_empty_when_no_results(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_text("done"),
+        )
+        trace = load_trace_from_string(jsonl)
+        assert trace.all_tool_results() == []
+
+
+# ---------------------------------------------------------------------------
+# Trace.bash_exit_code
+# ---------------------------------------------------------------------------
+
+class TestBashExitCode:
+    def test_extracts_explicit_exit_code_from_content(self):
+        """Extract exit code from result content containing 'Exit code: N'."""
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls /nonexistent"}, tool_id="t1"),
+            _tool_result("t1", "ls: cannot access '/nonexistent': No such file or directory\nExit code: 2"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        exit_code = trace.bash_exit_code(tc)
+        assert exit_code == 2
+
+    def test_extracts_exit_code_lowercase(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "false"}, tool_id="t1"),
+            _tool_result("t1", "output\nexit code 1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        exit_code = trace.bash_exit_code(tc)
+        assert exit_code == 1
+
+    def test_assumes_zero_when_content_present_no_error(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "echo hello"}, tool_id="t1"),
+            _tool_result("t1", "hello"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        exit_code = trace.bash_exit_code(tc)
+        assert exit_code == 0
+
+    def test_returns_none_when_no_result(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        exit_code = trace.bash_exit_code(tc)
+        assert exit_code is None
+
+
+# ---------------------------------------------------------------------------
+# Trace.bash_commands_with_results
+# ---------------------------------------------------------------------------
+
+class TestBashCommandsWithResults:
+    def test_returns_commands_with_output_and_exit_codes(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "echo test"}, tool_id="t1"),
+            _tool_result("t1", "test"),
+            _assistant_tool_use("Bash", {"command": "false"}, tool_id="t2"),
+            _tool_result("t2", "Exit code: 1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.bash_commands_with_results()
+        assert len(results) == 2
+        assert results[0]['command'] == "echo test"
+        assert results[0]['output'] == "test"
+        assert results[0]['exit_code'] == 0
+        assert results[0]['succeeded'] is True
+        assert results[1]['command'] == "false"
+        assert results[1]['exit_code'] == 1
+        assert results[1]['succeeded'] is False
+
+    def test_includes_event_index(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _tool_result("t1", "files"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.bash_commands_with_results()
+        assert results[0]['event_index'] == 1  # after user prompt
+
+
+# ---------------------------------------------------------------------------
+# Trace.cargo_test_results
+# ---------------------------------------------------------------------------
+
+class TestCargoTestResults:
+    def test_parses_passing_tests(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo test"}, tool_id="t1"),
+            _tool_result("t1", "test result: ok. 5 passed; 0 failed; 0 ignored"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_test_results()
+        assert len(results) == 1
+        assert results[0]['passed'] is True
+        assert results[0]['test_count'] == 5
+        assert results[0]['failed_count'] == 0
+
+    def test_parses_failing_tests(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo test"}, tool_id="t1"),
+            _tool_result("t1", "test result: FAILED. 3 passed; 2 failed; 0 ignored"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_test_results()
+        assert len(results) == 1
+        assert results[0]['passed'] is False
+        assert results[0]['test_count'] == 3
+        assert results[0]['failed_count'] == 2
+
+    def test_ignores_non_cargo_test_commands(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "echo test"}, tool_id="t1"),
+            _tool_result("t1", "test"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_test_results()
+        assert len(results) == 0
+
+    def test_returns_empty_when_no_cargo_test(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo build"}, tool_id="t1"),
+            _tool_result("t1", "Finished"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_test_results()
+        assert len(results) == 0
+
+
+# ---------------------------------------------------------------------------
+# Trace.cargo_clippy_results
+# ---------------------------------------------------------------------------
+
+class TestCargoClippyResults:
+    def test_detects_warnings(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo clippy"}, tool_id="t1"),
+            _tool_result("t1", "warning: unused variable\nwarning: dead code"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_clippy_results()
+        assert len(results) == 1
+        assert results[0]['has_warnings'] is True
+        assert results[0]['warning_count'] == 2
+
+    def test_no_warnings(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo clippy"}, tool_id="t1"),
+            _tool_result("t1", "Finished"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_clippy_results()
+        assert len(results) == 1
+        assert results[0]['has_warnings'] is False
+
+    def test_ignores_non_clippy_commands(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo build"}, tool_id="t1"),
+            _tool_result("t1", "Finished"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_clippy_results()
+        assert len(results) == 0
+
+
+# ---------------------------------------------------------------------------
+# Trace.cargo_build_results
+# ---------------------------------------------------------------------------
+
+class TestCargoBuildResults:
+    def test_includes_build_commands_with_success(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo build"}, tool_id="t1"),
+            _tool_result("t1", "Finished debug"),
+            _assistant_tool_use("Bash", {"command": "cargo build --release"}, tool_id="t2"),
+            _tool_result("t2", "Exit code: 1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_build_results()
+        assert len(results) == 2
+        assert results[0]['command'] == "cargo build"
+        assert results[0]['succeeded'] is True
+        assert results[1]['command'] == "cargo build --release"
+        assert results[1]['succeeded'] is False
+
+    def test_ignores_non_build_commands(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _tool_result("t1", "files"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_build_results()
+        assert len(results) == 0
+
+
+# ---------------------------------------------------------------------------
+# Trace.cargo_llvm_cov_results
+# ---------------------------------------------------------------------------
+
+class TestCargoLlvmCovResults:
+    def test_extracts_coverage_percentage(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo llvm-cov"}, tool_id="t1"),
+            _tool_result("t1", "Total coverage: 85.50%"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_llvm_cov_results()
+        assert len(results) == 1
+        assert results[0]['coverage_percentage'] == 85.50
+
+    def test_handles_llvm_cov_variations(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "llvm-cov report"}, tool_id="t1"),
+            _tool_result("t1", "95.0%"),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_llvm_cov_results()
+        assert len(results) == 1
+        assert results[0]['coverage_percentage'] == 95.0
+
+    def test_returns_none_when_no_percentage_found(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo llvm-cov"}, tool_id="t1"),
+            _tool_result("t1", "generating coverage..."),
+        )
+        trace = load_trace_from_string(jsonl)
+        results = trace.cargo_llvm_cov_results()
+        assert len(results) == 1
+        assert results[0]['coverage_percentage'] is None
+
+
+# ---------------------------------------------------------------------------
+# Trace.git_commit_messages
+# ---------------------------------------------------------------------------
+
+class TestGitCommitMessages:
+    def test_extracts_simple_commit_message(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": 'git commit -m "Fix bug"'}, tool_id="t1"),
+            _tool_result("t1", "1 file changed"),
+        )
+        trace = load_trace_from_string(jsonl)
+        commits = trace.git_commit_messages()
+        assert len(commits) == 1
+        assert commits[0]['subject'] == "Fix bug"
+        assert commits[0]['body'] is None
+
+    def test_extracts_multiline_commit_message(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash",
+                {"command": 'git commit -m "Fix bug\n\nThis fixes issue #123"'},
+                tool_id="t1"),
+            _tool_result("t1", "1 file changed"),
+        )
+        trace = load_trace_from_string(jsonl)
+        commits = trace.git_commit_messages()
+        assert len(commits) == 1
+        assert commits[0]['subject'] == "Fix bug"
+        assert "issue #123" in commits[0]['body']
+
+    def test_ignores_non_commit_commands(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "git status"}, tool_id="t1"),
+            _tool_result("t1", "clean"),
+        )
+        trace = load_trace_from_string(jsonl)
+        commits = trace.git_commit_messages()
+        assert len(commits) == 0
+
+    def test_returns_empty_when_no_commit_messages(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "git log"}, tool_id="t1"),
+            _tool_result("t1", "commits"),
+        )
+        trace = load_trace_from_string(jsonl)
+        commits = trace.git_commit_messages()
+        assert len(commits) == 0
+
+    def test_extracts_heredoc_commit_message(self):
+        """Heredoc pattern must be checked before simple-quoted pattern.
+
+        Without this, the regex for simple quotes matches the opening
+        ``"$(cat <<'EOF'`` as a quoted string and captures ``$(cat <<``
+        as the commit message subject (bug 5b in the audit).
+        """
+        heredoc_cmd = (
+            "git commit -m \"$(cat <<'EOF'\n"
+            "Reject unknown fields in config instead of silently defaulting\n"
+            "\n"
+            "The previous implementation silently fell back to defaults when\n"
+            "unrecognized fields appeared in config files.\n"
+            "EOF\n"
+            ")\""
+        )
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": heredoc_cmd}, tool_id="t1"),
+            _tool_result("t1", "1 file changed"),
+        )
+        trace = load_trace_from_string(jsonl)
+        commits = trace.git_commit_messages()
+        assert len(commits) == 1
+        assert commits[0]['subject'] == "Reject unknown fields in config instead of silently defaulting"
+        assert "silently fell back" in commits[0]['body']
+
+
+# ---------------------------------------------------------------------------
+# Trace.command_failed_at
+# ---------------------------------------------------------------------------
+
+class TestCommandFailedAt:
+    def test_finds_failed_commands_matching_pattern(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo test"}, tool_id="t1"),
+            _tool_result("t1", "Exit code: 0"),
+            _assistant_tool_use("Bash", {"command": "cargo build"}, tool_id="t2"),
+            _tool_result("t2", "Exit code: 1"),
+            _assistant_tool_use("Bash", {"command": "cargo test again"}, tool_id="t3"),
+            _tool_result("t3", "Exit code: 1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        failed_indices = trace.command_failed_at("cargo test")
+        assert len(failed_indices) == 1
+        # The second "cargo test again" command is at event index 5
+        assert failed_indices[0] == 5
+
+    def test_returns_empty_when_no_failures(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "cargo test"}, tool_id="t1"),
+            _tool_result("t1", "passed"),
+        )
+        trace = load_trace_from_string(jsonl)
+        failed_indices = trace.command_failed_at("cargo test")
+        assert failed_indices == []
+
+    def test_returns_empty_when_pattern_not_found(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "npm test"}, tool_id="t1"),
+            _tool_result("t1", "Exit code: 1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        failed_indices = trace.command_failed_at("cargo test")
+        assert failed_indices == []
+
+
+# ---------------------------------------------------------------------------
+# Trace.file_modifications_after_event
+# ---------------------------------------------------------------------------
+
+class TestFileModificationsAfterEvent:
+    def test_returns_write_and_edit_after_index(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Read", {"file_path": "/a.py"}, tool_id="t1"),
+            _tool_result("t1", "content"),
+            _assistant_tool_use("Write", {"file_path": "/b.py", "content": "x"}, tool_id="t2"),
+            _tool_result("t2", ""),
+            _assistant_tool_use("Edit", {"file_path": "/a.py", "old_string": "x", "new_string": "y"}, tool_id="t3"),
+            _tool_result("t3", ""),
+        )
+        trace = load_trace_from_string(jsonl)
+        # After event index 1 (Read)
+        mods = trace.file_modifications_after_event(1)
+        assert len(mods) == 2
+        assert mods[0]['path'] == "/b.py"
+        assert mods[0]['tool'] == "Write"
+        assert mods[1]['path'] == "/a.py"
+        assert mods[1]['tool'] == "Edit"
+
+    def test_returns_empty_when_nothing_after_index(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Write", {"file_path": "/a.py", "content": "x"}, tool_id="t1"),
+            _tool_result("t1", ""),
+        )
+        trace = load_trace_from_string(jsonl)
+        mods = trace.file_modifications_after_event(1)
+        assert mods == []
+
+    def test_excludes_modifications_at_or_before_index(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Write", {"file_path": "/a.py", "content": "x"}, tool_id="t1"),
+            _tool_result("t1", ""),
+            _assistant_tool_use("Edit", {"file_path": "/a.py", "old_string": "x", "new_string": "y"}, tool_id="t2"),
+            _tool_result("t2", ""),
+        )
+        trace = load_trace_from_string(jsonl)
+        # After event 1 should only include event 2's modifications
+        mods = trace.file_modifications_after_event(1)
+        assert len(mods) == 1
+        assert mods[0]['tool'] == "Edit"
+
+
+# ===========================================================================
+# Raw event maps (pre-merge preservation for eval tracing)
+# ===========================================================================
+
+class TestBuildRawEventMaps:
+    """Tests for _build_raw_event_maps and Trace.raw_event_pair."""
+
+    def test_single_tool_use_and_result(self):
+        jsonl = _to_jsonl(
+            _user_prompt("do something"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _tool_result("t1", "file.txt"),
+        )
+        trace = load_trace_from_string(jsonl)
+        assert "t1" in trace.raw_tool_use_events
+        assert "t1" in trace.raw_tool_result_events
+        # The raw event should be the full dict from stream.json
+        raw_use = trace.raw_tool_use_events["t1"]
+        assert raw_use["type"] == "assistant"
+        assert any(
+            b.get("id") == "t1" and b.get("name") == "Bash"
+            for b in raw_use["message"]["content"]
+            if isinstance(b, dict)
+        )
+        raw_result = trace.raw_tool_result_events["t1"]
+        assert raw_result["type"] == "user"
+
+    def test_multiple_tool_calls(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Read", {"file_path": "/a.py"}, tool_id="t1"),
+            _tool_result("t1", "code"),
+            _assistant_tool_use("Write", {"file_path": "/b.py"}, tool_id="t2"),
+            _tool_result("t2", "ok"),
+        )
+        trace = load_trace_from_string(jsonl)
+        assert "t1" in trace.raw_tool_use_events
+        assert "t2" in trace.raw_tool_use_events
+        assert "t1" in trace.raw_tool_result_events
+        assert "t2" in trace.raw_tool_result_events
+
+    def test_parallel_tool_use(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_parallel_tool_use([
+                ("Grep", {"pattern": "foo"}),
+                ("Glob", {"pattern": "*.py"}),
+            ]),
+            _tool_result("toolu_000", "match"),
+            _tool_result("toolu_001", "file.py"),
+        )
+        trace = load_trace_from_string(jsonl)
+        assert "toolu_000" in trace.raw_tool_use_events
+        assert "toolu_001" in trace.raw_tool_use_events
+        # Both tool_use IDs should point to the same raw assistant event
+        assert trace.raw_tool_use_events["toolu_000"] is trace.raw_tool_use_events["toolu_001"]
+
+    def test_raw_event_pair(self):
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "echo hi"}, tool_id="t1"),
+            _tool_result("t1", "hi"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        pair = trace.raw_event_pair(tc)
+        assert "tool_use_event" in pair
+        assert "tool_result_event" in pair
+        assert pair["tool_use_event"]["type"] == "assistant"
+        assert pair["tool_result_event"]["type"] == "user"
+
+    def test_raw_event_pair_missing_result(self):
+        """Tool use without a result should return None for tool_result_event."""
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "echo"}, tool_id="t1"),
+        )
+        trace = load_trace_from_string(jsonl)
+        tc = trace.all_tool_calls("Bash")[0]
+        pair = trace.raw_event_pair(tc)
+        assert pair["tool_use_event"] is not None
+        assert pair["tool_result_event"] is None
+
+    def test_maps_survive_merge(self):
+        """Raw event maps should be built BEFORE merge, so merged events still resolve."""
+        # Two consecutive assistant events with tool calls get merged
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Read", {"file_path": "/a"}, tool_id="t1"),
+            _assistant_tool_use("Read", {"file_path": "/b"}, tool_id="t2"),
+            _tool_result("t1", "a"),
+            _tool_result("t2", "b"),
+        )
+        trace = load_trace_from_string(jsonl)
+        # Both tool IDs should be in the raw maps even if events were merged
+        assert "t1" in trace.raw_tool_use_events
+        assert "t2" in trace.raw_tool_use_events
+
+    def test_parse_trace_jsonl_builds_maps(self):
+        """parse_trace_jsonl should also build raw event maps."""
+        jsonl = _to_jsonl(
+            _user_prompt("task"),
+            _assistant_tool_use("Bash", {"command": "ls"}, tool_id="t1"),
+            _tool_result("t1", "ok"),
+        )
+        trace = parse_trace_jsonl(jsonl)
+        assert "t1" in trace.raw_tool_use_events
+        assert "t1" in trace.raw_tool_result_events
+
+    def test_build_raw_event_maps_empty(self):
+        """Empty event list should produce empty maps."""
+        use_map, result_map = _build_raw_event_maps([])
+        assert use_map == {}
+        assert result_map == {}
+
+    def test_build_raw_event_maps_no_tools(self):
+        """Events with no tool_use/tool_result content produce empty maps."""
+        jsonl = _to_jsonl(
+            _user_prompt("hello"),
+            _assistant_text("hi there"),
+        )
+        trace = load_trace_from_string(jsonl)
+        assert trace.raw_tool_use_events == {}
+        assert trace.raw_tool_result_events == {}

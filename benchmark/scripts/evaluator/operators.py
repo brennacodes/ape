@@ -18,6 +18,37 @@ from typing import Any
 
 
 # ---------------------------------------------------------------------------
+# VacuousResult class
+# ---------------------------------------------------------------------------
+
+class VacuousResult:
+    """Represents a vacuously true result - passed because inputs were empty.
+
+    Allows distinguishing between a result that is True because the condition
+    is satisfied (regular True) versus True because the inputs were empty
+    (VacuousResult). This helps identify checks that may not be meaningful.
+    """
+    def __init__(self, reason: str):
+        self.reason = reason
+
+    def __bool__(self):
+        return True
+
+    def __repr__(self):
+        return f"VacuousResult({self.reason!r})"
+
+    def __eq__(self, other):
+        if isinstance(other, VacuousResult):
+            return self.reason == other.reason
+        if isinstance(other, bool):
+            return other is True
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(('VacuousResult', self.reason))
+
+
+# ---------------------------------------------------------------------------
 # Transforms
 # ---------------------------------------------------------------------------
 
@@ -125,7 +156,7 @@ def op_lte(a: Any, b: Any) -> bool:
 # Collection operators
 # ---------------------------------------------------------------------------
 
-def op_exists_before(a_indices: list[int], b_indices: list[int]) -> bool:
+def op_exists_before(a_indices: list[int], b_indices: list[int]) -> bool | VacuousResult:
     """
     True if at least one A appears before the first B.
 
@@ -133,13 +164,13 @@ def op_exists_before(a_indices: list[int], b_indices: list[int]) -> bool:
     False when A is empty and B is non-empty (can't precede without A).
     """
     if not b_indices:
-        return True
+        return VacuousResult("no B indices to precede")
     if not a_indices:
         return False
     return min(a_indices) < min(b_indices)
 
 
-def op_exists_after(a_indices: list[int], b_indices: list[int]) -> bool:
+def op_exists_after(a_indices: list[int], b_indices: list[int]) -> bool | VacuousResult:
     """
     True if at least one A appears after the last B.
 
@@ -147,7 +178,7 @@ def op_exists_after(a_indices: list[int], b_indices: list[int]) -> bool:
     False when A is empty and B is non-empty.
     """
     if not b_indices:
-        return True
+        return VacuousResult("no B indices to follow")
     if not a_indices:
         return False
     return max(a_indices) > max(b_indices)
@@ -175,7 +206,7 @@ def op_exists_between(
     return any(lo < i < hi for i in a_indices)
 
 
-def op_strictly_precedes(a_indices: list[int], b_indices: list[int]) -> bool:
+def op_strictly_precedes(a_indices: list[int], b_indices: list[int]) -> bool | VacuousResult:
     """
     True if all occurrences of B appear after all occurrences of A.
     Equivalently: max(A) < min(B).
@@ -183,7 +214,7 @@ def op_strictly_precedes(a_indices: list[int], b_indices: list[int]) -> bool:
     Vacuously true when either list is empty.
     """
     if not a_indices or not b_indices:
-        return True
+        return VacuousResult("empty A or B indices")
     return max(a_indices) < min(b_indices)
 
 
@@ -211,7 +242,7 @@ def op_each_preceded_by_within_N_steps(
     a_indices: list[int],
     b_indices: list[int],
     window: int = 10,
-) -> bool:
+) -> bool | VacuousResult:
     """
     For every event in A at index i, there must exist an event of type B at
     index j where j < i and (i - j) <= window.
@@ -219,7 +250,7 @@ def op_each_preceded_by_within_N_steps(
     Vacuously true if A is empty.
     """
     if not a_indices:
-        return True
+        return VacuousResult("no A indices to check")
     b_set = set(b_indices)
     for i in a_indices:
         in_window = any(j in b_set for j in range(max(0, i - window), i))
@@ -254,7 +285,21 @@ def op_precedes_per_path(
     return True
 
 
-def op_only_via(a_indices: list[int], b_indices: list[int]) -> bool:
+def op_followed_by(a_indices: list[int], b_indices: list[int]) -> bool:
+    """
+    True if at least one A is followed by at least one B.
+
+    Checks that min(A) < max(B), which guarantees at least one A occurs
+    before at least one B.
+
+    Vacuously false when either list is empty.
+    """
+    if not a_indices or not b_indices:
+        return False
+    return min(a_indices) < max(b_indices)
+
+
+def op_only_via(a_indices: list[int], b_indices: list[int]) -> bool | VacuousResult:
     """
     True if every occurrence of A is "covered" by a preceding occurrence of B.
 
@@ -266,7 +311,7 @@ def op_only_via(a_indices: list[int], b_indices: list[int]) -> bool:
     False when A is non-empty and B is empty (writes without any dispatch).
     """
     if not a_indices:
-        return True
+        return VacuousResult("no A indices to cover")
     if not b_indices:
         return False
     for a in a_indices:
@@ -341,6 +386,145 @@ def op_first_search_broader_than_final(search_calls: list[dict]) -> bool:
     return first_len <= last_len
 
 
+def op_regex_match(string_list: list[str] | str, pattern: str) -> bool:
+    """True if ALL elements of string_list match the regex pattern.
+
+    Vacuously true if string_list is empty.
+    For single string input, wraps in a list.
+
+    Args:
+        string_list: A string or list of strings to match against the pattern.
+        pattern: The regex pattern to match.
+
+    Returns:
+        True if all elements match the pattern, False otherwise.
+    """
+    if isinstance(string_list, str):
+        string_list = [string_list]
+    if not string_list:
+        return True
+    compiled = re.compile(pattern)
+    return all(compiled.search(s) for s in string_list)
+
+
+def _is_imperative(subject: str) -> bool:
+    """Check if a single subject string uses imperative mood.
+
+    Imperative mood is the base form of a verb used as a command or instruction.
+    This function detects common non-imperative patterns:
+    - Past tense (-ed endings): "Added", "Fixed", "Updated"
+    - Gerund (-ing endings): "Adding", "Fixing", "Updating"
+    - Third person -s forms: "Adds", "Fixes", "Updates"
+
+    Args:
+        subject: A commit message subject line.
+
+    Returns:
+        True if the subject uses imperative mood, False otherwise.
+    """
+    if not isinstance(subject, str) or not subject.strip():
+        return False
+
+    first_word = subject.strip().split()[0]
+
+    # Past tense: word ends in -ed, has 4+ chars (excludes "Red", "Bed", "Led")
+    if re.match(r'^[A-Za-z]{2,}ed$', first_word) and len(first_word) >= 4:
+        return False
+
+    # Gerund: word ends in -ing, has 5+ chars (excludes "Ring", "King", "Sing")
+    if re.match(r'^[A-Za-z]{2,}ing$', first_word) and len(first_word) >= 5:
+        return False
+
+    # Third person -s: common verb forms
+    third_person = {
+        'adds', 'fixes', 'updates', 'changes', 'creates', 'removes',
+        'moves', 'makes', 'takes', 'gets', 'sets', 'puts', 'runs',
+        'uses', 'closes', 'merges', 'bumps', 'enables', 'disables',
+        'implements', 'introduces', 'improves', 'includes', 'allows',
+        'applies', 'handles', 'converts', 'deletes', 'renames',
+        'replaces', 'returns', 'sends', 'shows', 'starts', 'stops',
+        'supports', 'tests', 'wraps', 'refactors', 'cleans',
+    }
+    if first_word.lower() in third_person:
+        return False
+
+    return True
+
+
+def op_imperative_mood(subject: list[str] | str, target: bool) -> bool:
+    """Check if a commit message subject uses imperative mood.
+
+    Detects common non-imperative patterns:
+    - Past tense (-ed endings): "Added", "Fixed", "Updated"
+    - Gerund (-ing endings): "Adding", "Fixing", "Updating"
+    - Third person -s forms: "Adds", "Fixes", "Updates"
+
+    Args:
+        subject: A subject string or list of subject strings.
+        target: Expected result (True if imperative expected, False otherwise).
+
+    Returns:
+        True if the result matches the target, False otherwise.
+        For a list of subjects, ALL must be imperative (or not, depending on target).
+    """
+    if isinstance(subject, list):
+        if not subject:
+            return not target  # empty = no commit = not imperative
+        return all(_is_imperative(s) for s in subject) == target
+    return _is_imperative(subject) == target
+
+
+def op_valid_format(body_format: dict | str | list, target: bool) -> bool:
+    """Validate commit message body format.
+
+    body_format can be:
+    - A dict with keys:
+        - 'has_blank_line': bool - blank line between subject and body
+        - 'max_line_length': int - longest line in body
+        - 'has_body': bool - whether a body exists
+    - A raw string (commit message)
+    - A list of format dicts
+
+    Valid format requires (if body exists):
+    - Blank line separating subject and body
+    - Body lines <= 72 chars
+    - No body is acceptable
+
+    Args:
+        body_format: Format specification (dict, string, or list).
+        target: Expected result (True if valid format expected).
+
+    Returns:
+        True if the format is valid and matches target, False otherwise.
+    """
+    if isinstance(body_format, dict):
+        has_body = body_format.get('has_body', False)
+        if not has_body:
+            return target  # No body is OK
+        has_blank = body_format.get('has_blank_line', False)
+        max_len = body_format.get('max_line_length', 0)
+        is_valid = has_blank and max_len <= 72
+        return is_valid == target
+
+    if isinstance(body_format, str):
+        lines = body_format.split('\n')
+        if len(lines) <= 1:
+            return target  # single line = no body = OK
+        has_blank = len(lines) > 1 and lines[1].strip() == ''
+        body_lines = lines[2:] if len(lines) > 2 else []
+        max_len = max((len(l) for l in body_lines), default=0)
+        is_valid = has_blank and max_len <= 72
+        return is_valid == target
+
+    if isinstance(body_format, list):
+        # List of format dicts - all must be valid
+        if not body_format:
+            return target
+        return all(op_valid_format(bf, True) for bf in body_format) == target
+
+    return not target
+
+
 # ---------------------------------------------------------------------------
 # Dispatch tables
 # ---------------------------------------------------------------------------
@@ -358,6 +542,7 @@ COLLECTION_OPERATORS: dict[str, Any] = {
     "exists_before": op_exists_before,
     "exists_after": op_exists_after,
     "exists_between": op_exists_between,
+    "followed_by": op_followed_by,
     "strictly_precedes": op_strictly_precedes,
     "strictly_ordered_subset": op_strictly_ordered_subset,
     "subset_of": op_subset_of,
@@ -366,6 +551,9 @@ COLLECTION_OPERATORS: dict[str, Any] = {
     "precedes_per_path": op_precedes_per_path,
     "not_contains": op_not_contains,
     "regex_not_match": op_regex_not_match,
+    "regex_match": op_regex_match,
+    "imperative_mood": op_imperative_mood,
+    "valid_format": op_valid_format,
     "has_key": op_has_key,
     "has_key_any": op_has_key_any,
     "contains": op_contains,

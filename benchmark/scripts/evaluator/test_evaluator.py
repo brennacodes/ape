@@ -30,10 +30,13 @@ from evaluator import (
     evaluate_check,
     evaluate,
     TOOL_NAME_MAP,
+    MULTI_TOOL_MAP,
     _TASK_COMPLETED,
     _path_index_map,
     _tool_indices,
     _tool_indices_matching,
+    _tool_indices_multi,
+    _tool_indices_multi_matching,
     _primary_arg,
     _tool_content,
     _apply_operator,
@@ -41,11 +44,14 @@ from evaluator import (
     _CONTENT_OPERATORS,
     _ALL_METRIC_NAMES,
     _detect_phases,
+    _matches_signal,
     _count_impl_verify_cycles,
     _resolve_diff_files_changed,
     _resolve_diff_scope_permitted,
     _resolve_workspace_untracked,
     _resolve_git_committed_files,
+    _summarize_value,
+    _resolve_position_boundary,
 )
 from trace import ToolCall
 
@@ -652,6 +658,256 @@ class TestEvaluateCondition:
         }
         assert evaluate_condition(cond, trace, self._ctx())[0] is False
 
+    def test_tdd_prove_tests_fail_proper_structure(self):
+        """Test TDD check with properly structured test and implementation files."""
+        trace = _simple_trace(
+            _user_prompt("implement feature"),
+            # Test files in tests/ directory (correct structure)
+            _write("tests/unit_test.rs", "t1"),
+            _tool_result("t1"),
+            # Run tests before impl
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # Implementation files
+            _write("src/lib.rs", "t3"),
+            _tool_result("t3"),
+        )
+
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify",
+            "target_before_args": "tests/",
+            "target_after": "tool_call.file_modify",
+            "target_after_args": "src/",
+        }
+
+        # cargo test (event 3) is between tests/ (event 1) and src/ (event 5)
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is True
+
+    def test_tdd_content_based_same_event_parallel_writes(self):
+        """Bug from audit item 6: parallel writes in same event had same event_index.
+
+        When the agent writes a test file AND an impl file in the same assistant
+        turn (parallel tool calls), they share an event_index. With the old code
+        this caused exists_between to get lo=hi (same index in both start and end
+        lists), returning False even when cargo test ran between turns.
+
+        The fix uses call_index (per-tool-call granularity) so parallel writes
+        get distinct indices. This test reproduces the exact audit scenario:
+        exists_between [[134], [134]] → window collapses.
+        """
+        # Turn 1: parallel writes — test file + impl file in SAME assistant message
+        parallel_write = _assistant_parallel([
+            ("Write", {"file_path": "tests/unit_test.rs",
+                       "content": '#[cfg(test)]\nmod tests {\n    #[test]\n    fn it_works() { assert!(false); }\n}'},
+             "t1"),
+            ("Write", {"file_path": "src/config.rs",
+                       "content": 'pub fn validate() -> bool { true }'},
+             "t2"),
+        ])
+        # Turn 2: run cargo test
+        cargo_test = _assistant_tool_use("Bash", {"command": "cargo test"}, "t3")
+        # Turn 3: fix implementation
+        impl_write = _assistant_tool_use(
+            "Write",
+            {"file_path": "src/lib.rs", "content": 'pub fn main() {}'},
+            "t4",
+        )
+        trace = _simple_trace(
+            _user_prompt("fix the config validation bug"),
+            parallel_write,
+            _tool_result("t1"),
+            _tool_result("t2"),
+            cargo_test,
+            _tool_result("t3"),
+            impl_write,
+            _tool_result("t4"),
+        )
+
+        # Content-based condition (matches the actual bivvy.yml check)
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify_with_test_content",
+            "target_after": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        # With call_index fix: test write (call 0), impl write (call 1),
+        # cargo test (call 2), later impl (call 3).
+        # Window: lo=0 (test write), hi=max(1,3)=3 (impl writes).
+        # cargo test call_index=2 is strictly between 0 and 3 → passes.
+        assert passed is True, f"Should pass with call_index fix, got detail: {detail}"
+
+    def test_tdd_content_based_separate_events_cross_file(self):
+        """Standard cross-file TDD pattern: test file → cargo test → impl file."""
+        trace = _simple_trace(
+            _user_prompt("implement feature"),
+            # Write test file with #[test] content
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "tests/integration.rs",
+                 "content": '#[test]\nfn test_feature() { assert!(false); }'},
+                "t1",
+            ),
+            _tool_result("t1"),
+            # Run tests
+            _assistant_tool_use("Bash", {"command": "cargo test"}, "t2"),
+            _tool_result("t2"),
+            # Write implementation (no test markers)
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/lib.rs",
+                 "content": 'pub fn feature() -> bool { true }'},
+                "t3",
+            ),
+            _tool_result("t3"),
+        )
+
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify_with_test_content",
+            "target_after": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is True, f"Cross-file TDD should pass, got detail: {detail}"
+
+    def test_tdd_content_based_inline_test_separate_edits(self):
+        """Inline Rust tests: Edit adds #[test] to src/ file, then separate Edit adds impl."""
+        trace = _simple_trace(
+            _user_prompt("implement feature with TDD"),
+            # Edit src/lib.rs to add test (contains #[test])
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs",
+                 "new_string": '#[cfg(test)]\nmod tests {\n    #[test]\n    fn test_new_feature() {\n        assert!(false);\n    }\n}'},
+                "t1",
+            ),
+            _tool_result("t1"),
+            # Run cargo test → should fail
+            _assistant_tool_use("Bash", {"command": "cargo test"}, "t2"),
+            _tool_result("t2"),
+            # Edit src/lib.rs to add implementation (no test markers in this edit)
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs",
+                 "new_string": 'pub fn new_feature() -> bool { true }'},
+                "t3",
+            ),
+            _tool_result("t3"),
+        )
+
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify_with_test_content",
+            "target_after": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is True, f"Inline TDD with separate edits should pass, got detail: {detail}"
+
+    def test_tdd_content_based_no_test_run_fails(self):
+        """No cargo test between test write and impl write → should fail."""
+        trace = _simple_trace(
+            _user_prompt("implement feature"),
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "tests/test.rs",
+                 "content": '#[test]\nfn test_it() {}'},
+                "t1",
+            ),
+            _tool_result("t1"),
+            # Directly write implementation without running tests
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/lib.rs",
+                 "content": 'pub fn it() {}'},
+                "t2",
+            ),
+            _tool_result("t2"),
+        )
+
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify_with_test_content",
+            "target_after": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is False, "No cargo test between writes should fail"
+
+    def test_tdd_content_result_structuredpatch_detection(self):
+        """Test that structuredPatch in tool_use_result detects test content.
+
+        When an Edit's new_string doesn't contain #[test] but the result's
+        structuredPatch shows added lines with test declarations, the call
+        should be classified as a test-content write.
+        """
+        # Edit with plain new_string, but result contains structuredPatch with #[test]
+        trace = _simple_trace(
+            _user_prompt("add tests"),
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs",
+                 "new_string": 'fn test_helper() { assert!(true); }'},
+                "t1",
+            ),
+            _tool_result("t1", content='structuredPatch: "+    #[test]"\n"+    fn test_helper() {"'),
+            _assistant_tool_use("Bash", {"command": "cargo test"}, "t2"),
+            _tool_result("t2"),
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs",
+                 "new_string": 'pub fn real_impl() -> i32 { 42 }'},
+                "t3",
+            ),
+            _tool_result("t3"),
+        )
+
+        cond = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo test",
+            "operator": "exists_between",
+            "target_before": "tool_call.file_modify_with_test_content",
+            "target_after": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is True, f"structuredPatch detection should find test content, got: {detail}"
+
+    def test_call_index_distinct_within_parallel_batch(self):
+        """Verify that parallel tool calls get distinct call_index values."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_parallel([
+                ("Write", {"file_path": "a.rs"}, "t1"),
+                ("Write", {"file_path": "b.rs"}, "t2"),
+                ("Bash", {"command": "cargo test"}, "t3"),
+            ]),
+            _tool_result("t1"),
+            _tool_result("t2"),
+            _tool_result("t3"),
+        )
+
+        calls = trace.all_tool_calls()
+        # All three should share the same event_index (same assistant message)
+        assert calls[0].event_index == calls[1].event_index == calls[2].event_index
+        # But have distinct call_index values
+        assert calls[0].call_index != calls[1].call_index
+        assert calls[1].call_index != calls[2].call_index
+        assert calls[0].call_index < calls[1].call_index < calls[2].call_index
+
     # -- strictly_precedes ---------------------------------------------------
     def test_strictly_precedes_passes(self):
         trace = _simple_trace(
@@ -992,8 +1248,12 @@ class TestEvaluateCheck:
         result = evaluate_check(check, trace, ctx)
         assert result.passed is True
 
-    def test_unresolvable_metric_skips(self):
-        """Phase metric without phase_tool_mapping in context is skipped."""
+    def test_unresolvable_metric_fails(self):
+        """Phase metric without phase_tool_mapping in context fails (not skips).
+
+        MetricNotResolvable means the data the check needs is missing from
+        the trace — the agent didn't do the thing the workflow required.
+        """
         trace = _simple_trace(_user_prompt("task"))
         check = {
             "id": "phase_order",
@@ -1007,8 +1267,9 @@ class TestEvaluateCheck:
             },
         }
         result = evaluate_check(check, trace, self._ctx())
-        assert result.passed is None
-        assert "requires phase_tool_mapping" in result.skip_reason
+        assert result.passed is False
+        assert result.skip_reason is None
+        assert "requires phase_tool_mapping" in result.detail
 
     def test_phase_ordering_check_passes_with_context(self):
         """Phase ordering check evaluates when phase config is in context."""
@@ -1173,10 +1434,14 @@ class TestEvaluate:
                 "phase": "p",
                 "description": "d",
                 "type": "constraint",
+                # Use prompt_condition for a legitimate skip — this is the
+                # only mechanism that should produce skips.
+                "prompt_condition": "nonexistent_flag",
                 "condition": {
-                    "metric": "phase.execution_order",
-                    "operator": "strictly_ordered_subset",
-                    "target": [],
+                    "metric": "tool_call.file_write",
+                    "transform": "count",
+                    "operator": "eq",
+                    "target": 0,
                 },
             },
         ]
@@ -1970,3 +2235,745 @@ class TestEvaluateCheckGracefulSkip:
         result = evaluate_check(check, trace, self._ctx())
         assert result.passed is None
         assert "Unknown transform" in result.skip_reason
+
+
+# ===========================================================================
+# Audit item 5: commit checks fail (not skip) when no commits in trace
+# ===========================================================================
+
+class TestCommitChecksFailWithoutCommits:
+    """Commit-related checks must FAIL when there are no git commits in the
+    trace, not SKIP.  Skipping excludes them from the denominator and inflates
+    the pass rate (audit item 5).
+    """
+
+    def _ctx(self):
+        return {"conditions": {}, "variables": {}}
+
+    def _trace_without_commits(self):
+        """A trace with no git commit commands — only non-commit work."""
+        return _simple_trace(
+            _user_prompt("fix the bug"),
+            _bash("cargo build", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+
+    def test_commit_msg_imperative_mood_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "commit_msg_imperative_mood",
+            "phase": "commit",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.subject",
+                "operator": "imperative_mood",
+                "target": True,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+        assert "No git commit" in result.detail
+
+    def test_commit_msg_subject_length_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "commit_msg_subject_length",
+            "phase": "commit",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.subject_length",
+                "operator": "lte",
+                "target": 50,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+
+    def test_commit_msg_capitalize_no_period_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "commit_msg_capitalize_no_period",
+            "phase": "commit",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.subject",
+                "operator": "regex_match",
+                "target": "^[A-Z].*[^.]$",
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+
+    def test_commit_msg_no_type_prefix_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "commit_msg_no_type_prefix",
+            "phase": "commit",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.subject",
+                "operator": "regex_not_match",
+                "target": "^(feat|fix|chore|refactor|docs|style|test|ci|perf|build)(\\(.+\\))?:",
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+
+    def test_commit_msg_body_format_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "commit_msg_body_format",
+            "phase": "commit",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.body_format",
+                "operator": "valid_format",
+                "target": True,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+
+    def test_coverage_threshold_fails_not_skips(self):
+        trace = self._trace_without_commits()
+        check = {
+            "id": "coverage_threshold",
+            "phase": "testing",
+            "description": "test",
+            "type": "constraint",
+            "condition": {
+                "metric": "coverage.percentage",
+                "operator": "gte",
+                "target": 90,
+            },
+        }
+        result = evaluate_check(check, trace, self._ctx())
+        assert result.passed is False, f"Expected FAIL, got passed={result.passed}, skip={result.skip_reason}"
+        assert result.skip_reason is None
+
+
+# ===========================================================================
+# Audit item 5 — defense in depth: metric resolver guards + structural tests
+# ===========================================================================
+
+class TestCommitMetricResolversRaiseOnEmpty:
+    """The git commit message metric resolvers MUST raise MetricNotResolvable
+    when there are no commits in the trace.
+
+    This is load-bearing: three of the five commit-check operators
+    (regex_match, regex_not_match, valid_format) return vacuous True on empty
+    lists, so if these guards were ever removed the checks would silently
+    pass instead of fail.  These tests exist to catch that.
+    """
+
+    def _ctx(self):
+        return {"conditions": {}, "variables": {}}
+
+    def _trace_without_commits(self):
+        return _simple_trace(
+            _user_prompt("fix the bug"),
+            _bash("cargo build", "t1"),
+            _tool_result("t1"),
+        )
+
+    def test_subject_raises_metric_not_resolvable(self):
+        trace = self._trace_without_commits()
+        with pytest.raises(MetricNotResolvable, match="No git commit messages"):
+            resolve_metric("git.commit_message.subject", trace, self._ctx())
+
+    def test_subject_length_raises_metric_not_resolvable(self):
+        trace = self._trace_without_commits()
+        with pytest.raises(MetricNotResolvable, match="No git commit messages"):
+            resolve_metric("git.commit_message.subject_length", trace, self._ctx())
+
+    def test_body_format_raises_metric_not_resolvable(self):
+        trace = self._trace_without_commits()
+        with pytest.raises(MetricNotResolvable, match="No git commit messages"):
+            resolve_metric("git.commit_message.body_format", trace, self._ctx())
+
+
+class TestMetricNotResolvableProducesFailure:
+    """MetricNotResolvable must be caught by evaluate_check and converted to
+    passed=False (not passed=None/skip).
+
+    This test is structural: it verifies the contract between the metric
+    resolvers and evaluate_check.  If MetricNotResolvable is ever renamed,
+    removed, or its catch block changed to produce a skip, this test fails.
+    """
+
+    def test_exception_class_exists_and_is_importable(self):
+        """Guard against the class being renamed or removed."""
+        assert issubclass(MetricNotResolvable, Exception)
+
+    def test_evaluate_check_converts_to_fail_not_skip(self):
+        """The catch block in evaluate_check must produce passed=False."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo build", "t1"),
+            _tool_result("t1"),
+        )
+        # Use a metric known to raise MetricNotResolvable on this trace
+        check = {
+            "id": "structural_test",
+            "phase": "commit",
+            "description": "structural",
+            "type": "constraint",
+            "condition": {
+                "metric": "git.commit_message.subject",
+                "operator": "imperative_mood",
+                "target": True,
+            },
+        }
+        result = evaluate_check(check, trace, {"conditions": {}, "variables": {}})
+        # MUST be a fail, not a skip
+        assert result.passed is False, (
+            f"MetricNotResolvable must produce passed=False, got passed={result.passed}"
+        )
+        assert result.skip_reason is None, (
+            f"MetricNotResolvable must produce skip_reason=None, got {result.skip_reason!r}"
+        )
+        assert result.detail is not None, (
+            "MetricNotResolvable must propagate the exception message as detail"
+        )
+
+
+class TestOperatorsVacuousOnEmptyInputs:
+    """Document and enforce that certain operators return WRONG results on
+    empty lists.
+
+    These tests prove WHY the MetricNotResolvable guards in the metric
+    resolvers are load-bearing.  If you change an operator to correctly
+    reject empty lists, update these tests accordingly — but you must also
+    verify that the non-commit uses (e.g. regex_not_match on
+    tool_call.execute_command) still work correctly with empty inputs.
+    """
+
+    def test_regex_match_vacuously_passes_empty_list(self):
+        """regex_match([]) returns True — wrong for commit checks."""
+        from operators import op_regex_match
+        # all() on empty iterable is True in Python
+        assert op_regex_match([], "^[A-Z].*[^.]$") is True
+
+    def test_regex_not_match_vacuously_passes_empty_list(self):
+        """regex_not_match([]) returns True — wrong for commit checks,
+        but correct for 'no forbidden commands found' checks."""
+        from operators import op_regex_not_match
+        # not any() on empty iterable is True in Python
+        assert op_regex_not_match([], r"^(feat|fix):") is True
+
+    def test_valid_format_vacuously_passes_empty_list(self):
+        """valid_format([], True) returns True — wrong for commit checks."""
+        from operators import op_valid_format
+        assert op_valid_format([], True) is True
+
+    def test_imperative_mood_correctly_rejects_empty_list(self):
+        """imperative_mood handles empty correctly — returns not target."""
+        from operators import op_imperative_mood
+        # This one already gets it right: empty + target=True → False
+        assert op_imperative_mood([], True) is False
+
+
+# ===========================================================================
+# Bug 5: followed_by operator integration
+# ===========================================================================
+
+class TestFollowedByIntegration:
+    """Test followed_by operator through evaluate_condition."""
+
+    def test_followed_by_pass(self):
+        """Edit followed by execute_command should pass."""
+        trace = _simple_trace(
+            _user_prompt("fix it"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+        condition = {
+            "metric": "tool_call.file_edit",
+            "operator": "followed_by",
+            "target": "tool_call.execute_command",
+        }
+        passed, detail = evaluate_condition(condition, trace, {})
+        assert passed is True
+
+    def test_followed_by_fail(self):
+        """execute_command with no subsequent edit should fail."""
+        trace = _simple_trace(
+            _user_prompt("fix it"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+        )
+        condition = {
+            "metric": "tool_call.execute_command",
+            "operator": "followed_by",
+            "target": "tool_call.file_edit",
+        }
+        passed, detail = evaluate_condition(condition, trace, {})
+        assert passed is False
+
+    def test_followed_by_no_metric_events(self):
+        """No metric events → false."""
+        trace = _simple_trace(
+            _user_prompt("fix it"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+        )
+        condition = {
+            "metric": "tool_call.file_edit",
+            "operator": "followed_by",
+            "target": "tool_call.execute_command",
+        }
+        passed, detail = evaluate_condition(condition, trace, {})
+        assert passed is False
+
+
+# ===========================================================================
+# Bug 2: tool_call.file_modify combined metric
+# ===========================================================================
+
+class TestFileModifyMetric:
+    """Test that tool_call.file_modify resolves to both Write and Edit indices."""
+
+    def test_file_modify_includes_write_and_edit(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("tests/test_foo.rs", "t1"),
+            _tool_result("t1"),
+            _edit("src/lib.rs", "t2"),
+            _tool_result("t2"),
+        )
+        indices = resolve_metric("tool_call.file_modify", trace, {})
+        assert len(indices) == 2
+
+    def test_file_modify_in_all_metric_names(self):
+        assert "tool_call.file_modify" in _ALL_METRIC_NAMES
+
+    def test_file_modify_with_args_filter(self):
+        """file_modify with metric_args should filter by substring in path."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("tests/test_foo.rs", "t1"),
+            _tool_result("t1"),
+            _edit("src/lib.rs", "t2"),
+            _tool_result("t2"),
+            _write("src/config.rs", "t3"),
+            _tool_result("t3"),
+        )
+        condition = {
+            "metric": "tool_call.file_modify",
+            "metric_args": "src/",
+            "transform": "count",
+            "operator": "eq",
+            "target": 2,
+        }
+        passed, detail = evaluate_condition(condition, trace, {})
+        assert passed is True
+
+
+# ===========================================================================
+# Bug 3: content-based test matching (_matches_signal)
+# ===========================================================================
+
+class TestMatchesSignal:
+    """Test _matches_signal with content_match for Rust inline tests."""
+
+    def test_path_match(self):
+        tc = ToolCall(tool_use_id="t1", name="Write", input={"file_path": "tests/test_foo.rs"}, event_index=0)
+        assert _matches_signal(tc, "test") is True
+
+    def test_content_match_rust_test_attr(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Write",
+            input={"file_path": "src/schema.rs", "content": 'fn foo() {}\n#[test]\nfn test_foo() {}'},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "test", r"#\[test\]|#\[cfg\(test\)\]|mod tests") is True
+
+    def test_content_match_cfg_test(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Write",
+            input={"file_path": "src/schema.rs", "content": '#[cfg(test)]\nmod tests { }'},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "test", r"#\[test\]|#\[cfg\(test\)\]|mod tests") is True
+
+    def test_content_match_edit_new_string(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Edit",
+            input={"file_path": "src/schema.rs", "new_string": '#[test]\nfn it_works() {}'},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "test", r"#\[test\]|#\[cfg\(test\)\]|mod tests") is True
+
+    def test_no_match_no_content_match(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Write",
+            input={"file_path": "src/schema.rs", "content": 'fn foo() {}'},
+            event_index=0,
+        )
+        # Path doesn't contain "test", content doesn't have test markers, no content_match set
+        assert _matches_signal(tc, "test") is False
+
+    def test_no_match_content_without_markers(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Write",
+            input={"file_path": "src/schema.rs", "content": 'fn foo() {}'},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "test", r"#\[test\]|#\[cfg\(test\)\]|mod tests") is False
+
+
+# ===========================================================================
+# Bug 4: after_tdd_specify position in _detect_phases
+# ===========================================================================
+
+class TestAfterTddSpecifyPosition:
+    """Test that after_tdd_specify deferred position works in _detect_phases."""
+
+    def _make_phase_config(self):
+        return {
+            "tdd_specify": {
+                "signals": ["tool_call.file_write"],
+                "position": "before_implementation",
+                "match": "test",
+            },
+            "tdd_prove_fail": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_tdd_specify",
+                "match": "cargo test",
+            },
+            "implementation": {
+                # In Bivvy config, implementation also includes file_create
+                # but for testing, use only file_edit to separate from test writes
+                "signals": ["tool_call.file_edit"],
+                "position": "any",
+            },
+        }
+
+    def _make_class_config(self):
+        return {"ordered": ["tdd_specify", "tdd_prove_fail", "implementation"], "floating": []}
+
+    def test_tdd_prove_fail_after_tdd_specify(self):
+        """cargo test after test write should be in tdd_prove_fail phase."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("tests/test_foo.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(trace, self._make_phase_config(), self._make_class_config())
+        assert "tdd_specify" in events
+        assert "tdd_prove_fail" in events
+        # tdd_prove_fail events should be after tdd_specify events
+        assert min(events["tdd_prove_fail"]) > min(events["tdd_specify"])
+
+    def test_no_tdd_specify_means_no_tdd_prove_fail(self):
+        """If no tdd_specify detected, after_tdd_specify should find nothing."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+            _edit("src/lib.rs", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, self._make_phase_config(), self._make_class_config())
+        assert "tdd_prove_fail" not in events
+
+
+# ===========================================================================
+# Bug 6: target_position / metric_position filtering
+# ===========================================================================
+
+class TestPositionFiltering:
+    """Test that target_position filters indices to post-implementation events."""
+
+    def _impl_context(self):
+        return {
+            "phase_tool_mapping": {
+                "implementation": {
+                    "signals": ["tool_call.file_write", "tool_call.file_edit"],
+                    "position": "any",
+                },
+            },
+            "phase_classification": {"ordered": ["implementation"], "floating": []},
+        }
+
+    def test_target_position_after_implementation(self):
+        """With target_position, only post-impl test runs should be considered."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # TDD test run (before implementation)
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+            # Linting
+            _bash("cargo fmt", "t2"),
+            _tool_result("t2"),
+            # Implementation
+            _write("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            # Post-impl test run
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+        )
+        condition = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo fmt",
+            "operator": "strictly_precedes",
+            "target": "tool_call.execute_command",
+            "target_args": "cargo test",
+            "target_position": "after_implementation",
+        }
+        passed, detail = evaluate_condition(condition, trace, self._impl_context())
+        # cargo fmt (idx 3) should strictly precede only post-impl cargo test (idx 7)
+        assert passed is True
+
+    def test_without_target_position_fails(self):
+        """Without target_position, early TDD test runs cause failure."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # TDD test run (before implementation)
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+            # Linting
+            _bash("cargo fmt", "t2"),
+            _tool_result("t2"),
+            # Implementation
+            _write("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            # Post-impl test run
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+        )
+        condition = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo fmt",
+            "operator": "strictly_precedes",
+            "target": "tool_call.execute_command",
+            "target_args": "cargo test",
+        }
+        passed, detail = evaluate_condition(condition, trace, {})
+        # Without filtering, min(cargo test)=1, max(cargo fmt)=3, 3 > 1 → fails
+        assert passed is False
+
+    def test_after_implementation_uses_last_impl_event(self):
+        """after_implementation boundary should use LAST impl event, not first.
+
+        Tests during implementation (TDD cycles) should not be counted as
+        post-implementation verification.
+        """
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # Implementation phase: multiple writes
+            _write("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            # Test run DURING implementation (TDD cycle)
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # More implementation
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            # Linting (after implementation ends)
+            _bash("cargo fmt", "t4"),
+            _tool_result("t4"),
+            # Final test run (after linting)
+            _bash("cargo test", "t5"),
+            _tool_result("t5"),
+        )
+        condition = {
+            "metric": "tool_call.execute_command",
+            "metric_args": "cargo fmt",
+            "operator": "strictly_precedes",
+            "target": "tool_call.execute_command",
+            "target_args": "cargo test",
+            "target_position": "after_implementation",
+        }
+        passed, detail = evaluate_condition(condition, trace, self._impl_context())
+        # The boundary is the LAST impl event (edit at idx ~5), so only the
+        # final cargo test (idx ~9) is considered. cargo fmt precedes it → pass
+        assert passed is True
+
+
+# ===========================================================================
+# _summarize_value: no truncation
+# ===========================================================================
+
+class TestSummarizeValue:
+    """Ensure _summarize_value shows full values without truncation."""
+
+    def test_long_path_not_truncated(self):
+        path = "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-xyz/src/config/loader.rs"
+        result = _summarize_value(path)
+        assert path in result
+        assert "..." not in result
+
+    def test_list_of_long_paths_not_truncated(self):
+        paths = [
+            "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-xyz/src/config/loader.rs",
+            "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-xyz/src/config/schema.rs",
+        ]
+        result = _summarize_value(paths)
+        # Both full paths must appear in the output
+        assert "loader.rs" in result
+        assert "schema.rs" in result
+        assert result.count("...") == 0
+
+    def test_empty_list(self):
+        assert _summarize_value([]) == "[] (empty)"
+
+    def test_none(self):
+        assert _summarize_value(None) == "None"
+
+    def test_int(self):
+        assert _summarize_value(42) == "42"
+
+    def test_bool(self):
+        assert _summarize_value(True) == "True"
+
+    def test_explicit_max_len_truncates(self):
+        result = _summarize_value("a very long string indeed", max_len=10)
+        assert "..." in result
+
+
+# ===========================================================================
+# Path normalization for scope_to_request
+# ===========================================================================
+
+class TestPathNormalization:
+    """Test that diff.scope.permitted_paths normalizes absolute trace paths to relative."""
+
+    def test_scope_permitted_normalizes_absolute_to_relative(self):
+        """When workspace_path is set, trace paths should be normalized to relative."""
+        workspace = "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-xyz"
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _read(f"{workspace}/src/config/loader.rs", "t1"),
+            _tool_result("t1"),
+            _read(f"{workspace}/src/config/schema.rs", "t2"),
+            _tool_result("t2"),
+        )
+        ctx = {"conditions": {}, "variables": {}, "workspace_path": workspace}
+        result = _resolve_diff_scope_permitted(trace, ctx)
+        result_set = set(result)
+        # Paths should be relative, not absolute
+        assert "src/config/loader.rs" in result_set
+        assert "src/config/schema.rs" in result_set
+        assert not any(p.startswith("/private") for p in result_set)
+
+    def test_scope_permitted_uses_trace_workspace_path(self):
+        """When context has no workspace_path, trace.workspace_path is used."""
+        workspace = "/tmp/bench-test"
+        # Build a trace with a system init event that has cwd
+        init_line = json.dumps({
+            "type": "system", "subtype": "init",
+            "cwd": workspace, "session_id": "test",
+        })
+        prompt = _user_prompt("task")
+        read_call = _read(f"{workspace}/src/foo.rs", "t1")
+        result_ev = _tool_result("t1")
+        trace = load_trace_from_string("\n".join([init_line, prompt, read_call, result_ev]))
+
+        ctx = {"conditions": {}, "variables": {}}  # No workspace_path in context
+        result = _resolve_diff_scope_permitted(trace, ctx)
+        # Should use trace.workspace_path to normalize
+        assert "src/foo.rs" in result
+
+    def test_subset_of_passes_with_normalized_paths(self):
+        """The scope_to_request check should pass when files_changed and permitted are both relative."""
+        workspace = "/tmp/bench-test"
+        init_line = json.dumps({
+            "type": "system", "subtype": "init",
+            "cwd": workspace, "session_id": "test",
+        })
+        prompt = _user_prompt("task")
+        read1 = _read(f"{workspace}/src/config/loader.rs", "t1")
+        res1 = _tool_result("t1")
+        read2 = _read(f"{workspace}/src/config/schema.rs", "t2")
+        res2 = _tool_result("t2")
+        trace = load_trace_from_string("\n".join([init_line, prompt, read1, res1, read2, res2]))
+
+        ctx = {
+            "conditions": {"explicit_edit_requested": True},
+            "variables": {},
+            "workspace_state": {
+                "modified_files": ["src/config/loader.rs"],
+            },
+        }
+        # diff.files_changed = ["src/config/loader.rs"] (relative)
+        # diff.scope.permitted_paths = ["src/config/loader.rs", "src/config/schema.rs"] (normalized from trace)
+        check = {
+            "id": "scope_to_request",
+            "phase": "implementation",
+            "description": "test",
+            "condition": {
+                "metric": "diff.files_changed",
+                "operator": "subset_of",
+                "target": "diff.scope.permitted_paths",
+            },
+        }
+        result = evaluate_check(check, trace, ctx)
+        assert result.passed is True
+
+
+# ===========================================================================
+# _resolve_position_boundary: after_implementation uses LAST impl event
+# ===========================================================================
+
+class TestResolvePositionBoundary:
+    def _ctx(self):
+        return {
+            "phase_tool_mapping": {
+                "implementation": {
+                    "signals": ["tool_call.file_write", "tool_call.file_edit"],
+                    "position": "any",
+                },
+            },
+            "phase_classification": {"ordered": ["implementation"], "floating": []},
+        }
+
+    def test_after_implementation_returns_last_impl_event(self):
+        """Boundary should be the LAST implementation event, not the first."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("src/a.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            _edit("src/b.rs", "t3"),
+            _tool_result("t3"),
+        )
+        boundary = _resolve_position_boundary("after_implementation", trace, self._ctx())
+        # The last impl call is the Edit (call_index 2 after the Write at 0 and Bash at 1)
+        write_idx = None
+        edit_idx = None
+        for tc in trace.all_tool_calls("Write"):
+            write_idx = tc.call_index
+        for tc in trace.all_tool_calls("Edit"):
+            edit_idx = tc.call_index
+        # Boundary should be the edit (later), not the write (earlier)
+        assert boundary == edit_idx
+        assert boundary > write_idx
+
+    def test_after_implementation_none_when_no_impl(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+        )
+        boundary = _resolve_position_boundary("after_implementation", trace, self._ctx())
+        assert boundary is None

@@ -16,11 +16,11 @@ Directory layout:
 
 Test case dimensions:
   Every test case is identified by 5 independent dimensions:
-    - app:      which app fixture (e.g. "claude-bot")
+    - app:      which app fixture (e.g. "bivvy")
     - category: prompt category matching an app-config section (e.g. "bugs")
-    - item:     specific item within the category (e.g. "hardcoded_cli_path")
+    - item:     specific item within the category (e.g. "silent_yaml_failure")
     - format:   workflow format (e.g. "plain-text")
-    - workflow:  workflow stem (e.g. "centminmod")
+    - workflow:  workflow stem (e.g. "bivvy")
 
   Template prompts expand into one case per app-config item.
   Concrete prompts (no matching app-config category) work as before.
@@ -57,14 +57,14 @@ from typing import Any
 class AppFixture:
     """A discovered app fixture (directory under fixtures/apps/)."""
     path: Path
-    name: str       # directory name, e.g. "claude-bot"
+    name: str       # directory name, e.g. "bivvy"
 
 
 @dataclass(frozen=True)
 class WorkflowFixture:
     """A discovered workflow fixture file."""
     path: Path
-    stem: str       # e.g. "centminmod"
+    stem: str       # e.g. "bivvy"
     format: str     # e.g. "plain-text", "markdown", "adhoc-xml", "ape"
 
 
@@ -80,7 +80,7 @@ class TestConfigPath:
 class PromptPath:
     """A discovered prompt file."""
     path: Path
-    prompt_id: str  # filename stem, e.g. "bugs" or "centminmod-bug-fix"
+    prompt_id: str  # filename stem, e.g. "bugs"
 
 
 @dataclass(frozen=True)
@@ -272,21 +272,41 @@ def match_cases(
     for c in configs:
         config_index[c.stem] = c
 
-    # Build app-config index: app_name -> (path, parsed categories)
-    ac_index: dict[str, tuple[Path, dict[str, dict[str, dict]]]] = {}
+    # Build app-config index: app_name -> (path, parsed data, parsed categories)
+    ac_index: dict[str, tuple[Path, dict, dict[str, dict[str, dict]]]] = {}
     if app_configs:
         for ac in app_configs:
             try:
                 data = load_app_config(ac.path)
                 categories = _extract_categories(data)
                 if categories:
-                    ac_index[ac.app_name] = (ac.path, categories)
+                    ac_index[ac.app_name] = (ac.path, data, categories)
             except Exception:
                 pass
 
+    # Build app fixture index for synthesizing adhoc-xml workflows
+    app_index: dict[str, AppFixture] = {a.name: a for a in apps}
+
+    # Synthesize adhoc-xml workflows for apps whose config declares
+    # workflow_files — the fixture's own workflow files ARE the adhoc-xml
+    # workflow, so no separate fixture file is needed.
+    for app_name, (ac_path, ac_data, _) in ac_index.items():
+        wf_files = ac_data.get("workflow_files")
+        if not wf_files:
+            continue
+        app = app_index.get(app_name)
+        if app is None:
+            continue
+        # Use the first workflow file as the path reference (it won't be
+        # read for adhoc-xml since the fixture files are kept as-is).
+        ref_path = app.path / wf_files[0]
+        workflows.append(WorkflowFixture(
+            path=ref_path, stem=app_name, format="adhoc-xml",
+        ))
+
     # Collect all category names across all app-configs
     all_categories: set[str] = set()
-    for _, categories in ac_index.values():
+    for _, _, categories in ac_index.values():
         all_categories.update(categories.keys())
 
     # Separate template prompts from concrete prompts
@@ -305,18 +325,21 @@ def match_cases(
             continue
 
         for app in apps:
+            ac_entry = ac_index.get(app.name)
+            ac_path = ac_entry[0] if ac_entry else None
+
             # Concrete prompts: cross-product as before
             for prompt in concrete_prompts:
                 cases.append(TestCase(
                     app=app, workflow=wf,
                     test_config=config, prompt=prompt,
+                    app_config_path=ac_path,
                 ))
 
             # Template prompts: expand per app-config item
-            ac_entry = ac_index.get(app.name)
             if ac_entry is None:
                 continue
-            ac_path, categories = ac_entry
+            _, _, categories = ac_entry
             for category, items in categories.items():
                 prompt = template_prompts.get(category)
                 if prompt is None:

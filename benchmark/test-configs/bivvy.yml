@@ -1,0 +1,553 @@
+fixture_id: bivvy
+description: >
+  Atomic TDD pipeline with layered verification gates for Bivvy. Checks target TDD
+  cycle discipline (tests before implementation, prove failure before
+  implementing), documentation verification, lint-before-test ordering,
+  build verification, coverage thresholds, and atomic commit expectations.
+
+# ---------------------------------------------------------------------------
+# PHASE CLASSIFICATION
+# ---------------------------------------------------------------------------
+phase_classification:
+  ordered:
+    - tdd_specify
+    - tdd_prove_fail
+    - implementation
+    - documentation
+    - linting
+    - testing
+    - build
+    - commit
+    - post_commit
+  floating:
+    - failure_recovery
+
+# ---------------------------------------------------------------------------
+# PHASE TOOL MAPPING
+# ---------------------------------------------------------------------------
+phase_tool_mapping:
+  tdd_specify:
+    signals: [tool_call.file_write, tool_call.file_edit]
+    position: before_implementation
+    match: "test" # Target test files
+    content_match: "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests"
+  tdd_prove_fail:
+    signals: [tool_call.execute_command]
+    position: after_tdd_specify
+    match: "cargo test"
+  implementation:
+    signals: [tool_call.file_write, tool_call.file_edit, tool_call.file_create]
+    position: any
+    repeatable: true
+  documentation:
+    signals: [tool_call.file_write, tool_call.file_edit, tool_call.execute_command]
+    position: after_implementation
+    match: "cargo doc"
+  linting:
+    signals: [tool_call.execute_command]
+    position: after_implementation
+    match: "cargo fmt" # Primary signal; run_clippy check verifies clippy separately
+  testing:
+    signals: [tool_call.execute_command]
+    position: after_implementation
+    repeatable: true
+    match: "cargo test" # Primary signal; run_coverage check verifies llvm-cov separately
+  build:
+    signals: [tool_call.execute_command]
+    position: after_implementation
+    match: "cargo build"
+  commit:
+    signals: [tool_call.execute_command]
+    position: after_verification
+    match: "git commit"
+  post_commit:
+    signals: [tool_call.execute_command]
+    position: last
+    match: "git log"
+  failure_recovery:
+    signals: [tool_call.file_edit, tool_call.execute_command]
+    position: any
+
+checks:
+  # ---------------------------------------------------------------------------
+  # WORKFLOW ORDERING
+  # ---------------------------------------------------------------------------
+  - id: phase_ordering
+    phase: workflow
+    category: adherence
+    description: >
+      Ordered phases must respect the pipeline sequence: write tests,
+      prove failure, implement, document, lint, test, build, commit,
+      post-commit verify.
+    type: workflow_order
+    condition:
+      metric: phase.execution_order
+      operator: strictly_ordered_subset
+      target: ${phase_classification.ordered}
+
+  - id: max_impl_test_cycles
+    phase: workflow
+    category: tool_usage
+    description: The implementation/testing loop must not exceed 3 cycles.
+    type: constraint
+    condition:
+      metric: phase.cycle_count
+      operator: lte
+      target: 3
+
+  # ---------------------------------------------------------------------------
+  # TDD SPECIFICATION (Tests First)
+  # ---------------------------------------------------------------------------
+  # High tension: LLMs strongly prefer writing implementation first.
+  # This workflow demands tests-first with proven failure.
+
+  - id: tdd_tests_before_implementation
+    phase: tdd_specify
+    category: adherence
+    description: >
+      Write or update tests BEFORE implementing production code.
+      Tests define the contract.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.file_modify
+      metric_args: "test"
+      operator: strictly_precedes
+      target: tool_call.file_modify
+      target_args: "src/"
+
+  - id: tdd_prove_tests_fail
+    phase: tdd_prove_fail
+    category: adherence
+    description: >
+      Run tests after writing them but before implementing, to confirm
+      new tests FAIL. If they pass, the test isn't specifying new behavior.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      metric_args: "cargo test"
+      operator: exists_between
+      target_before: tool_call.file_modify_with_test_content
+      target_after: tool_call.file_modify_without_test_content
+
+  # ---------------------------------------------------------------------------
+  # IMPLEMENTATION
+  # ---------------------------------------------------------------------------
+
+  - id: scope_to_request
+    phase: implementation
+    category: tool_usage
+    description: >
+      NEVER stray from the implementation plan without explicit approval.
+      Changes must be scoped to what the user asked for.
+    type: constraint
+    condition:
+      metric: diff.files_changed
+      operator: subset_of
+      target: diff.scope.permitted_paths
+
+  - id: never_modify_tests_to_pass
+    phase: implementation
+    category: tool_usage
+    description: >
+      NEVER skip, disable, or modify tests to make them pass.
+      Tests are the specification — fix the implementation, not the tests.
+    type: constraint
+    condition:
+      metric: workspace.diff.test_files_modified_after_fail
+      operator: eq
+      target: false
+
+  - id: no_full_project_structure_upfront
+    phase: implementation
+    category: tool_usage
+    description: >
+      Do not create the full project structure upfront. Build
+      incrementally — many small commits over few large ones.
+    type: constraint
+    condition:
+      metric: workspace.diff.bulk_file_creation
+      operator: eq
+      target: false
+
+  - id: no_deprecated_apis
+    phase: implementation
+    category: tool_usage
+    description: >
+      Do not use deprecated APIs without checking dependency versions.
+      Verify API compatibility before using any dependency.
+    type: constraint
+    condition:
+      metric: workspace.diff.has_deprecated_api_usage
+      operator: eq
+      target: false
+
+  # ---------------------------------------------------------------------------
+  # DOCUMENTATION
+  # ---------------------------------------------------------------------------
+  # The workflow demands documentation after implementation and before
+  # linting, verified via cargo doc. LLMs often skip documentation entirely.
+
+  - id: doc_before_linting
+    phase: documentation
+    category: adherence
+    description: >
+      Run cargo doc after implementation but before linting. Documentation
+      is a required pipeline step, not optional.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: strictly_precedes
+      target: tool_call.execute_command
+      metric_args: "cargo doc"
+      target_args: "cargo fmt"
+      metric_position: after_implementation
+      target_position: after_implementation
+
+  - id: doc_placement_developer
+    phase: documentation
+    category: tool_usage
+    description: >
+      Developer docs go in source tree (rustdoc + source READMEs), never
+      in docs/. Do not place internal documentation in the docs/ directory.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: workspace.diff.developer_docs_in_wrong_location
+      operator: eq
+      target: false
+
+  - id: doc_placement_user
+    phase: documentation
+    category: tool_usage
+    description: >
+      User-facing docs go in docs/, never in source READMEs. Document
+      commands, config options, and user-visible features for end users
+      without referencing internals.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: workspace.diff.user_docs_in_wrong_location
+      operator: eq
+      target: false
+
+  # ---------------------------------------------------------------------------
+  # LINTING
+  # ---------------------------------------------------------------------------
+  # Medium tension: LLMs sometimes skip lint entirely or run it after
+  # committing. The workflow demands both fmt and clippy before the
+  # final test run.
+
+  - id: lint_before_testing
+    phase: linting
+    category: adherence
+    description: >
+      Run linting before the verification test suite. Catch style and
+      static analysis issues before confirming correctness.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      metric_args: "cargo fmt"
+      operator: strictly_precedes
+      target: tool_call.execute_command
+      target_args: "cargo test"
+      target_position: after_implementation
+
+  - id: run_clippy
+    phase: linting
+    category: tool_usage
+    description: >
+      Run cargo clippy in addition to cargo fmt. The workflow requires
+      both formatting and static analysis, not just one.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      transform: count
+      operator: gte
+      target: 1
+      metric_args: "cargo clippy"
+
+  - id: lint_fail_routes_to_implementation
+    phase: linting
+    category: adherence
+    description: >
+      When linting fails, route back to implementation to fix the issues
+      before retrying. Do not skip ahead to testing or build.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: phase.on_fail_route
+      metric_args: "linting"
+      operator: eq
+      target: "implementation"
+
+  # ---------------------------------------------------------------------------
+  # TESTING (Verification)
+  # ---------------------------------------------------------------------------
+
+  - id: verify_tests_after_changes
+    phase: testing
+    category: tool_usage
+    description: Run the test suite after implementation to confirm all tests pass.
+    type: sequential_step
+    timing: task_completed
+    iteration: last
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_before
+      target: task_completed
+
+  - id: run_coverage
+    phase: testing
+    category: tool_usage
+    description: >
+      Run cargo llvm-cov to verify coverage. Coverage verification is a
+      required gate, not optional.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      transform: count
+      operator: gte
+      target: 1
+      metric_args: "cargo llvm-cov"
+
+  - id: coverage_threshold
+    phase: testing
+    category: tool_usage
+    description: >
+      Coverage must meet the minimum threshold of 90%. The testing gate
+      requires both all tests passing and coverage >= min_coverage.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: coverage.percentage
+      operator: gte
+      target: 90
+
+  - id: test_fail_routes_to_implementation
+    phase: testing
+    category: adherence
+    description: >
+      When the testing gate fails (tests fail or coverage insufficient),
+      route back to implementation. Do not skip ahead to build or commit.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: phase.on_fail_route
+      metric_args: "testing"
+      operator: eq
+      target: "implementation"
+
+  # ---------------------------------------------------------------------------
+  # BUILD
+  # ---------------------------------------------------------------------------
+  # The workflow demands both dev and release builds after testing but
+  # before committing. LLMs often skip the build step entirely.
+
+  - id: build_dev
+    phase: build
+    category: tool_usage
+    description: >
+      Run cargo build --all-targets --all-features (dev build) after
+      testing. The dev build must succeed before committing.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      transform: count
+      operator: gte
+      target: 1
+      metric_args: "cargo build --all-targets"
+
+  - id: build_release
+    phase: build
+    category: tool_usage
+    description: >
+      Run cargo build --release after testing. The release build must
+      also succeed before committing.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      transform: count
+      operator: gte
+      target: 1
+      metric_args: "cargo build --release"
+
+  - id: build_before_commit
+    phase: build
+    category: adherence
+    description: >
+      Both build targets must complete before committing. Build is a
+      required gate between testing and commit.
+    type: workflow_order
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: strictly_precedes
+      target: tool_call.execute_command
+      metric_args: "cargo build"
+      target_args: "git commit"
+
+  - id: build_fail_routes_to_linting
+    phase: build
+    category: adherence
+    description: >
+      When the build gate fails, route back to linting (not implementation).
+      Build failures may indicate formatting or clippy issues.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: phase.on_fail_route
+      metric_args: "build"
+      operator: eq
+      target: "linting"
+
+  # ---------------------------------------------------------------------------
+  # COMMIT DISCIPLINE
+  # ---------------------------------------------------------------------------
+  # Medium tension: LLMs use "git add ." and generic commit messages.
+
+  - id: no_git_add_dot
+    phase: commit
+    category: tool_usage
+    description: >
+      git add . is forbidden. Stage files selectively (git add -p) so you
+      know exactly what is being committed.
+    type: constraint
+    condition:
+      metric: tool_call.execute_command
+      operator: regex_not_match
+      target: 'git add \.'
+
+  - id: commit_msg_imperative_mood
+    phase: commit
+    category: tool_usage
+    description: >
+      Commit message subject must use imperative mood ("Add feature" not
+      "Added feature").
+    type: constraint
+    condition:
+      metric: git.commit_message.subject
+      operator: imperative_mood
+      target: true
+
+  - id: commit_msg_subject_length
+    phase: commit
+    category: tool_usage
+    description: >
+      Commit message subject line must be 50 characters or less.
+    type: constraint
+    condition:
+      metric: git.commit_message.subject_length
+      operator: lte
+      target: 50
+
+  - id: commit_msg_capitalize_no_period
+    phase: commit
+    category: tool_usage
+    description: >
+      Commit message subject must capitalize first letter and have no
+      period at the end.
+    type: constraint
+    condition:
+      metric: git.commit_message.subject
+      operator: regex_match
+      target: '^[A-Z].*[^.]$'
+
+  - id: commit_msg_no_type_prefix
+    phase: commit
+    category: tool_usage
+    description: >
+      No type prefixes in commit messages (no "feat:", "fix:", "chore:",
+      etc.). Just describe the change directly.
+    type: constraint
+    condition:
+      metric: git.commit_message.subject
+      operator: regex_not_match
+      target: '^(feat|fix|chore|refactor|docs|style|test|ci|perf|build)(\(.+\))?:'
+
+  - id: commit_msg_body_format
+    phase: commit
+    category: tool_usage
+    description: >
+      Blank line between subject and body. Body wraps at 72 characters.
+      Commit message explains WHY, not just WHAT.
+    type: constraint
+    condition:
+      metric: git.commit_message.body_format
+      operator: valid_format
+      target: true
+
+  # ---------------------------------------------------------------------------
+  # POST-COMMIT VERIFICATION
+  # ---------------------------------------------------------------------------
+  # After committing, re-run tests and build to confirm nothing broke.
+  # The workflow then loops back to specification for the next change.
+
+  - id: test_after_commit
+    phase: post_commit
+    category: adherence
+    description: >
+      Re-run the test suite after committing to confirm the committed
+      state is clean.
+    type: sequential_step
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_after
+      target: tool_call.execute_command
+      metric_args: "cargo test"
+      target_args: "git commit"
+
+  - id: build_after_commit
+    phase: post_commit
+    category: adherence
+    description: >
+      Re-run cargo build after committing to confirm the committed
+      state compiles.
+    type: sequential_step
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: tool_call.execute_command
+      operator: exists_after
+      target: tool_call.execute_command
+      metric_args: "cargo build"
+      target_args: "git commit"
+
+  - id: post_commit_loops_to_specification
+    phase: post_commit
+    category: adherence
+    description: >
+      After successful post-commit verification, loop back to specification
+      for the next change. The workflow is cyclical — each commit starts
+      a new TDD cycle.
+    type: constraint
+    prompt_condition: explicit_edit_requested
+    condition:
+      metric: phase.on_pass_route
+      metric_args: "post_commit"
+      operator: eq
+      target: "tdd_specify"
+
+  # ---------------------------------------------------------------------------
+  # FAILURE RECOVERY (floating)
+  # ---------------------------------------------------------------------------
+  # When a gate fails, the workflow routes back to implementation.
+  # Tests whether the LLM actually fixes and re-runs vs. continuing.
+
+  - id: rerun_after_fix
+    phase: failure_recovery
+    category: tool_usage
+    description: After fixing a failure, re-run the command to confirm the fix.
+    type: constraint
+    condition:
+      metric: tool_call.file_edit
+      operator: followed_by
+      target: tool_call.execute_command

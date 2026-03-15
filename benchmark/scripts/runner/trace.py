@@ -39,6 +39,7 @@ class ToolCall:
     name: str           # e.g. "Bash", "Read", "Write", "Edit", "Grep", "Glob"
     input: dict
     event_index: int    # index of the parent TraceEvent in the trace
+    call_index: int = 0  # unique sequential index across all tool calls in the trace
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,17 @@ class Trace:
 
     session_id: str
     events: list[TraceEvent]
+    workspace_path: Optional[str] = None  # cwd from the init event
+    # Pre-merge raw event lookup by tool_use_id
+    raw_tool_use_events: dict[str, dict] = field(default_factory=dict)
+    raw_tool_result_events: dict[str, dict] = field(default_factory=dict)
+
+    def raw_event_pair(self, tc: ToolCall) -> dict:
+        """Get the raw stream.json objects for a tool call and its result."""
+        return {
+            "tool_use_event": self.raw_tool_use_events.get(tc.tool_use_id),
+            "tool_result_event": self.raw_tool_result_events.get(tc.tool_use_id),
+        }
 
     # ------------------------------------------------------------------
     # Tool call queries
@@ -213,6 +225,248 @@ class Trace:
         """Number of distinct assistant messages that contained tool calls."""
         return sum(1 for ev in self.events if ev.is_tool_use)
 
+    # ------------------------------------------------------------------
+    # Tool result access
+    # ------------------------------------------------------------------
+
+    def result_for_tool_call(self, tc: ToolCall) -> Optional[ToolResult]:
+        """Find the ToolResult corresponding to a ToolCall by matching tool_use_id."""
+        for ev in self.events:
+            for tr in ev.tool_results:
+                if tr.tool_use_id == tc.tool_use_id:
+                    return tr
+        return None
+
+    def all_tool_results(self) -> list[ToolResult]:
+        """All tool results in trace order."""
+        return [tr for ev in self.events for tr in ev.tool_results]
+
+    # ------------------------------------------------------------------
+    # Bash outcome analysis
+    # ------------------------------------------------------------------
+
+    def bash_exit_code(self, tc: ToolCall) -> Optional[int]:
+        """
+        Extract exit code from a Bash tool call's result.
+
+        Looks for patterns in the result content that indicate exit codes.
+        Common patterns in Claude Code output:
+        - Result content contains stdout/stderr; non-zero exit indicated by error markers
+        - The tool_result block may have is_error flag
+        """
+        result = self.result_for_tool_call(tc)
+        if result is None:
+            return None
+        content = result.content
+        # Look for explicit exit code patterns
+        import re
+        # Pattern: "Exit code: N" or "exit code N" at end of output
+        m = re.search(r'[Ee]xit\s+code[:\s]+(\d+)', content)
+        if m:
+            return int(m.group(1))
+        # Pattern: tool result indicates error (common in Claude Code)
+        # Check the raw event data for is_error flag
+        for ev in self.events:
+            for tr_raw in ev.raw.get('message', {}).get('content', []):
+                if isinstance(tr_raw, dict) and tr_raw.get('type') == 'tool_result':
+                    if tr_raw.get('tool_use_id') == tc.tool_use_id:
+                        if tr_raw.get('is_error'):
+                            return 1  # Non-zero exit
+        # If no error indicators found, assume success
+        if content.strip():
+            return 0
+        return None
+
+    def bash_commands_with_results(self) -> list[dict]:
+        """All Bash commands with their results, exit codes, and success status."""
+        results = []
+        for tc in self.all_tool_calls("Bash"):
+            cmd = tc.input.get("command", "")
+            tr = self.result_for_tool_call(tc)
+            output = tr.content if tr else ""
+            exit_code = self.bash_exit_code(tc)
+            results.append({
+                'command': cmd,
+                'output': output,
+                'exit_code': exit_code,
+                'event_index': tc.event_index,
+                'tool_call': tc,
+                'succeeded': exit_code == 0 if exit_code is not None else None,
+            })
+        return results
+
+    # ------------------------------------------------------------------
+    # Command output parsing
+    # ------------------------------------------------------------------
+
+    def cargo_test_results(self) -> list[dict]:
+        """Parse all cargo test invocations and outcomes."""
+        import re
+        results = []
+        for info in self.bash_commands_with_results():
+            if 'cargo test' not in info['command']:
+                continue
+            output = info['output']
+            passed = None
+            test_count = None
+            failed_count = None
+            # Parse: "test result: ok. N passed; M failed; K ignored"
+            m = re.search(r'test result:\s*(ok|FAILED)\.\s*(\d+)\s*passed;\s*(\d+)\s*failed', output)
+            if m:
+                passed = m.group(1) == 'ok'
+                test_count = int(m.group(2))
+                failed_count = int(m.group(3))
+            else:
+                # Fallback: check exit code
+                if info['exit_code'] is not None:
+                    passed = info['exit_code'] == 0
+            results.append({
+                'command': info['command'],
+                'event_index': info['event_index'],
+                'passed': passed,
+                'test_count': test_count,
+                'failed_count': failed_count,
+                'output': output,
+            })
+        return results
+
+    def cargo_clippy_results(self) -> list[dict]:
+        """Parse all cargo clippy invocations and outcomes."""
+        import re
+        results = []
+        for info in self.bash_commands_with_results():
+            if 'cargo clippy' not in info['command']:
+                continue
+            output = info['output']
+            has_warnings = None
+            warning_count = None
+            # Look for "warning:" lines
+            warnings = re.findall(r'^warning:', output, re.MULTILINE)
+            if warnings:
+                has_warnings = True
+                warning_count = len(warnings)
+            elif info['exit_code'] is not None:
+                has_warnings = info['exit_code'] != 0
+                if not has_warnings:
+                    warning_count = 0
+            results.append({
+                'command': info['command'],
+                'event_index': info['event_index'],
+                'has_warnings': has_warnings,
+                'warning_count': warning_count,
+                'output': output,
+            })
+        return results
+
+    def cargo_build_results(self) -> list[dict]:
+        """Parse all cargo build invocations and outcomes."""
+        results = []
+        for info in self.bash_commands_with_results():
+            if 'cargo build' not in info['command']:
+                continue
+            results.append({
+                'command': info['command'],
+                'event_index': info['event_index'],
+                'succeeded': info['succeeded'],
+                'output': info['output'],
+            })
+        return results
+
+    def cargo_llvm_cov_results(self) -> list[dict]:
+        """Parse all cargo llvm-cov invocations and outcomes."""
+        import re
+        results = []
+        for info in self.bash_commands_with_results():
+            if 'cargo llvm-cov' not in info['command'] and 'llvm-cov' not in info['command']:
+                continue
+            output = info['output']
+            coverage_pct = None
+            # Look for coverage percentage patterns
+            # Common: "XX.XX%" or "Total: XX.XX%"
+            m = re.search(r'(\d+\.?\d*)\s*%', output)
+            if m:
+                coverage_pct = float(m.group(1))
+            results.append({
+                'command': info['command'],
+                'event_index': info['event_index'],
+                'coverage_percentage': coverage_pct,
+                'output': output,
+            })
+        return results
+
+    def git_commit_messages(self) -> list[dict]:
+        """Extract git commit messages from the trace."""
+        import re
+        import shlex
+        results = []
+        for tc in self.all_tool_calls("Bash"):
+            cmd = tc.input.get("command", "")
+            if 'git commit' not in cmd:
+                continue
+            subject = None
+            body = None
+            full_message = None
+            # Check heredoc patterns FIRST — the simple quoted regex would
+            # incorrectly match the opening `"$(cat <<'EOF'` as a quoted
+            # string, capturing `$(cat <<` as the commit message.
+            m = re.search(r"git\s+commit\s+.*-m\s+\"\$\(cat\s+<<'?EOF'?\n(.+?)\nEOF", cmd, re.DOTALL)
+            if m:
+                full_message = m.group(1).strip()
+            # Extract from -m flag (simple quoted message)
+            if full_message is None:
+                m = re.search(r'git\s+commit\s+.*-m\s+["\'](.+?)["\']', cmd, re.DOTALL)
+                if m:
+                    full_message = m.group(1)
+                elif '-m' in cmd:
+                    # Try shell parsing
+                    try:
+                        parts = shlex.split(cmd)
+                        for i, p in enumerate(parts):
+                            if p == '-m' and i + 1 < len(parts):
+                                full_message = parts[i + 1]
+                                break
+                    except ValueError:
+                        pass
+            if full_message:
+                lines = full_message.split('\n')
+                subject = lines[0].strip()
+                if len(lines) > 2 and lines[1].strip() == '':
+                    body = '\n'.join(lines[2:])
+                elif len(lines) > 1:
+                    body = '\n'.join(lines[1:])
+                results.append({
+                    'subject': subject,
+                    'body': body,
+                    'full_message': full_message,
+                    'event_index': tc.event_index,
+                })
+        return results
+
+    def command_failed_at(self, pattern: str) -> list[int]:
+        """Event indices where a command matching pattern had non-zero exit."""
+        failed = []
+        for info in self.bash_commands_with_results():
+            if pattern in info['command'] and info['exit_code'] and info['exit_code'] != 0:
+                failed.append(info['event_index'])
+        return failed
+
+    def file_modifications_after_event(self, after_index: int) -> list[dict]:
+        """All Write/Edit calls after a given event index."""
+        mods = []
+        for ev in self.events:
+            if ev.index <= after_index:
+                continue
+            for tc in ev.tool_calls:
+                if tc.name in ("Write", "Edit"):
+                    path = tc.input.get("file_path", "")
+                    if path:
+                        mods.append({
+                            'path': path,
+                            'tool': tc.name,
+                            'event_index': ev.index,
+                        })
+        return mods
+
 
 # ---------------------------------------------------------------------------
 # Event merging (stream-json produces one line per content block)
@@ -276,18 +530,21 @@ def _merge_consecutive_events(events: list[TraceEvent]) -> list[TraceEvent]:
     if current is not None:
         merged.append(current)
 
-    # Re-index and rebuild frozen children with correct event_index
+    # Re-index and rebuild frozen children with correct event_index and call_index
+    call_counter = 0
     for new_idx, ev in enumerate(merged):
         ev.index = new_idx
-        ev.tool_calls = [
-            ToolCall(
+        new_calls = []
+        for tc in ev.tool_calls:
+            new_calls.append(ToolCall(
                 tool_use_id=tc.tool_use_id,
                 name=tc.name,
                 input=tc.input,
                 event_index=new_idx,
-            )
-            for tc in ev.tool_calls
-        ]
+                call_index=call_counter,
+            ))
+            call_counter += 1
+        ev.tool_calls = new_calls
         ev.tool_results = [
             ToolResult(
                 tool_use_id=tr.tool_use_id,
@@ -318,6 +575,7 @@ def load_trace(path: Path) -> Trace:
     raw_lines = path.read_text(encoding="utf-8").strip().splitlines()
     events = []
     session_id = ""
+    workspace_path = None
 
     for line in raw_lines:
         if not line.strip():
@@ -326,6 +584,10 @@ def load_trace(path: Path) -> Trace:
 
         if obj.get("type") == "queue-operation":
             continue
+
+        # Extract workspace path from the init event
+        if obj.get("type") == "system" and obj.get("subtype") == "init":
+            workspace_path = obj.get("cwd")
 
         if not session_id:
             session_id = obj.get("sessionId", "")
@@ -336,8 +598,13 @@ def load_trace(path: Path) -> Trace:
     if not events:
         raise ValueError(f"No message events found in {path}")
 
+    raw_tool_use_events, raw_tool_result_events = _build_raw_event_maps(events)
     events = _merge_consecutive_events(events)
-    return Trace(session_id=session_id, events=events)
+    return Trace(
+        session_id=session_id, events=events, workspace_path=workspace_path,
+        raw_tool_use_events=raw_tool_use_events,
+        raw_tool_result_events=raw_tool_result_events,
+    )
 
 
 def parse_trace_jsonl(text: str) -> Trace:
@@ -352,6 +619,7 @@ def parse_trace_jsonl(text: str) -> Trace:
     """
     events: list[TraceEvent] = []
     session_id = ""
+    workspace_path = None
 
     for line in text.strip().splitlines():
         line = line.strip()
@@ -366,6 +634,10 @@ def parse_trace_jsonl(text: str) -> Trace:
         if obj.get("type") == "queue-operation":
             continue
 
+        # Extract workspace path from the init event
+        if obj.get("type") == "system" and obj.get("subtype") == "init":
+            workspace_path = obj.get("cwd")
+
         if not session_id:
             session_id = obj.get("sessionId", "") or obj.get("session_id", "")
 
@@ -377,8 +649,13 @@ def parse_trace_jsonl(text: str) -> Trace:
     if not events:
         raise ValueError("No message events found in provided text")
 
+    raw_tool_use_events, raw_tool_result_events = _build_raw_event_maps(events)
     events = _merge_consecutive_events(events)
-    return Trace(session_id=session_id, events=events)
+    return Trace(
+        session_id=session_id, events=events, workspace_path=workspace_path,
+        raw_tool_use_events=raw_tool_use_events,
+        raw_tool_result_events=raw_tool_result_events,
+    )
 
 
 def load_trace_from_string(jsonl: str) -> Trace:
@@ -391,6 +668,30 @@ def load_trace_from_string(jsonl: str) -> Trace:
         return load_trace(tmp_path)
     finally:
         tmp_path.unlink()
+
+
+def _build_raw_event_maps(
+    events: list[TraceEvent],
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """Build tool_use_id → raw event dicts from pre-merge events.
+
+    Must be called *before* ``_merge_consecutive_events`` so that every raw
+    event is still associated with its original TraceEvent.
+    """
+    raw_tool_use_events: dict[str, dict] = {}
+    raw_tool_result_events: dict[str, dict] = {}
+    for ev in events:
+        for block in ev.raw.get("message", {}).get("content", []):
+            if isinstance(block, dict):
+                if block.get("type") == "tool_use":
+                    tid = block.get("id", "")
+                    if tid:
+                        raw_tool_use_events[tid] = ev.raw
+                elif block.get("type") == "tool_result":
+                    tid = block.get("tool_use_id", "")
+                    if tid:
+                        raw_tool_result_events[tid] = ev.raw
+    return raw_tool_use_events, raw_tool_result_events
 
 
 def _parse_event(obj: dict, index: int) -> TraceEvent:

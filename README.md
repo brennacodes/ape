@@ -1,8 +1,8 @@
 # APE
 
-**Agentic Process Engine** — an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
+**Applied Primitive Execution** — an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
 
-APE files are self-contained. The document declares who does what, what tools to use, when to stop and wait, and what to do on success or failure. Hand it to an agent; it runs.
+APE files are self-contained. The document declares what tools to use, when to stop and wait, and what to do on success or failure. Hand it to an agent; it runs.
 
 ## Why
 
@@ -11,17 +11,18 @@ LLM workflows today live in system prompts, scattered markdown files, or code th
 - **Portable.** An `.ape` file works with any agent that can read XML and call tools.
 - **Inspectable.** The workflow is the document. No hidden state, no prompt engineering tricks.
 - **Enforceable.** Gates, prerequisites, and failure handlers are structural, not suggestions.
-- **Authorable.** Tags say what they mean. Two primitives: things you *do* (`<command>`) and things you *need* (`<resource>`). Everything else is flow control and metadata.
+- **Authorable.** Tags say what they mean. Three categories: things you *do* (`<action>`, `<command>`), things you *know/need* (`<resource>`, `<var>`), and how to *navigate* (`<step>`, `<gate>`). Prose and structure are strictly separated.
 
 ## Project Structure
 
 ```
 spec/
-  ape-spec.md        Full language specification
-  ape-llms.md        LLM execution contract (include when an agent runs a workflow)
-  ape-authoring.md   Guide for writing APE workflows
+  ape-spec.md          Full language specification
+  ape-llms.md          LLM execution contract (include when an agent runs a workflow)
+  ape-authoring.md     Guide for writing APE workflows
+  ape-conversions.md   Guide for converting existing documents into APE
 schema/
-  ape.xsd            XML Schema (validates shape; semantics are validator-enforced)
+  ape.xsd              XML Schema (validates shape; semantics are validator-enforced)
 ```
 
 ## Using APE
@@ -34,7 +35,7 @@ schema/
 
 ## Spec Version
 
-**0.2.2-draft** — APE is under active development. The schema namespace is pinned to the major version (`https://ape-lang.dev/schema/2`); minor versions are expected to be broadly compatible.
+**0.3.0** — APE is under active development. The schema namespace is pinned to the major version (`https://ape-lang.dev/schema/0`); minor versions are expected to be broadly compatible.
 
 ## Benchmarks
 
@@ -67,7 +68,7 @@ You can narrow the case matrix by combining dimension filters:
 
 | Filter | Example | Description |
 |--------|---------|-------------|
-| `--app` | `--app claude-bot` | Filter by app/fixture name |
+| `--app` | `--app bivvy` | Filter by app/fixture name |
 | `--workflow` | `--workflow centminmod` | Filter by workflow stem |
 | `--format-filter` | `--format-filter plain-text` | Filter by workflow format |
 | `--category` | `--category bugs` | Filter by prompt category |
@@ -75,10 +76,10 @@ You can narrow the case matrix by combining dimension filters:
 
 ```bash
 # Run a single fixture
-python3 benchmark/run_benchmark.py --app claude-bot
+python3 benchmark/run_benchmark.py --app bivvy
 
 # Preview what matches before running
-python3 benchmark/run_benchmark.py --app claude-bot --format-filter plain-text --dry-run
+python3 benchmark/run_benchmark.py --app bivvy --format-filter plain-text --dry-run
 ```
 
 ## License
