@@ -81,7 +81,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--results-dir", type=Path, default=Path(_HERE) / "output",
         help="Directory for structured result storage.",
     )
-    parser.add_argument("--timeout", type=float, default=30, help="Per-case timeout in minutes (default: 30).")
+    parser.add_argument("--timeout", type=float, default=45, help="Per-case timeout in minutes (default: 45).")
     parser.add_argument("--max-turns", type=int, default=None, help="Max CLI turns.")
     parser.add_argument("--dry-run", action="store_true", help="Show cases without executing.")
     parser.add_argument("--workers", type=int, default=4, help="Parallel workers (1=sequential).")
