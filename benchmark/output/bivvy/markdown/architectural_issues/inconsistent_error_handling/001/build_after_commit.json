@@ -1,0 +1,820 @@
+{
+  "check_id": "build_after_commit",
+  "phase": "post-commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: no B indices to follow. 'cargo build' (Bash) occurred after 'git commit' (Bash)",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "exists_after",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2486320.675266208,
+      "check_id": "build_after_commit",
+      "phase": "post-commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "exists_after",
+        "target": "tool_call.execute_command",
+        "metric_args": "cargo build",
+        "target_args": "git commit"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2486320.675280791,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01TFY3j6vneNK1qXuwPKvxbC",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 2512,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 2512,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 4,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "009be6ea-3639-4b2e-ae17-d2bca8122f71"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "86d652b9-1c79-4df2-8198-ceda2e98f396"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01G8Hrk7iqJaYmnXUiCm13mu",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 1263,
+                "cache_read_input_tokens": 23827,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1263,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "87c87c7c-bf02-4cbf-8118-d0a8ed216a94"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/version.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "dc6f386f-97eb-4b91-b0de-cb1fcca64262"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_017e2uw4PM4Ak2b5vMiGV3n1",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 4,
+                "cache_creation_input_tokens": 1841,
+                "cache_read_input_tokens": 83991,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1841,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "ff7ba30f-bd34-4054-aca6-c6487fd382b3"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                  "type": "tool_result",
+                  "content": "     140",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "ecc3032c-0145-4b0b-b591-1ca4ab853099"
+          }
+        }
+      ],
+      "result_indices": [
+        1,
+        2,
+        42
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2486320.675290125,
+      "tool_name": "Bash",
+      "substring": "cargo build",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_01TFY3j6vneNK1qXuwPKvxbC",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 2512,
+                  "cache_read_input_tokens": 21315,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 2512,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 4,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "009be6ea-3639-4b2e-ae17-d2bca8122f71"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "86d652b9-1c79-4df2-8198-ceda2e98f396"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_01G8Hrk7iqJaYmnXUiCm13mu",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 5,
+                  "cache_creation_input_tokens": 1263,
+                  "cache_read_input_tokens": 23827,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 1263,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "87c87c7c-bf02-4cbf-8118-d0a8ed216a94"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/version.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "dc6f386f-97eb-4b91-b0de-cb1fcca64262"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_017e2uw4PM4Ak2b5vMiGV3n1",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 4,
+                  "cache_creation_input_tokens": 1841,
+                  "cache_read_input_tokens": 83991,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 1841,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "ff7ba30f-bd34-4054-aca6-c6487fd382b3"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                    "type": "tool_result",
+                    "content": "     140",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "ecc3032c-0145-4b0b-b591-1ca4ab853099"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2486320.675304958,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01TFY3j6vneNK1qXuwPKvxbC",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 2512,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 2512,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 4,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "009be6ea-3639-4b2e-ae17-d2bca8122f71"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "86d652b9-1c79-4df2-8198-ceda2e98f396"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01G8Hrk7iqJaYmnXUiCm13mu",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 1263,
+                "cache_read_input_tokens": 23827,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1263,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "87c87c7c-bf02-4cbf-8118-d0a8ed216a94"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/version.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "dc6f386f-97eb-4b91-b0de-cb1fcca64262"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_017e2uw4PM4Ak2b5vMiGV3n1",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 4,
+                "cache_creation_input_tokens": 1841,
+                "cache_read_input_tokens": 83991,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1841,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "ff7ba30f-bd34-4054-aca6-c6487fd382b3"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                  "type": "tool_result",
+                  "content": "     140",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+            "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+            "uuid": "ecc3032c-0145-4b0b-b591-1ca4ab853099"
+          }
+        }
+      ],
+      "result_indices": [
+        1,
+        2,
+        42
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2486320.675314333,
+      "tool_name": "Bash",
+      "substring": "git commit",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_01TFY3j6vneNK1qXuwPKvxbC",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 2512,
+                  "cache_read_input_tokens": 21315,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 2512,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 4,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "009be6ea-3639-4b2e-ae17-d2bca8122f71"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01TTkTxW3UcekvBDqsnhmdgG",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "86d652b9-1c79-4df2-8198-ceda2e98f396"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_01G8Hrk7iqJaYmnXUiCm13mu",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 5,
+                  "cache_creation_input_tokens": 1263,
+                  "cache_read_input_tokens": 23827,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 1263,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "87c87c7c-bf02-4cbf-8118-d0a8ed216a94"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01L8Hj7BporQpehbVuDRLZtU",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src/updates/version.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/tests/steps_api_test.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "dc6f386f-97eb-4b91-b0de-cb1fcca64262"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-haiku-4-5-20251001",
+                "id": "msg_017e2uw4PM4Ak2b5vMiGV3n1",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 4,
+                  "cache_creation_input_tokens": 1841,
+                  "cache_read_input_tokens": 83991,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 1841,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "ff7ba30f-bd34-4054-aca6-c6487fd382b3"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_016wnHZA1N7SLohhvDusSw4W",
+                    "type": "tool_result",
+                    "content": "     140",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": "toolu_01LVUgEWjEQsevRNjsvd6VtH",
+              "session_id": "032c32f9-e563-4312-9536-8254e88dd164",
+              "uuid": "ecc3032c-0145-4b0b-b591-1ca4ab853099"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2486320.675317791,
+      "operator": "exists_after",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "no B indices to follow"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2486320.675320083,
+      "passed": true,
+      "detail": "VACUOUS PASS: no B indices to follow. 'cargo build' (Bash) occurred after 'git commit' (Bash)"
+    }
+  ]
+}

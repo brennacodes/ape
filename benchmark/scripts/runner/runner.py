@@ -78,6 +78,59 @@ from environment import BenchmarkEnvironment, SetupSnapshot  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
+# Version tracking helpers
+# ---------------------------------------------------------------------------
+
+def _compute_workflow_hash(workflow_path: Path) -> str:
+    """Compute a SHA-256 content hash of the workflow file.
+
+    Returns the first 12 hex characters (short hash) for readability,
+    or empty string if the file cannot be read.
+    """
+    import hashlib
+    try:
+        content = workflow_path.read_bytes()
+        return hashlib.sha256(content).hexdigest()[:12]
+    except (OSError, IOError):
+        return ""
+
+
+def _extract_ape_version(workflow_path: Path, benchmark_root: Path | None = None) -> str:
+    """Extract the APE spec version relevant to this workflow.
+
+    For APE-format workflows, reads the version attribute from the
+    ``<ape version="...">`` root element.  For other formats, reads
+    the version from the APE spec file (spec/ape-spec.md).
+
+    Returns an empty string if no version can be determined.
+    """
+    import re as _re
+
+    # For APE-format files, try the XML attribute first
+    if workflow_path.suffix == ".ape":
+        try:
+            content = workflow_path.read_text(encoding="utf-8")
+            m = _re.search(r'<ape\s[^>]*version="([^"]+)"', content)
+            if m:
+                return m.group(1)
+        except (OSError, IOError):
+            pass
+
+    # Fall back to spec/ape-spec.md
+    if benchmark_root is not None:
+        spec_path = benchmark_root.parent / "spec" / "ape-spec.md"
+        try:
+            for line in spec_path.open(encoding="utf-8"):
+                m = _re.match(r'\*\*Version:\*\*\s*(.+)', line.strip())
+                if m:
+                    return m.group(1).strip()
+        except (OSError, IOError):
+            pass
+
+    return ""
+
+
+# ---------------------------------------------------------------------------
 # Types
 # ---------------------------------------------------------------------------
 
@@ -100,6 +153,9 @@ class CaseResult:
     eval_variables: dict = field(default_factory=dict)
     started_at: str = ""
     stream_path: Optional[Path] = None
+    # Version tracking
+    ape_version: str = ""
+    workflow_hash: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -376,6 +432,8 @@ def _run_in_workspace(
     max_turns: int | None,
     on_output: Any = None,
     on_state: Any = None,
+    ape_version: str = "",
+    workflow_hash: str = "",
 ) -> CaseResult:
     """Execute a test case inside an already-created workspace.
 
@@ -451,10 +509,10 @@ def _run_in_workspace(
         result = executor(command, timeout, **kwargs)
     except subprocess.TimeoutExpired:
         logger.warning("CLI timeout for %s after %ds", case.case_id, timeout)
-        return CaseResult(case=case, summary=None, trace_path=None, error="CLI timeout", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file)
+        return CaseResult(case=case, summary=None, trace_path=None, error="CLI timeout", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file, ape_version=ape_version, workflow_hash=workflow_hash)
     except Exception as exc:
         logger.warning("CLI error for %s: %s", case.case_id, exc)
-        return CaseResult(case=case, summary=None, trace_path=None, error=f"CLI error: {exc}", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file)
+        return CaseResult(case=case, summary=None, trace_path=None, error=f"CLI error: {exc}", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file, ape_version=ape_version, workflow_hash=workflow_hash)
     finally:
         wall_clock_ns = time.perf_counter_ns() - t0
 
@@ -519,6 +577,8 @@ def _run_in_workspace(
             prompt_text=full_prompt,
             started_at=started_at,
             stream_path=stream_file,
+            ape_version=ape_version,
+            workflow_hash=workflow_hash,
         )
 
     # 6. Parse trace — try stdout first, then session file in workspace
@@ -555,6 +615,8 @@ def _run_in_workspace(
                 prompt_text=full_prompt,
                 started_at=started_at,
                 stream_path=stream_file,
+                ape_version=ape_version,
+                workflow_hash=workflow_hash,
             )
 
         if trace_path.stat().st_mtime < cli_start:
@@ -573,6 +635,8 @@ def _run_in_workspace(
                 prompt_text=full_prompt,
                 started_at=started_at,
                 stream_path=stream_file,
+                ape_version=ape_version,
+                workflow_hash=workflow_hash,
             )
 
     # 7. Evaluate
@@ -596,6 +660,8 @@ def _run_in_workspace(
             eval_variables=eval_variables,
             started_at=started_at,
             stream_path=stream_file,
+            ape_version=ape_version,
+            workflow_hash=workflow_hash,
         )
 
     # 8. Summarize
@@ -627,6 +693,8 @@ def _run_in_workspace(
         eval_variables=eval_variables,
         started_at=started_at,
         stream_path=stream_file,
+        ape_version=ape_version,
+        workflow_hash=workflow_hash,
     )
 
 
@@ -699,6 +767,10 @@ def run_case(
         app_config_variables=app_config_variables,
     )
 
+    # 1b. Compute version tracking info
+    ape_version = _extract_ape_version(case.workflow.path, benchmark_root=case.test_config.path.parent.parent)
+    workflow_hash = _compute_workflow_hash(case.workflow.path)
+
     # 2. Set up isolated workspace
     try:
         workspace_path = env.setup(
@@ -709,7 +781,7 @@ def run_case(
             case_id=case.case_id,
         )
     except Exception as exc:
-        return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}")
+        return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}", ape_version=ape_version, workflow_hash=workflow_hash)
 
     # Wrap entire workspace lifecycle in try/finally so teardown is
     # guaranteed even on unexpected exceptions.
@@ -722,6 +794,8 @@ def run_case(
             prompt_text, checks, context, model, timeout, max_turns,
             on_output=on_output,
             on_state=on_state,
+            ape_version=ape_version,
+            workflow_hash=workflow_hash,
         )
     finally:
         env.teardown(workspace_path)

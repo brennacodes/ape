@@ -1,0 +1,50 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2486320.675125458,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2486320.675140625,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2486320.675147791,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9 -type f -name \"*.rs\" | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-mm8l6wd9/src -type f -name \"*.rs\" | wc -l'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

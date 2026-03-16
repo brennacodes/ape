@@ -425,6 +425,8 @@ def _save_result(
             eval_variables=result.eval_variables,
             started_at=started_at,
             completed_at=completed_at,
+            ape_version=result.ape_version,
+            workflow_hash=result.workflow_hash,
         )
     else:
         # Error case — no summary but still capture everything we have.
@@ -446,6 +448,8 @@ def _save_result(
             eval_variables=result.eval_variables,
             started_at=started_at,
             completed_at=completed_at,
+            ape_version=result.ape_version,
+            workflow_hash=result.workflow_hash,
         )
 
     recorder.save_run(record, stream_path=result.stream_path, raw_output=result.raw_output)

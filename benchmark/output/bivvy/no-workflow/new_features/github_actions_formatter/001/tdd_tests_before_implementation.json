@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "new_features",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2490135.300419666,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2490135.300445708,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01DzmqgVtnrmrhQDu1aZEJsj",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                    "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 939,
+                "cache_read_input_tokens": 58983,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 939
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+            "uuid": "8a477e2a-e7a9-4ad5-b99c-2b3bce72e2bf"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/keen-hugging-liskov.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+            "uuid": "dbdb226b-ebd1-4a49-a3a0-f73248eb3eb4",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+              "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        45
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2490135.300474541,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01DzmqgVtnrmrhQDu1aZEJsj",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                      "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 939,
+                  "cache_read_input_tokens": 58983,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 939
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+              "uuid": "8a477e2a-e7a9-4ad5-b99c-2b3bce72e2bf"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/keen-hugging-liskov.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+              "uuid": "dbdb226b-ebd1-4a49-a3a0-f73248eb3eb4",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2490135.300495541,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01DzmqgVtnrmrhQDu1aZEJsj",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                    "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 939,
+                "cache_read_input_tokens": 58983,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 939
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+            "uuid": "8a477e2a-e7a9-4ad5-b99c-2b3bce72e2bf"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/keen-hugging-liskov.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+            "uuid": "dbdb226b-ebd1-4a49-a3a0-f73248eb3eb4",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+              "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        45
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2490135.300507041,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01DzmqgVtnrmrhQDu1aZEJsj",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                      "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 939,
+                  "cache_read_input_tokens": 58983,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 939
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+              "uuid": "8a477e2a-e7a9-4ad5-b99c-2b3bce72e2bf"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01PY9KQJUByjMcNfsJobS1Kf",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/keen-hugging-liskov.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "855e1d19-ea93-4752-9273-d2671a576d3e",
+              "uuid": "dbdb226b-ebd1-4a49-a3a0-f73248eb3eb4",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+                "content": "# Plan: GitHub Actions Output Formatter\n\n## Context\n\nBivvy's `lint` command supports three output formats: `human`, `json`, and `sarif`. CI users running `bivvy lint` in GitHub Actions don't get native annotations in their PR diffs. Adding a `github-actions` output format that emits `::error::`, `::warning::`, and `::notice::` workflow commands will surface lint diagnostics directly in the GitHub Actions UI and PR file annotations.\n\n## Changes\n\n### 1. New formatter: `src/lint/output/github_actions.rs`\n\nCreate `GithubActionsFormatter` implementing `LintFormatter`. For each diagnostic, emit one line in the format:\n\n```\n::error file={file},line={line},col={col},title={rule_id}::{message}\n::warning file={file},line={col},col={col},title={rule_id}::{message}\n::notice file={file},line={line},col={col},title={rule_id}::{message}\n```\n\nSeverity mapping: `Error` \u2192 `error`, `Warning` \u2192 `warning`, `Hint` \u2192 `notice`.\n\nFile/line/col parameters are omitted when the diagnostic has no span. Include a summary line at the end (as a `::notice`) with error/warning counts.\n\nFollow the existing formatter pattern (see `src/lint/output/human.rs` as the closest analog). Include unit tests matching the style of the other formatters.\n\n### 2. Register the formatter in `src/lint/output/mod.rs`\n\n- Add `pub mod github_actions;`\n- Add `GithubActions` variant to `OutputFormat` enum\n- Add `pub use github_actions::GithubActionsFormatter;` re-export\n\n### 3. Wire up in `src/lint/mod.rs`\n\nAdd `GithubActionsFormatter` to the re-export list alongside the other formatters.\n\n### 4. Update CLI format selection in `src/cli/commands/lint.rs`\n\n- Import `GithubActionsFormatter`\n- Add `\"github-actions\"` match arm in `format_output()` that creates and uses the new formatter\n- In `execute()`, treat `\"github-actions\"` like JSON/SARIF (output as-is, not line-by-line)\n\n### 5. Update CLI help text in `src/cli/args.rs`\n\nChange the `LintArgs.format` doc comment from `\"human, json, sarif\"` to `\"human, json, sarif, github-actions\"`.\n\n## Files to modify\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github_actions.rs` | **Create** \u2014 new formatter |\n| `src/lint/output/mod.rs` | Edit \u2014 add module, enum variant, re-export |\n| `src/lint/mod.rs` | Edit \u2014 add re-export |\n| `src/cli/commands/lint.rs` | Edit \u2014 add format arm + import |\n| `src/cli/args.rs` | Edit \u2014 update help text |\n\n## Verification\n\n1. `cargo build` \u2014 compiles without errors\n2. `cargo test` \u2014 all existing tests pass, new unit tests pass\n3. Manual: `cargo run -- lint --format github-actions` on a project with lint issues should produce `::error::` / `::warning::` lines\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/keen-hugging-liskov.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2490135.300510458,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2490135.300520125,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}

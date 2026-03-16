@@ -1,0 +1,54 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7 -type f | head -30', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7/src/ui/tui -type f', 'python3 -c \"\\nimport re, sys\\n\\nfor filepath in sys.stdin.read().strip().split(\\'\\\\n\\'):\\n    with open(filepath) as f:\\n        content = f.read()\\n    \\n    # Remove test modules  \\n    # Find #[cfg(test)] blocks and remove them\\n    lines = content.split(\\'\\\\n\\')\\n    in_test = False\\n    test_depth = 0\\n    non_test_lines = []\\n    \\n    for i, line in enumerate(lines):\\n        if \\'#[cfg(test)]\\' in line:\\n            in_test = True\\n            test_depth = 0\\n            continue\\n        if in_test:\\n            test_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n            if test_depth < 0:\\n                in_test = False\\n            continue\\n        non_test_lines.append((i+1, line))\\n    \\n    for lineno, line in non_test_lines:\\n        if \\'.unwrap()\\' in line and \\'unwrap_or\\' not in line and \\'unwrap_err\\' not in line:\\n            print(f\\'{filepath}:{lineno}: {line.strip()}\\')\\n\" < <(find src -name \\'*.rs\\' -type f)\\n', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7 -type f | head -30",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7/src/ui/tui -type f",
+    "python3 -c \"\nimport re, sys\n\nfor filepath in sys.stdin.read().strip().split('\\n'):\n    with open(filepath) as f:\n        content = f.read()\n    \n    # Remove test modules  \n    # Find #[cfg(test)] blocks and remove them\n    lines = content.split('\\n')\n    in_test = False\n    test_depth = 0\n    non_test_lines = []\n    \n    for i, line in enumerate(lines):\n        if '#[cfg(test)]' in line:\n            in_test = True\n            test_depth = 0\n            continue\n        if in_test:\n            test_depth += line.count('{') - line.count('}')\n            if test_depth < 0:\n                in_test = False\n            continue\n        non_test_lines.append((i+1, line))\n    \n    for lineno, line in non_test_lines:\n        if '.unwrap()' in line and 'unwrap_or' not in line and 'unwrap_err' not in line:\n            print(f'{filepath}:{lineno}: {line.strip()}')\n\" < <(find src -name '*.rs' -type f)\n",
+    "cargo build 2>&1",
+    "cargo test 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2487784.822662708,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2487784.82267925,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7 -type f | head -30",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7/src/ui/tui -type f",
+        "python3 -c \"\nimport re, sys\n\nfor filepath in sys.stdin.read().strip().split('\\n'):\n    with open(filepath) as f:\n        content = f.read()\n    \n    # Remove test modules  \n    # Find #[cfg(test)] blocks and remove them\n    lines = content.split('\\n')\n    in_test = False\n    test_depth = 0\n    non_test_lines = []\n    \n    for i, line in enumerate(lines):\n        if '#[cfg(test)]' in line:\n            in_test = True\n            test_depth = 0\n            continue\n        if in_test:\n            test_depth += line.count('{') - line.count('}')\n            if test_depth < 0:\n                in_test = False\n            continue\n        non_test_lines.append((i+1, line))\n    \n    for lineno, line in non_test_lines:\n        if '.unwrap()' in line and 'unwrap_or' not in line and 'unwrap_err' not in line:\n            print(f'{filepath}:{lineno}: {line.strip()}')\n\" < <(find src -name '*.rs' -type f)\n",
+        "cargo build 2>&1",
+        "cargo test 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2487784.822693333,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7 -type f | head -30', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-k2qurwr7/src/ui/tui -type f', 'python3 -c \"\\nimport re, sys\\n\\nfor filepath in sys.stdin.read().strip().split(\\'\\\\n\\'):\\n    with open(filepath) as f:\\n        content = f.read()\\n    \\n    # Remove test modules  \\n    # Find #[cfg(test)] blocks and remove them\\n    lines = content.split(\\'\\\\n\\')\\n    in_test = False\\n    test_depth = 0\\n    non_test_lines = []\\n    \\n    for i, line in enumerate(lines):\\n        if \\'#[cfg(test)]\\' in line:\\n            in_test = True\\n            test_depth = 0\\n            continue\\n        if in_test:\\n            test_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n            if test_depth < 0:\\n                in_test = False\\n            continue\\n        non_test_lines.append((i+1, line))\\n    \\n    for lineno, line in non_test_lines:\\n        if \\'.unwrap()\\' in line and \\'unwrap_or\\' not in line and \\'unwrap_err\\' not in line:\\n            print(f\\'{filepath}:{lineno}: {line.strip()}\\')\\n\" < <(find src -name \\'*.rs\\' -type f)\\n', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

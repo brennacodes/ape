@@ -1,0 +1,88 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1 | tail -20', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(env_file|FAILED|test result)\"', 'cargo llvm-cov --all-features 2>&1', 'cat /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-pfsrnyur/74f2da7e-a22e-4a39-a8a2-a9725b6a993b/tool-results/bx4zofq6e.txt | grep -E \"(TOTAL|env_file)\"', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff src/config/env_file.rs', 'git log -3 --oneline', 'git status', 'git diff src/config/env_file.rs', 'git log -1 --oneline', 'git add src/config/env_file.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nAdd edge-case tests for env file parser\\n\\nCover quoting edge cases: mismatched quotes, empty quotes,\\nlone quote characters, nested/embedded quotes, and values\\nthat start or end with a quote but not both. Cover escaped\\ncharacter handling: backslash sequences and backslash-quote\\npairs are preserved as literals. Cover behavioral edges:\\ninline comments not stripped, export prefix kept in key,\\nduplicate keys resolved by last-wins, whitespace-only input,\\nempty content, and spaces inside quotes. Add tests for load\\nand load_optional with real temp files. Brings env_file.rs\\nto 100% line, function, and region coverage.\\nEOF\\n)\"', 'cargo test --all-features 2>&1 | grep -E \"^test result:\"', 'cargo build 2>&1', 'git log -1 --stat'], expected regex_not_match 'git add \\\\.'",
+  "category": "untested_code",
+  "metric_value": [
+    "cargo test --all-features 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo test --all-features 2>&1 | tail -20",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"(env_file|FAILED|test result)\"",
+    "cargo llvm-cov --all-features 2>&1",
+    "cat /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-pfsrnyur/74f2da7e-a22e-4a39-a8a2-a9725b6a993b/tool-results/bx4zofq6e.txt | grep -E \"(TOTAL|env_file)\"",
+    "cargo build --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git status",
+    "git diff src/config/env_file.rs",
+    "git log -3 --oneline",
+    "git status",
+    "git diff src/config/env_file.rs",
+    "git log -1 --oneline",
+    "git add src/config/env_file.rs",
+    "git commit -m \"$(cat <<'EOF'\nAdd edge-case tests for env file parser\n\nCover quoting edge cases: mismatched quotes, empty quotes,\nlone quote characters, nested/embedded quotes, and values\nthat start or end with a quote but not both. Cover escaped\ncharacter handling: backslash sequences and backslash-quote\npairs are preserved as literals. Cover behavioral edges:\ninline comments not stripped, export prefix kept in key,\nduplicate keys resolved by last-wins, whitespace-only input,\nempty content, and spaces inside quotes. Add tests for load\nand load_optional with real temp files. Brings env_file.rs\nto 100% line, function, and region coverage.\nEOF\n)\"",
+    "cargo test --all-features 2>&1 | grep -E \"^test result:\"",
+    "cargo build 2>&1",
+    "git log -1 --stat"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2493643.385093791,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2493643.385110416,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "cargo test --all-features 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo test --all-features 2>&1 | tail -20",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"(env_file|FAILED|test result)\"",
+        "cargo llvm-cov --all-features 2>&1",
+        "cat /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-pfsrnyur/74f2da7e-a22e-4a39-a8a2-a9725b6a993b/tool-results/bx4zofq6e.txt | grep -E \"(TOTAL|env_file)\"",
+        "cargo build --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git status",
+        "git diff src/config/env_file.rs",
+        "git log -3 --oneline",
+        "git status",
+        "git diff src/config/env_file.rs",
+        "git log -1 --oneline",
+        "git add src/config/env_file.rs",
+        "git commit -m \"$(cat <<'EOF'\nAdd edge-case tests for env file parser\n\nCover quoting edge cases: mismatched quotes, empty quotes,\nlone quote characters, nested/embedded quotes, and values\nthat start or end with a quote but not both. Cover escaped\ncharacter handling: backslash sequences and backslash-quote\npairs are preserved as literals. Cover behavioral edges:\ninline comments not stripped, export prefix kept in key,\nduplicate keys resolved by last-wins, whitespace-only input,\nempty content, and spaces inside quotes. Add tests for load\nand load_optional with real temp files. Brings env_file.rs\nto 100% line, function, and region coverage.\nEOF\n)\"",
+        "cargo test --all-features 2>&1 | grep -E \"^test result:\"",
+        "cargo build 2>&1",
+        "git log -1 --stat"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2493643.385124625,
+      "passed": true,
+      "detail": "got ['cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1 | tail -20', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(env_file|FAILED|test result)\"', 'cargo llvm-cov --all-features 2>&1', 'cat /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-pfsrnyur/74f2da7e-a22e-4a39-a8a2-a9725b6a993b/tool-results/bx4zofq6e.txt | grep -E \"(TOTAL|env_file)\"', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff src/config/env_file.rs', 'git log -3 --oneline', 'git status', 'git diff src/config/env_file.rs', 'git log -1 --oneline', 'git add src/config/env_file.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nAdd edge-case tests for env file parser\\n\\nCover quoting edge cases: mismatched quotes, empty quotes,\\nlone quote characters, nested/embedded quotes, and values\\nthat start or end with a quote but not both. Cover escaped\\ncharacter handling: backslash sequences and backslash-quote\\npairs are preserved as literals. Cover behavioral edges:\\ninline comments not stripped, export prefix kept in key,\\nduplicate keys resolved by last-wins, whitespace-only input,\\nempty content, and spaces inside quotes. Add tests for load\\nand load_optional with real temp files. Brings env_file.rs\\nto 100% line, function, and region coverage.\\nEOF\\n)\"', 'cargo test --all-features 2>&1 | grep -E \"^test result:\"', 'cargo build 2>&1', 'git log -1 --stat'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

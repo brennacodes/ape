@@ -1,0 +1,1320 @@
+{
+  "check_id": "tdd_prove_tests_fail",
+  "phase": "specification",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "'cargo test' (Bash) did not occur between a test-content file write (Write/Edit with #[test]) and a pure implementation write (Write/Edit to src/ without test markers)",
+  "category": "new_features",
+  "metric_value": [
+    33,
+    34,
+    35,
+    36
+  ],
+  "target_value": [
+    [
+      28,
+      29
+    ],
+    [
+      21,
+      23,
+      24
+    ]
+  ],
+  "operator": "exists_between",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2489827.215213708,
+      "check_id": "tdd_prove_tests_fail",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "metric_args": "cargo test",
+        "operator": "exists_between",
+        "target_before": "tool_call.file_modify_with_test_content",
+        "target_after": "tool_call.file_modify_without_test_content"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2489827.215228291,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_017eQUVi64SzKxjmc5AAkPh1",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01EP7XFUHaKpdFZAfmwmXRK8",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t -type f | head -30",
+                    "description": "List files in the project"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 36682,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 36682
+                },
+                "output_tokens": 9,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "7fdf1fcf-1619-4bb4-943a-6f34495cd95d"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "<tool_use_error>Sibling tool call errored</tool_use_error>",
+                  "is_error": true,
+                  "tool_use_id": "toolu_01EP7XFUHaKpdFZAfmwmXRK8"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "08ee9b84-030d-41fa-85e3-42463a1c1862",
+            "tool_use_result": "Sibling tool call errored"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_017eQUVi64SzKxjmc5AAkPh1",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01Mf898T4jd39EUVXdfZopo4",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/.git/HEAD",
+                    "description": "Check current git state"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 36682,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 36682
+                },
+                "output_tokens": 9,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "424fb063-5d65-4ad0-95b7-ed3e1e8b9998"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "PreToolUse:Bash hook error: [python3 .claude/scripts/guard.py]: Direct .git/ access is restricted\n",
+                  "is_error": true,
+                  "tool_use_id": "toolu_01Mf898T4jd39EUVXdfZopo4"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "a05d840f-ba29-4264-badf-c583424d2019",
+            "tool_use_result": "Error: PreToolUse:Bash hook error: [python3 .claude/scripts/guard.py]: Direct .git/ access is restricted\n"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01XeCkgfYvkwu1XWTjudjM5U",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01CcwqXQsiZzrwCLgHviT9aV",
+                  "name": "Bash",
+                  "input": {
+                    "command": "wc -l /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+                    "description": "Count lines in workflow.rs"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1267,
+                "cache_read_input_tokens": 117228,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 1267
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "0dbf54df-3b28-4811-8da5-47debff6a1e8"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01CcwqXQsiZzrwCLgHviT9aV",
+                  "type": "tool_result",
+                  "content": "    3921 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "675f4c52-6b17-4850-b3e4-cac7ea212d15",
+            "tool_use_result": {
+              "stdout": "    3921 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01C6JcLwhxHbMvDrTawPCJNC",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01BJ4XgPskNooQGh6iVRY1xJ",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo build 2>&1 | tail -20",
+                    "description": "Build the project",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 282,
+                "cache_read_input_tokens": 122794,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 282
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "e22f3aaf-79ef-4df9-8c72-7791860962dc"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                  "is_error": true,
+                  "tool_use_id": "toolu_01BJ4XgPskNooQGh6iVRY1xJ"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "41dfa7c5-a95f-4d40-b090-c5ce5e363f1c",
+            "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01T88FipZ7saFSDonpb5XstW",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01PMbYoZE5JqX49oqx7C1Swt",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo build 2>&1",
+                    "description": "Build the project",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 204,
+                "cache_read_input_tokens": 123076,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 204
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "c7d53f45-4f16-4177-82cf-23a6ec20f801"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01PMbYoZE5JqX49oqx7C1Swt",
+                  "type": "tool_result",
+                  "content": "   Compiling libc v0.2.181\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.44\n   Compiling unicode-ident v1.0.23\n   Compiling once_cell v1.21.3\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling memchr v2.8.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling pin-project-lite v0.2.16\n   Compiling bytes v1.11.1\n   Compiling cfg-if v1.0.4\n   Compiling itoa v1.0.17\n   Compiling futures-core v0.3.31\n   Compiling smallvec v1.15.1\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.15.4\n   Compiling litemap v0.8.1\n   Compiling bitflags v2.10.0\n   Compiling writeable v0.6.2\n   Compiling futures-sink v0.3.31\n   Compiling version_check v0.9.5\n   Compiling icu_normalizer_data v2.1.1\n   Compiling core-foundation-sys v0.8.7\n   Compiling pin-utils v0.1.0\n   Compiling icu_properties_data v2.1.2\n   Compiling typenum v1.19.0\n   Compiling serde_core v1.0.228\n   Compiling rustls-pki-types v1.14.0\n   Compiling tracing-core v0.1.36\n   Compiling generic-array v0.14.7\n   Compiling http v1.4.0\n   Compiling slab v0.4.12\n   Compiling rustls v0.23.36\n   Compiling httparse v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling futures-task v0.3.31\n   Compiling untrusted v0.9.0\n   Compiling futures-util v0.3.31\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.2\n   Compiling mio v1.1.1\n   Compiling syn v2.0.114\n   Compiling cc v1.2.55\n   Compiling tokio v1.49.0\n   Compiling tower-service v0.3.3\n   Compiling utf8parse v0.2.2\n   Compiling serde v1.0.228\n   Compiling http-body v1.0.1\n   Compiling rustix v1.1.3\n   Compiling subtle v2.6.1\n   Compiling percent-encoding v2.3.2\n   Compiling try-lock v0.2.5\n   Compiling want v0.3.1\n   Compiling anstyle-parse v0.2.7\n   Compiling errno v0.3.14\n   Compiling futures-channel v0.3.31\n   Compiling aho-corasick v1.1.4\n   Compiling foldhash v0.1.5\n   Compiling log v0.4.29\n   Compiling anstyle-query v1.1.5\n   Compiling atomic-waker v1.1.2\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling cmake v0.1.57\n   Compiling anstyle v1.0.13\n   Compiling regex-syntax v0.8.9\n   Compiling autocfg v1.5.0\n   Compiling getrandom v0.4.1\n   Compiling zmij v1.0.20\n   Compiling colorchoice v1.0.4\n   Compiling anstream v0.6.21\n   Compiling aws-lc-sys v0.37.0\n   Compiling num-traits v0.2.19\n   Compiling hashbrown v0.15.5\n   Compiling core-foundation v0.10.1\n   Compiling security-framework-sys v2.15.0\n   Compiling sync_wrapper v1.0.2\n   Compiling serde_json v1.0.149\n   Compiling doc-comment v0.3.4\n   Compiling portable-atomic v1.13.1\n   Compiling heck v0.5.0\n   Compiling unicode-width v0.2.2\n   Compiling base64 v0.22.1\n   Compiling strsim v0.11.1\n   Compiling utf8_iter v1.0.4\n   Compiling tower-layer v0.3.3\n   Compiling ipnet v2.11.0\n   Compiling clap_lex v0.7.7\n   Compiling clap_builder v4.5.57\n   Compiling console v0.16.2\n   Compiling security-framework v3.5.1\n   Compiling regex-automata v0.4.14\n   Compiling hashlink v0.10.0\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling form_urlencoded v1.2.2\n   Compiling encoding_rs v0.8.35\n   Compiling iri-string v0.7.10\n   Compiling thiserror v2.0.18\n   Compiling hashbrown v0.16.1\n   Compiling synstructure v0.13.2\n   Compiling hyper v1.8.1\n   Compiling tower v0.5.3\n   Compiling lazy_static v1.5.0\n   Compiling anyhow v1.0.101\n   Compiling arraydeque v0.5.1\n   Compiling option-ext v0.2.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.1\n   Compiling zerovec-derive v0.11.2\n   Compiling displaydoc v0.2.5\n   Compiling tracing-attributes v0.1.31\n   Compiling serde_derive v1.0.228\n   Compiling clap_derive v4.5.55\n   Compiling fastrand v2.3.0\n   Compiling equivalent v1.0.2\n   Compiling tempfile v3.25.0\n   Compiling matchers v0.2.0\n   Compiling zerofrom v0.1.6\n   Compiling indexmap v2.13.0\n   Compiling yaml-rust2 v0.10.4\n   Compiling yoke v0.8.1\n   Compiling dirs-sys v0.5.0\n   Compiling thiserror-impl v2.0.18\n   Compiling zerovec v0.11.5\n   Compiling zerotrie v0.2.3\n   Compiling tracing v0.1.44\n   Compiling tinystr v0.8.2\n   Compiling potential_utf v0.1.4\n   Compiling icu_locale_core v2.1.1\n   Compiling icu_collections v2.1.1\n   Compiling hyper-util v0.1.20\n   Compiling tower-http v0.6.8\n   Compiling sharded-slab v0.1.7\n   Compiling clap v4.5.57\n   Compiling digest v0.10.7\n   Compiling tracing-log v0.2.0\n   Compiling http-body-util v0.1.3\n   Compiling include_dir_macros v0.7.4\n   Compiling cpufeatures v0.2.17\n   Compiling icu_provider v2.1.1\n   Compiling iana-time-zone v0.1.65\n   Compiling thread_local v1.1.9\n   Compiling same-file v1.0.6\n   Compiling icu_properties v2.1.2\n   Compiling icu_normalizer v2.1.1\n   Compiling env_home v0.1.0\n   Compiling pathdiff v0.2.3\n   Compiling unsafe-libyaml v0.2.11\n   Compiling ryu v1.0.23\n   Compiling unit-prefix v0.5.2\n   Compiling shell-words v1.1.1\n   Compiling nu-ansi-term v0.50.3\n   Compiling chrono v0.4.43\n   Compiling dialoguer v0.12.0\n   Compiling tracing-subscriber v0.3.22\n   Compiling indicatif v0.18.3\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling open v5.3.3\n   Compiling which v8.0.0\n   Compiling include_dir v0.7.4\n   Compiling walkdir v2.5.0\n   Compiling sha2 v0.10.9\n   Compiling marked-yaml v0.8.0\n   Compiling clap_complete v4.5.65\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.1.0\n   Compiling dirs v6.0.0\n   Compiling regex v1.12.3\n   Compiling getrandom v0.2.17\n   Compiling urlencoding v2.1.3\n   Compiling hex v0.4.3\n   Compiling url v2.5.8\n   Compiling glob v0.3.3\n   Compiling rustls-webpki v0.103.9\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.6.2\n   Compiling hyper-rustls v0.27.7\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 33s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "cd4a09b3-3deb-414c-badb-551e85879e56",
+            "tool_use_result": {
+              "stdout": "   Compiling libc v0.2.181\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.44\n   Compiling unicode-ident v1.0.23\n   Compiling once_cell v1.21.3\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling memchr v2.8.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling pin-project-lite v0.2.16\n   Compiling bytes v1.11.1\n   Compiling cfg-if v1.0.4\n   Compiling itoa v1.0.17\n   Compiling futures-core v0.3.31\n   Compiling smallvec v1.15.1\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.15.4\n   Compiling litemap v0.8.1\n   Compiling bitflags v2.10.0\n   Compiling writeable v0.6.2\n   Compiling futures-sink v0.3.31\n   Compiling version_check v0.9.5\n   Compiling icu_normalizer_data v2.1.1\n   Compiling core-foundation-sys v0.8.7\n   Compiling pin-utils v0.1.0\n   Compiling icu_properties_data v2.1.2\n   Compiling typenum v1.19.0\n   Compiling serde_core v1.0.228\n   Compiling rustls-pki-types v1.14.0\n   Compiling tracing-core v0.1.36\n   Compiling generic-array v0.14.7\n   Compiling http v1.4.0\n   Compiling slab v0.4.12\n   Compiling rustls v0.23.36\n   Compiling httparse v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling futures-task v0.3.31\n   Compiling untrusted v0.9.0\n   Compiling futures-util v0.3.31\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.2\n   Compiling mio v1.1.1\n   Compiling syn v2.0.114\n   Compiling cc v1.2.55\n   Compiling tokio v1.49.0\n   Compiling tower-service v0.3.3\n   Compiling utf8parse v0.2.2\n   Compiling serde v1.0.228\n   Compiling http-body v1.0.1\n   Compiling rustix v1.1.3\n   Compiling subtle v2.6.1\n   Compiling percent-encoding v2.3.2\n   Compiling try-lock v0.2.5\n   Compiling want v0.3.1\n   Compiling anstyle-parse v0.2.7\n   Compiling errno v0.3.14\n   Compiling futures-channel v0.3.31\n   Compiling aho-corasick v1.1.4\n   Compiling foldhash v0.1.5\n   Compiling log v0.4.29\n   Compiling anstyle-query v1.1.5\n   Compiling atomic-waker v1.1.2\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling cmake v0.1.57\n   Compiling anstyle v1.0.13\n   Compiling regex-syntax v0.8.9\n   Compiling autocfg v1.5.0\n   Compiling getrandom v0.4.1\n   Compiling zmij v1.0.20\n   Compiling colorchoice v1.0.4\n   Compiling anstream v0.6.21\n   Compiling aws-lc-sys v0.37.0\n   Compiling num-traits v0.2.19\n   Compiling hashbrown v0.15.5\n   Compiling core-foundation v0.10.1\n   Compiling security-framework-sys v2.15.0\n   Compiling sync_wrapper v1.0.2\n   Compiling serde_json v1.0.149\n   Compiling doc-comment v0.3.4\n   Compiling portable-atomic v1.13.1\n   Compiling heck v0.5.0\n   Compiling unicode-width v0.2.2\n   Compiling base64 v0.22.1\n   Compiling strsim v0.11.1\n   Compiling utf8_iter v1.0.4\n   Compiling tower-layer v0.3.3\n   Compiling ipnet v2.11.0\n   Compiling clap_lex v0.7.7\n   Compiling clap_builder v4.5.57\n   Compiling console v0.16.2\n   Compiling security-framework v3.5.1\n   Compiling regex-automata v0.4.14\n   Compiling hashlink v0.10.0\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling form_urlencoded v1.2.2\n   Compiling encoding_rs v0.8.35\n   Compiling iri-string v0.7.10\n   Compiling thiserror v2.0.18\n   Compiling hashbrown v0.16.1\n   Compiling synstructure v0.13.2\n   Compiling hyper v1.8.1\n   Compiling tower v0.5.3\n   Compiling lazy_static v1.5.0\n   Compiling anyhow v1.0.101\n   Compiling arraydeque v0.5.1\n   Compiling option-ext v0.2.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.1\n   Compiling zerovec-derive v0.11.2\n   Compiling displaydoc v0.2.5\n   Compiling tracing-attributes v0.1.31\n   Compiling serde_derive v1.0.228\n   Compiling clap_derive v4.5.55\n   Compiling fastrand v2.3.0\n   Compiling equivalent v1.0.2\n   Compiling tempfile v3.25.0\n   Compiling matchers v0.2.0\n   Compiling zerofrom v0.1.6\n   Compiling indexmap v2.13.0\n   Compiling yaml-rust2 v0.10.4\n   Compiling yoke v0.8.1\n   Compiling dirs-sys v0.5.0\n   Compiling thiserror-impl v2.0.18\n   Compiling zerovec v0.11.5\n   Compiling zerotrie v0.2.3\n   Compiling tracing v0.1.44\n   Compiling tinystr v0.8.2\n   Compiling potential_utf v0.1.4\n   Compiling icu_locale_core v2.1.1\n   Compiling icu_collections v2.1.1\n   Compiling hyper-util v0.1.20\n   Compiling tower-http v0.6.8\n   Compiling sharded-slab v0.1.7\n   Compiling clap v4.5.57\n   Compiling digest v0.10.7\n   Compiling tracing-log v0.2.0\n   Compiling http-body-util v0.1.3\n   Compiling include_dir_macros v0.7.4\n   Compiling cpufeatures v0.2.17\n   Compiling icu_provider v2.1.1\n   Compiling iana-time-zone v0.1.65\n   Compiling thread_local v1.1.9\n   Compiling same-file v1.0.6\n   Compiling icu_properties v2.1.2\n   Compiling icu_normalizer v2.1.1\n   Compiling env_home v0.1.0\n   Compiling pathdiff v0.2.3\n   Compiling unsafe-libyaml v0.2.11\n   Compiling ryu v1.0.23\n   Compiling unit-prefix v0.5.2\n   Compiling shell-words v1.1.1\n   Compiling nu-ansi-term v0.50.3\n   Compiling chrono v0.4.43\n   Compiling dialoguer v0.12.0\n   Compiling tracing-subscriber v0.3.22\n   Compiling indicatif v0.18.3\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling open v5.3.3\n   Compiling which v8.0.0\n   Compiling include_dir v0.7.4\n   Compiling walkdir v2.5.0\n   Compiling sha2 v0.10.9\n   Compiling marked-yaml v0.8.0\n   Compiling clap_complete v4.5.65\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.1.0\n   Compiling dirs v6.0.0\n   Compiling regex v1.12.3\n   Compiling getrandom v0.2.17\n   Compiling urlencoding v2.1.3\n   Compiling hex v0.4.3\n   Compiling url v2.5.8\n   Compiling glob v0.3.3\n   Compiling rustls-webpki v0.103.9\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.6.2\n   Compiling hyper-rustls v0.27.7\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 33s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01RNghPtdiH6cCQk39kxzR6G",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_013SqBiChaKZmvCJACvzckYu",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --lib -- runner::workflow::tests::dry_run 2>&1",
+                    "description": "Run dry-run specific tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 2760,
+                "cache_read_input_tokens": 123280,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 2760
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "10a08bc4-56f0-420e-aa66-a6b91253d0ba"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_013SqBiChaKZmvCJACvzckYu",
+                  "type": "tool_result",
+                  "content": "   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling errno v0.3.14\n   Compiling tokio-macros v2.6.0\n   Compiling futures-sink v0.3.31\n   Compiling crossbeam-utils v0.8.21\n   Compiling tracing v0.1.44\n   Compiling futures-macro v0.3.31\n   Compiling httpdate v1.0.3\n   Compiling fnv v1.0.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling futures-channel v0.3.31\n   Compiling parking v2.2.1\n   Compiling rustix v1.1.3\n   Compiling form_urlencoded v1.2.2\n   Compiling predicates-core v1.0.9\n   Compiling sha1 v0.10.6\n   Compiling float-cmp v0.10.0\n   Compiling url v2.5.8\n   Compiling normalize-line-endings v0.3.0\n   Compiling mime v0.3.17\n   Compiling termtree v0.5.1\n   Compiling assert_cmd v2.1.2\n   Compiling difflib v0.4.0\n   Compiling tabwriter v1.4.1\n   Compiling bstr v1.12.1\n   Compiling predicates-tree v1.0.12\n   Compiling futures-util v0.3.31\n   Compiling path-tree v0.8.3\n   Compiling predicates v3.1.3\n   Compiling wait-timeout v0.2.1\n   Compiling concurrent-queue v2.5.0\n   Compiling async-trait v0.1.89\n   Compiling event-listener v5.4.1\n   Compiling stringmetrics v2.2.2\n   Compiling similar v2.7.0\n   Compiling futures-timer v3.0.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling tracing-subscriber v0.3.22\n   Compiling async-lock v3.4.2\n   Compiling tempfile v3.25.0\n   Compiling async-object-pool v0.2.0\n   Compiling dialoguer v0.12.0\n   Compiling which v8.0.0\n   Compiling serde_json v1.0.149\n   Compiling bytes v1.11.1\n   Compiling serde_regex v1.1.0\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling chrono v0.4.43\n   Compiling assert-json-diff v2.0.2\n   Compiling http v1.4.0\n   Compiling tokio v1.49.0\n   Compiling http-body v1.0.1\n   Compiling headers-core v0.3.0\n   Compiling headers v0.4.1\n   Compiling http-body-util v0.1.3\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tokio-rustls v0.26.4\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.8.1\n   Compiling hyper-util v0.1.20\n   Compiling hyper-rustls v0.27.7\n   Compiling httpmock v0.8.3\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 39s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 6 tests\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 1467 filtered out; finished in 0.01s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "8f371e4b-245c-4b03-96eb-6749019475d2",
+            "tool_use_result": {
+              "stdout": "   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling errno v0.3.14\n   Compiling tokio-macros v2.6.0\n   Compiling futures-sink v0.3.31\n   Compiling crossbeam-utils v0.8.21\n   Compiling tracing v0.1.44\n   Compiling futures-macro v0.3.31\n   Compiling httpdate v1.0.3\n   Compiling fnv v1.0.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling futures-channel v0.3.31\n   Compiling parking v2.2.1\n   Compiling rustix v1.1.3\n   Compiling form_urlencoded v1.2.2\n   Compiling predicates-core v1.0.9\n   Compiling sha1 v0.10.6\n   Compiling float-cmp v0.10.0\n   Compiling url v2.5.8\n   Compiling normalize-line-endings v0.3.0\n   Compiling mime v0.3.17\n   Compiling termtree v0.5.1\n   Compiling assert_cmd v2.1.2\n   Compiling difflib v0.4.0\n   Compiling tabwriter v1.4.1\n   Compiling bstr v1.12.1\n   Compiling predicates-tree v1.0.12\n   Compiling futures-util v0.3.31\n   Compiling path-tree v0.8.3\n   Compiling predicates v3.1.3\n   Compiling wait-timeout v0.2.1\n   Compiling concurrent-queue v2.5.0\n   Compiling async-trait v0.1.89\n   Compiling event-listener v5.4.1\n   Compiling stringmetrics v2.2.2\n   Compiling similar v2.7.0\n   Compiling futures-timer v3.0.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling tracing-subscriber v0.3.22\n   Compiling async-lock v3.4.2\n   Compiling tempfile v3.25.0\n   Compiling async-object-pool v0.2.0\n   Compiling dialoguer v0.12.0\n   Compiling which v8.0.0\n   Compiling serde_json v1.0.149\n   Compiling bytes v1.11.1\n   Compiling serde_regex v1.1.0\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling chrono v0.4.43\n   Compiling assert-json-diff v2.0.2\n   Compiling http v1.4.0\n   Compiling tokio v1.49.0\n   Compiling http-body v1.0.1\n   Compiling headers-core v0.3.0\n   Compiling headers v0.4.1\n   Compiling http-body-util v0.1.3\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tokio-rustls v0.26.4\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.8.1\n   Compiling hyper-util v0.1.20\n   Compiling hyper-rustls v0.27.7\n   Compiling httpmock v0.8.3\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 39s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 6 tests\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 1467 filtered out; finished in 0.01s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01DPHcaxEv6Upcp8eat338sJ",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01TSzPzaz39RRzCKqQaMe9yB",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --lib -- requirements::status::tests 2>&1",
+                    "description": "Run requirement status tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1348,
+                "cache_read_input_tokens": 126040,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 1348
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "7c181319-701d-4791-acd7-bc6939678dc1"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01TSzPzaz39RRzCKqQaMe9yB",
+                  "type": "tool_result",
+                  "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 18 tests\ntest requirements::status::tests::dry_run_summary_inactive ... ok\ntest requirements::status::tests::dry_run_summary_missing_with_hint ... ok\ntest requirements::status::tests::dry_run_summary_missing_no_hint ... ok\ntest requirements::status::tests::dry_run_summary_satisfied ... ok\ntest requirements::status::tests::dry_run_summary_service_down_no_command ... ok\ntest requirements::status::tests::missing_cannot_proceed ... ok\ntest requirements::status::tests::missing_with_no_hints ... ok\ntest requirements::status::tests::satisfied_is_satisfied ... ok\ntest requirements::status::tests::service_down_cannot_proceed ... ok\ntest requirements::status::tests::service_down_without_start_command ... ok\ntest requirements::status::tests::dry_run_summary_service_down_with_command ... ok\ntest requirements::status::tests::dry_run_summary_system_only ... ok\ntest requirements::status::tests::dry_run_summary_unknown ... ok\ntest requirements::status::tests::gap_result_holds_requirement_and_status ... ok\ntest requirements::status::tests::system_only_can_proceed_but_not_satisfied ... ok\ntest requirements::status::tests::system_only_fields_accessible ... ok\ntest requirements::status::tests::inactive_cannot_proceed ... ok\ntest requirements::status::tests::unknown_cannot_proceed ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 1455 filtered out; finished in 0.01s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "67eb38a8-a780-473e-ba5e-ad57b0f150c8",
+            "tool_use_result": {
+              "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 18 tests\ntest requirements::status::tests::dry_run_summary_inactive ... ok\ntest requirements::status::tests::dry_run_summary_missing_with_hint ... ok\ntest requirements::status::tests::dry_run_summary_missing_no_hint ... ok\ntest requirements::status::tests::dry_run_summary_satisfied ... ok\ntest requirements::status::tests::dry_run_summary_service_down_no_command ... ok\ntest requirements::status::tests::missing_cannot_proceed ... ok\ntest requirements::status::tests::missing_with_no_hints ... ok\ntest requirements::status::tests::satisfied_is_satisfied ... ok\ntest requirements::status::tests::service_down_cannot_proceed ... ok\ntest requirements::status::tests::service_down_without_start_command ... ok\ntest requirements::status::tests::dry_run_summary_service_down_with_command ... ok\ntest requirements::status::tests::dry_run_summary_system_only ... ok\ntest requirements::status::tests::dry_run_summary_unknown ... ok\ntest requirements::status::tests::gap_result_holds_requirement_and_status ... ok\ntest requirements::status::tests::system_only_can_proceed_but_not_satisfied ... ok\ntest requirements::status::tests::system_only_fields_accessible ... ok\ntest requirements::status::tests::inactive_cannot_proceed ... ok\ntest requirements::status::tests::unknown_cannot_proceed ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 1455 filtered out; finished in 0.01s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01BRuYiS1yZXLMrZxYo8yizA",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01DLdv4SWkH23UPvuEgoVGWy",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --lib -- cli::commands::run::tests 2>&1",
+                    "description": "Run the run command tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 601,
+                "cache_read_input_tokens": 127388,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 601
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "ef01708b-8185-4e50-9374-6d7fde31225a"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01DLdv4SWkH23UPvuEgoVGWy",
+                  "type": "tool_result",
+                  "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 37 tests\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\n\ntest result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1436 filtered out; finished in 21.94s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "659f82b3-a31d-4882-be5a-2543cf6e249b",
+            "tool_use_result": {
+              "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 37 tests\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\n\ntest result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1436 filtered out; finished in 21.94s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01WgU8BonVLMchi16aFoeRon",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01A58cYjrdmWj4tWKsukZ3qE",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --lib -- runner::workflow::tests 2>&1",
+                    "description": "Run all workflow runner tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1022,
+                "cache_read_input_tokens": 127989,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 1022
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "f7469c36-13dd-45a3-82dc-7fe5ed8494db"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01A58cYjrdmWj4tWKsukZ3qE",
+                  "type": "tool_result",
+                  "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 65 tests\ntest runner::workflow::tests::build_graph_validates_workflow ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::hint_shown_on_low_confidence ... ok\ntest runner::workflow::tests::failed_step_stops_dependent_step ... ok\ntest runner::workflow::tests::non_interactive_no_menu ... ok\ntest runner::workflow::tests::allow_failure_continues_to_next_step ... ok\ntest runner::workflow::tests::auto_retry_succeeds ... ok\ntest runner::workflow::tests::recovery_abort_stops_workflow ... ok\ntest runner::workflow::tests::non_interactive_auto_retry ... ok\ntest runner::workflow::tests::independent_steps_continue_after_failure ... ok\ntest runner::workflow::tests::allow_failure_suppresses_menu ... ok\ntest runner::workflow::tests::auto_retry_before_menu ... ok\ntest runner::workflow::tests::recovery_abort_includes_partial_results ... ok\ntest runner::workflow::tests::recovery_detail_in_skip ... ok\ntest runner::workflow::tests::allow_failure_lets_all_dependent_steps_run ... ok\ntest runner::workflow::tests::recovery_fix_declined_reprompts ... ok\ntest runner::workflow::tests::run_with_progress_reports_skips ... ok\ntest runner::workflow::tests::recovery_detail_in_retry ... ok\ntest runner::workflow::tests::run_empty_only_environments_runs_always ... ok\ntest runner::workflow::tests::run_filters_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_errors_on_unknown_requirement ... ok\ntest runner::workflow::tests::run_with_progress_emits_events ... ok\ntest runner::workflow::tests::run_only_environments_skipped_steps_in_result ... ok\ntest runner::workflow::tests::recovery_retry_succeeds ... ok\ntest runner::workflow::tests::run_with_ui_interactive_warns_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_blocked_step_shows_warning ... ok\ntest runner::workflow::tests::run_with_progress_respects_only_environments ... ok\ntest runner::workflow::tests::recovery_skip_does_not_block_dependents ... ok\ntest runner::workflow::tests::run_with_ui_non_interactive_fails_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_completed_prompt_replaces_run_prompt ... ok\ntest runner::workflow::tests::run_with_ui_executes_simple_step ... ok\ntest runner::workflow::tests::run_with_ui_prompts_when_complete_and_interactive ... ok\ntest runner::workflow::tests::recovery_fix_confirmed_retries ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_not_skippable_declined_errors ... ok\ntest runner::workflow::tests::run_with_ui_incomplete_check_runs_without_force ... ok\ntest runner::workflow::tests::run_includes_matching_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_not_interactive ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_prompt_if_complete_false ... ok\ntest runner::workflow::tests::run_with_ui_skip_declined_step ... ok\ntest runner::workflow::tests::run_with_ui_interactive_no_check_does_not_force ... ok\ntest runner::workflow::tests::run_with_ui_step_override_disables_prompt_if_complete ... ok\ntest runner::workflow::tests::run_with_ui_no_gaps_when_requires_empty ... ok\ntest runner::workflow::tests::run_with_ui_workflow_non_interactive_suppresses_prompts ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_non_interactive ... ok\ntest runner::workflow::tests::run_workflow_with_skip ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_changes_graph ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_cycle_detected ... ok\ntest runner::workflow::tests::run_with_ui_proceeds_when_all_satisfied ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_not_skippable ... ok\ntest runner::workflow::tests::run_with_ui_reruns_when_user_confirms ... ok\ntest runner::workflow::tests::workflow_result_aborted_defaults_false ... ok\ntest runner::workflow::tests::run_with_ui_shows_error_output_on_failure ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_step_prompts ... ok\ntest runner::workflow::tests::run_with_ui_warns_on_system_only ... ok\ntest runner::workflow::tests::step_execution_error_stops_when_not_allow_failure ... ok\ntest runner::workflow::tests::run_with_ui_prompts_before_each_skippable_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest runner::workflow::tests::run_with_ui_step_error_continues_with_allow_failure ... ok\ntest runner::workflow::tests::run_workflow_in_order ... ok\ntest runner::workflow::tests::step_execution_error_does_not_abort_workflow ... ok\n\ntest result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 1408 filtered out; finished in 33.53s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+            "uuid": "d7e56dcf-cf2d-47ba-b41f-de5775fe55c2",
+            "tool_use_result": {
+              "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 65 tests\ntest runner::workflow::tests::build_graph_validates_workflow ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::hint_shown_on_low_confidence ... ok\ntest runner::workflow::tests::failed_step_stops_dependent_step ... ok\ntest runner::workflow::tests::non_interactive_no_menu ... ok\ntest runner::workflow::tests::allow_failure_continues_to_next_step ... ok\ntest runner::workflow::tests::auto_retry_succeeds ... ok\ntest runner::workflow::tests::recovery_abort_stops_workflow ... ok\ntest runner::workflow::tests::non_interactive_auto_retry ... ok\ntest runner::workflow::tests::independent_steps_continue_after_failure ... ok\ntest runner::workflow::tests::allow_failure_suppresses_menu ... ok\ntest runner::workflow::tests::auto_retry_before_menu ... ok\ntest runner::workflow::tests::recovery_abort_includes_partial_results ... ok\ntest runner::workflow::tests::recovery_detail_in_skip ... ok\ntest runner::workflow::tests::allow_failure_lets_all_dependent_steps_run ... ok\ntest runner::workflow::tests::recovery_fix_declined_reprompts ... ok\ntest runner::workflow::tests::run_with_progress_reports_skips ... ok\ntest runner::workflow::tests::recovery_detail_in_retry ... ok\ntest runner::workflow::tests::run_empty_only_environments_runs_always ... ok\ntest runner::workflow::tests::run_filters_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_errors_on_unknown_requirement ... ok\ntest runner::workflow::tests::run_with_progress_emits_events ... ok\ntest runner::workflow::tests::run_only_environments_skipped_steps_in_result ... ok\ntest runner::workflow::tests::recovery_retry_succeeds ... ok\ntest runner::workflow::tests::run_with_ui_interactive_warns_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_blocked_step_shows_warning ... ok\ntest runner::workflow::tests::run_with_progress_respects_only_environments ... ok\ntest runner::workflow::tests::recovery_skip_does_not_block_dependents ... ok\ntest runner::workflow::tests::run_with_ui_non_interactive_fails_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_completed_prompt_replaces_run_prompt ... ok\ntest runner::workflow::tests::run_with_ui_executes_simple_step ... ok\ntest runner::workflow::tests::run_with_ui_prompts_when_complete_and_interactive ... ok\ntest runner::workflow::tests::recovery_fix_confirmed_retries ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_not_skippable_declined_errors ... ok\ntest runner::workflow::tests::run_with_ui_incomplete_check_runs_without_force ... ok\ntest runner::workflow::tests::run_includes_matching_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_not_interactive ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_prompt_if_complete_false ... ok\ntest runner::workflow::tests::run_with_ui_skip_declined_step ... ok\ntest runner::workflow::tests::run_with_ui_interactive_no_check_does_not_force ... ok\ntest runner::workflow::tests::run_with_ui_step_override_disables_prompt_if_complete ... ok\ntest runner::workflow::tests::run_with_ui_no_gaps_when_requires_empty ... ok\ntest runner::workflow::tests::run_with_ui_workflow_non_interactive_suppresses_prompts ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_non_interactive ... ok\ntest runner::workflow::tests::run_workflow_with_skip ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_changes_graph ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_cycle_detected ... ok\ntest runner::workflow::tests::run_with_ui_proceeds_when_all_satisfied ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_not_skippable ... ok\ntest runner::workflow::tests::run_with_ui_reruns_when_user_confirms ... ok\ntest runner::workflow::tests::workflow_result_aborted_defaults_false ... ok\ntest runner::workflow::tests::run_with_ui_shows_error_output_on_failure ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_step_prompts ... ok\ntest runner::workflow::tests::run_with_ui_warns_on_system_only ... ok\ntest runner::workflow::tests::step_execution_error_stops_when_not_allow_failure ... ok\ntest runner::workflow::tests::run_with_ui_prompts_before_each_skippable_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest runner::workflow::tests::run_with_ui_step_error_continues_with_allow_failure ... ok\ntest runner::workflow::tests::run_workflow_in_order ... ok\ntest runner::workflow::tests::step_execution_error_does_not_abort_workflow ... ok\n\ntest result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 1408 filtered out; finished in 33.53s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        0,
+        1,
+        26,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2489827.21524,
+      "tool_name": "Bash",
+      "substring": "cargo test",
+      "matched": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01RNghPtdiH6cCQk39kxzR6G",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_013SqBiChaKZmvCJACvzckYu",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --lib -- runner::workflow::tests::dry_run 2>&1",
+                      "description": "Run dry-run specific tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 2760,
+                  "cache_read_input_tokens": 123280,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 2760
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "10a08bc4-56f0-420e-aa66-a6b91253d0ba"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_013SqBiChaKZmvCJACvzckYu",
+                    "type": "tool_result",
+                    "content": "   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling errno v0.3.14\n   Compiling tokio-macros v2.6.0\n   Compiling futures-sink v0.3.31\n   Compiling crossbeam-utils v0.8.21\n   Compiling tracing v0.1.44\n   Compiling futures-macro v0.3.31\n   Compiling httpdate v1.0.3\n   Compiling fnv v1.0.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling futures-channel v0.3.31\n   Compiling parking v2.2.1\n   Compiling rustix v1.1.3\n   Compiling form_urlencoded v1.2.2\n   Compiling predicates-core v1.0.9\n   Compiling sha1 v0.10.6\n   Compiling float-cmp v0.10.0\n   Compiling url v2.5.8\n   Compiling normalize-line-endings v0.3.0\n   Compiling mime v0.3.17\n   Compiling termtree v0.5.1\n   Compiling assert_cmd v2.1.2\n   Compiling difflib v0.4.0\n   Compiling tabwriter v1.4.1\n   Compiling bstr v1.12.1\n   Compiling predicates-tree v1.0.12\n   Compiling futures-util v0.3.31\n   Compiling path-tree v0.8.3\n   Compiling predicates v3.1.3\n   Compiling wait-timeout v0.2.1\n   Compiling concurrent-queue v2.5.0\n   Compiling async-trait v0.1.89\n   Compiling event-listener v5.4.1\n   Compiling stringmetrics v2.2.2\n   Compiling similar v2.7.0\n   Compiling futures-timer v3.0.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling tracing-subscriber v0.3.22\n   Compiling async-lock v3.4.2\n   Compiling tempfile v3.25.0\n   Compiling async-object-pool v0.2.0\n   Compiling dialoguer v0.12.0\n   Compiling which v8.0.0\n   Compiling serde_json v1.0.149\n   Compiling bytes v1.11.1\n   Compiling serde_regex v1.1.0\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling chrono v0.4.43\n   Compiling assert-json-diff v2.0.2\n   Compiling http v1.4.0\n   Compiling tokio v1.49.0\n   Compiling http-body v1.0.1\n   Compiling headers-core v0.3.0\n   Compiling headers v0.4.1\n   Compiling http-body-util v0.1.3\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tokio-rustls v0.26.4\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.8.1\n   Compiling hyper-util v0.1.20\n   Compiling hyper-rustls v0.27.7\n   Compiling httpmock v0.8.3\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 39s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 6 tests\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 1467 filtered out; finished in 0.01s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "8f371e4b-245c-4b03-96eb-6749019475d2",
+              "tool_use_result": {
+                "stdout": "   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling errno v0.3.14\n   Compiling tokio-macros v2.6.0\n   Compiling futures-sink v0.3.31\n   Compiling crossbeam-utils v0.8.21\n   Compiling tracing v0.1.44\n   Compiling futures-macro v0.3.31\n   Compiling httpdate v1.0.3\n   Compiling fnv v1.0.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling futures-channel v0.3.31\n   Compiling parking v2.2.1\n   Compiling rustix v1.1.3\n   Compiling form_urlencoded v1.2.2\n   Compiling predicates-core v1.0.9\n   Compiling sha1 v0.10.6\n   Compiling float-cmp v0.10.0\n   Compiling url v2.5.8\n   Compiling normalize-line-endings v0.3.0\n   Compiling mime v0.3.17\n   Compiling termtree v0.5.1\n   Compiling assert_cmd v2.1.2\n   Compiling difflib v0.4.0\n   Compiling tabwriter v1.4.1\n   Compiling bstr v1.12.1\n   Compiling predicates-tree v1.0.12\n   Compiling futures-util v0.3.31\n   Compiling path-tree v0.8.3\n   Compiling predicates v3.1.3\n   Compiling wait-timeout v0.2.1\n   Compiling concurrent-queue v2.5.0\n   Compiling async-trait v0.1.89\n   Compiling event-listener v5.4.1\n   Compiling stringmetrics v2.2.2\n   Compiling similar v2.7.0\n   Compiling futures-timer v3.0.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling tracing-subscriber v0.3.22\n   Compiling async-lock v3.4.2\n   Compiling tempfile v3.25.0\n   Compiling async-object-pool v0.2.0\n   Compiling dialoguer v0.12.0\n   Compiling which v8.0.0\n   Compiling serde_json v1.0.149\n   Compiling bytes v1.11.1\n   Compiling serde_regex v1.1.0\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling chrono v0.4.43\n   Compiling assert-json-diff v2.0.2\n   Compiling http v1.4.0\n   Compiling tokio v1.49.0\n   Compiling http-body v1.0.1\n   Compiling headers-core v0.3.0\n   Compiling headers v0.4.1\n   Compiling http-body-util v0.1.3\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tokio-rustls v0.26.4\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.8.1\n   Compiling hyper-util v0.1.20\n   Compiling hyper-rustls v0.27.7\n   Compiling httpmock v0.8.3\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 39s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 6 tests\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 1467 filtered out; finished in 0.01s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test --lib -- runner::workflow::tests::dry_run 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01DPHcaxEv6Upcp8eat338sJ",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01TSzPzaz39RRzCKqQaMe9yB",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --lib -- requirements::status::tests 2>&1",
+                      "description": "Run requirement status tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1348,
+                  "cache_read_input_tokens": 126040,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1348
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "7c181319-701d-4791-acd7-bc6939678dc1"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01TSzPzaz39RRzCKqQaMe9yB",
+                    "type": "tool_result",
+                    "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 18 tests\ntest requirements::status::tests::dry_run_summary_inactive ... ok\ntest requirements::status::tests::dry_run_summary_missing_with_hint ... ok\ntest requirements::status::tests::dry_run_summary_missing_no_hint ... ok\ntest requirements::status::tests::dry_run_summary_satisfied ... ok\ntest requirements::status::tests::dry_run_summary_service_down_no_command ... ok\ntest requirements::status::tests::missing_cannot_proceed ... ok\ntest requirements::status::tests::missing_with_no_hints ... ok\ntest requirements::status::tests::satisfied_is_satisfied ... ok\ntest requirements::status::tests::service_down_cannot_proceed ... ok\ntest requirements::status::tests::service_down_without_start_command ... ok\ntest requirements::status::tests::dry_run_summary_service_down_with_command ... ok\ntest requirements::status::tests::dry_run_summary_system_only ... ok\ntest requirements::status::tests::dry_run_summary_unknown ... ok\ntest requirements::status::tests::gap_result_holds_requirement_and_status ... ok\ntest requirements::status::tests::system_only_can_proceed_but_not_satisfied ... ok\ntest requirements::status::tests::system_only_fields_accessible ... ok\ntest requirements::status::tests::inactive_cannot_proceed ... ok\ntest requirements::status::tests::unknown_cannot_proceed ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 1455 filtered out; finished in 0.01s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "67eb38a8-a780-473e-ba5e-ad57b0f150c8",
+              "tool_use_result": {
+                "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 18 tests\ntest requirements::status::tests::dry_run_summary_inactive ... ok\ntest requirements::status::tests::dry_run_summary_missing_with_hint ... ok\ntest requirements::status::tests::dry_run_summary_missing_no_hint ... ok\ntest requirements::status::tests::dry_run_summary_satisfied ... ok\ntest requirements::status::tests::dry_run_summary_service_down_no_command ... ok\ntest requirements::status::tests::missing_cannot_proceed ... ok\ntest requirements::status::tests::missing_with_no_hints ... ok\ntest requirements::status::tests::satisfied_is_satisfied ... ok\ntest requirements::status::tests::service_down_cannot_proceed ... ok\ntest requirements::status::tests::service_down_without_start_command ... ok\ntest requirements::status::tests::dry_run_summary_service_down_with_command ... ok\ntest requirements::status::tests::dry_run_summary_system_only ... ok\ntest requirements::status::tests::dry_run_summary_unknown ... ok\ntest requirements::status::tests::gap_result_holds_requirement_and_status ... ok\ntest requirements::status::tests::system_only_can_proceed_but_not_satisfied ... ok\ntest requirements::status::tests::system_only_fields_accessible ... ok\ntest requirements::status::tests::inactive_cannot_proceed ... ok\ntest requirements::status::tests::unknown_cannot_proceed ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 1455 filtered out; finished in 0.01s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test --lib -- requirements::status::tests 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01BRuYiS1yZXLMrZxYo8yizA",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01DLdv4SWkH23UPvuEgoVGWy",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --lib -- cli::commands::run::tests 2>&1",
+                      "description": "Run the run command tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 601,
+                  "cache_read_input_tokens": 127388,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 601
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "ef01708b-8185-4e50-9374-6d7fde31225a"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01DLdv4SWkH23UPvuEgoVGWy",
+                    "type": "tool_result",
+                    "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 37 tests\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\n\ntest result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1436 filtered out; finished in 21.94s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "659f82b3-a31d-4882-be5a-2543cf6e249b",
+              "tool_use_result": {
+                "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 37 tests\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\n\ntest result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 1436 filtered out; finished in 21.94s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test --lib -- cli::commands::run::tests 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01WgU8BonVLMchi16aFoeRon",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01A58cYjrdmWj4tWKsukZ3qE",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --lib -- runner::workflow::tests 2>&1",
+                      "description": "Run all workflow runner tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1022,
+                  "cache_read_input_tokens": 127989,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1022
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "f7469c36-13dd-45a3-82dc-7fe5ed8494db"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01A58cYjrdmWj4tWKsukZ3qE",
+                    "type": "tool_result",
+                    "content": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 65 tests\ntest runner::workflow::tests::build_graph_validates_workflow ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::hint_shown_on_low_confidence ... ok\ntest runner::workflow::tests::failed_step_stops_dependent_step ... ok\ntest runner::workflow::tests::non_interactive_no_menu ... ok\ntest runner::workflow::tests::allow_failure_continues_to_next_step ... ok\ntest runner::workflow::tests::auto_retry_succeeds ... ok\ntest runner::workflow::tests::recovery_abort_stops_workflow ... ok\ntest runner::workflow::tests::non_interactive_auto_retry ... ok\ntest runner::workflow::tests::independent_steps_continue_after_failure ... ok\ntest runner::workflow::tests::allow_failure_suppresses_menu ... ok\ntest runner::workflow::tests::auto_retry_before_menu ... ok\ntest runner::workflow::tests::recovery_abort_includes_partial_results ... ok\ntest runner::workflow::tests::recovery_detail_in_skip ... ok\ntest runner::workflow::tests::allow_failure_lets_all_dependent_steps_run ... ok\ntest runner::workflow::tests::recovery_fix_declined_reprompts ... ok\ntest runner::workflow::tests::run_with_progress_reports_skips ... ok\ntest runner::workflow::tests::recovery_detail_in_retry ... ok\ntest runner::workflow::tests::run_empty_only_environments_runs_always ... ok\ntest runner::workflow::tests::run_filters_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_errors_on_unknown_requirement ... ok\ntest runner::workflow::tests::run_with_progress_emits_events ... ok\ntest runner::workflow::tests::run_only_environments_skipped_steps_in_result ... ok\ntest runner::workflow::tests::recovery_retry_succeeds ... ok\ntest runner::workflow::tests::run_with_ui_interactive_warns_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_blocked_step_shows_warning ... ok\ntest runner::workflow::tests::run_with_progress_respects_only_environments ... ok\ntest runner::workflow::tests::recovery_skip_does_not_block_dependents ... ok\ntest runner::workflow::tests::run_with_ui_non_interactive_fails_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_completed_prompt_replaces_run_prompt ... ok\ntest runner::workflow::tests::run_with_ui_executes_simple_step ... ok\ntest runner::workflow::tests::run_with_ui_prompts_when_complete_and_interactive ... ok\ntest runner::workflow::tests::recovery_fix_confirmed_retries ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_not_skippable_declined_errors ... ok\ntest runner::workflow::tests::run_with_ui_incomplete_check_runs_without_force ... ok\ntest runner::workflow::tests::run_includes_matching_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_not_interactive ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_prompt_if_complete_false ... ok\ntest runner::workflow::tests::run_with_ui_skip_declined_step ... ok\ntest runner::workflow::tests::run_with_ui_interactive_no_check_does_not_force ... ok\ntest runner::workflow::tests::run_with_ui_step_override_disables_prompt_if_complete ... ok\ntest runner::workflow::tests::run_with_ui_no_gaps_when_requires_empty ... ok\ntest runner::workflow::tests::run_with_ui_workflow_non_interactive_suppresses_prompts ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_non_interactive ... ok\ntest runner::workflow::tests::run_workflow_with_skip ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_changes_graph ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_cycle_detected ... ok\ntest runner::workflow::tests::run_with_ui_proceeds_when_all_satisfied ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_not_skippable ... ok\ntest runner::workflow::tests::run_with_ui_reruns_when_user_confirms ... ok\ntest runner::workflow::tests::workflow_result_aborted_defaults_false ... ok\ntest runner::workflow::tests::run_with_ui_shows_error_output_on_failure ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_step_prompts ... ok\ntest runner::workflow::tests::run_with_ui_warns_on_system_only ... ok\ntest runner::workflow::tests::step_execution_error_stops_when_not_allow_failure ... ok\ntest runner::workflow::tests::run_with_ui_prompts_before_each_skippable_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest runner::workflow::tests::run_with_ui_step_error_continues_with_allow_failure ... ok\ntest runner::workflow::tests::run_workflow_in_order ... ok\ntest runner::workflow::tests::step_execution_error_does_not_abort_workflow ... ok\n\ntest result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 1408 filtered out; finished in 33.53s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "d7e56dcf-cf2d-47ba-b41f-de5775fe55c2",
+              "tool_use_result": {
+                "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 65 tests\ntest runner::workflow::tests::build_graph_validates_workflow ... ok\ntest runner::workflow::tests::dry_run_does_not_execute_commands ... ok\ntest runner::workflow::tests::dry_run_does_not_execute ... ok\ntest runner::workflow::tests::dry_run_shows_all_steps_in_workflow ... ok\ntest runner::workflow::tests::dry_run_shows_hooks ... ok\ntest runner::workflow::tests::dry_run_shows_step_env_vars ... ok\ntest runner::workflow::tests::dry_run_shows_would_run_message ... ok\ntest runner::workflow::tests::hint_shown_on_low_confidence ... ok\ntest runner::workflow::tests::failed_step_stops_dependent_step ... ok\ntest runner::workflow::tests::non_interactive_no_menu ... ok\ntest runner::workflow::tests::allow_failure_continues_to_next_step ... ok\ntest runner::workflow::tests::auto_retry_succeeds ... ok\ntest runner::workflow::tests::recovery_abort_stops_workflow ... ok\ntest runner::workflow::tests::non_interactive_auto_retry ... ok\ntest runner::workflow::tests::independent_steps_continue_after_failure ... ok\ntest runner::workflow::tests::allow_failure_suppresses_menu ... ok\ntest runner::workflow::tests::auto_retry_before_menu ... ok\ntest runner::workflow::tests::recovery_abort_includes_partial_results ... ok\ntest runner::workflow::tests::recovery_detail_in_skip ... ok\ntest runner::workflow::tests::allow_failure_lets_all_dependent_steps_run ... ok\ntest runner::workflow::tests::recovery_fix_declined_reprompts ... ok\ntest runner::workflow::tests::run_with_progress_reports_skips ... ok\ntest runner::workflow::tests::recovery_detail_in_retry ... ok\ntest runner::workflow::tests::run_empty_only_environments_runs_always ... ok\ntest runner::workflow::tests::run_filters_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_errors_on_unknown_requirement ... ok\ntest runner::workflow::tests::run_with_progress_emits_events ... ok\ntest runner::workflow::tests::run_only_environments_skipped_steps_in_result ... ok\ntest runner::workflow::tests::recovery_retry_succeeds ... ok\ntest runner::workflow::tests::run_with_ui_interactive_warns_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_blocked_step_shows_warning ... ok\ntest runner::workflow::tests::run_with_progress_respects_only_environments ... ok\ntest runner::workflow::tests::recovery_skip_does_not_block_dependents ... ok\ntest runner::workflow::tests::run_with_ui_non_interactive_fails_on_missing ... ok\ntest runner::workflow::tests::run_with_ui_completed_prompt_replaces_run_prompt ... ok\ntest runner::workflow::tests::run_with_ui_executes_simple_step ... ok\ntest runner::workflow::tests::run_with_ui_prompts_when_complete_and_interactive ... ok\ntest runner::workflow::tests::recovery_fix_confirmed_retries ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_not_skippable_declined_errors ... ok\ntest runner::workflow::tests::run_with_ui_incomplete_check_runs_without_force ... ok\ntest runner::workflow::tests::run_includes_matching_only_environments ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_not_interactive ... ok\ntest runner::workflow::tests::run_with_ui_silent_skip_when_prompt_if_complete_false ... ok\ntest runner::workflow::tests::run_with_ui_skip_declined_step ... ok\ntest runner::workflow::tests::run_with_ui_interactive_no_check_does_not_force ... ok\ntest runner::workflow::tests::run_with_ui_step_override_disables_prompt_if_complete ... ok\ntest runner::workflow::tests::run_with_ui_no_gaps_when_requires_empty ... ok\ntest runner::workflow::tests::run_with_ui_workflow_non_interactive_suppresses_prompts ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_non_interactive ... ok\ntest runner::workflow::tests::run_workflow_with_skip ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_changes_graph ... ok\ntest runner::workflow::tests::runner_env_override_depends_on_cycle_detected ... ok\ntest runner::workflow::tests::run_with_ui_proceeds_when_all_satisfied ... ok\ntest runner::workflow::tests::run_with_ui_no_prompt_when_not_skippable ... ok\ntest runner::workflow::tests::run_with_ui_reruns_when_user_confirms ... ok\ntest runner::workflow::tests::workflow_result_aborted_defaults_false ... ok\ntest runner::workflow::tests::run_with_ui_shows_error_output_on_failure ... ok\ntest runner::workflow::tests::run_with_ui_sensitive_step_prompts ... ok\ntest runner::workflow::tests::run_with_ui_warns_on_system_only ... ok\ntest runner::workflow::tests::step_execution_error_stops_when_not_allow_failure ... ok\ntest runner::workflow::tests::run_with_ui_prompts_before_each_skippable_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest runner::workflow::tests::run_with_ui_step_error_continues_with_allow_failure ... ok\ntest runner::workflow::tests::run_workflow_in_order ... ok\ntest runner::workflow::tests::step_execution_error_does_not_abort_workflow ... ok\n\ntest result: ok. 65 passed; 0 failed; 0 ignored; 0 measured; 1408 filtered out; finished in 33.53s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test --lib -- runner::workflow::tests 2>&1"
+        }
+      ],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_017eQUVi64SzKxjmc5AAkPh1",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01EP7XFUHaKpdFZAfmwmXRK8",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t -type f | head -30",
+                      "description": "List files in the project"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 36682,
+                  "cache_read_input_tokens": 0,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 36682
+                  },
+                  "output_tokens": 9,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "7fdf1fcf-1619-4bb4-943a-6f34495cd95d"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "<tool_use_error>Sibling tool call errored</tool_use_error>",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01EP7XFUHaKpdFZAfmwmXRK8"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "08ee9b84-030d-41fa-85e3-42463a1c1862",
+              "tool_use_result": "Sibling tool call errored"
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t -type f | head -30"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_017eQUVi64SzKxjmc5AAkPh1",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01Mf898T4jd39EUVXdfZopo4",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/.git/HEAD",
+                      "description": "Check current git state"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 36682,
+                  "cache_read_input_tokens": 0,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 36682
+                  },
+                  "output_tokens": 9,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "424fb063-5d65-4ad0-95b7-ed3e1e8b9998"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [python3 .claude/scripts/guard.py]: Direct .git/ access is restricted\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01Mf898T4jd39EUVXdfZopo4"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "a05d840f-ba29-4264-badf-c583424d2019",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [python3 .claude/scripts/guard.py]: Direct .git/ access is restricted\n"
+            }
+          },
+          "primary_arg": "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/.git/HEAD"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01XeCkgfYvkwu1XWTjudjM5U",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01CcwqXQsiZzrwCLgHviT9aV",
+                    "name": "Bash",
+                    "input": {
+                      "command": "wc -l /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+                      "description": "Count lines in workflow.rs"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1267,
+                  "cache_read_input_tokens": 117228,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1267
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "0dbf54df-3b28-4811-8da5-47debff6a1e8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01CcwqXQsiZzrwCLgHviT9aV",
+                    "type": "tool_result",
+                    "content": "    3921 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "675f4c52-6b17-4850-b3e4-cac7ea212d15",
+              "tool_use_result": {
+                "stdout": "    3921 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "wc -l /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t/src/runner/workflow.rs"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01C6JcLwhxHbMvDrTawPCJNC",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01BJ4XgPskNooQGh6iVRY1xJ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo build 2>&1 | tail -20",
+                      "description": "Build the project",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 282,
+                  "cache_read_input_tokens": 122794,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 282
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "e22f3aaf-79ef-4df9-8c72-7791860962dc"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01BJ4XgPskNooQGh6iVRY1xJ"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "41dfa7c5-a95f-4d40-b090-c5ce5e363f1c",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "primary_arg": "cargo build 2>&1 | tail -20"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01T88FipZ7saFSDonpb5XstW",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01PMbYoZE5JqX49oqx7C1Swt",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo build 2>&1",
+                      "description": "Build the project",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 204,
+                  "cache_read_input_tokens": 123076,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 204
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "c7d53f45-4f16-4177-82cf-23a6ec20f801"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01PMbYoZE5JqX49oqx7C1Swt",
+                    "type": "tool_result",
+                    "content": "   Compiling libc v0.2.181\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.44\n   Compiling unicode-ident v1.0.23\n   Compiling once_cell v1.21.3\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling memchr v2.8.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling pin-project-lite v0.2.16\n   Compiling bytes v1.11.1\n   Compiling cfg-if v1.0.4\n   Compiling itoa v1.0.17\n   Compiling futures-core v0.3.31\n   Compiling smallvec v1.15.1\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.15.4\n   Compiling litemap v0.8.1\n   Compiling bitflags v2.10.0\n   Compiling writeable v0.6.2\n   Compiling futures-sink v0.3.31\n   Compiling version_check v0.9.5\n   Compiling icu_normalizer_data v2.1.1\n   Compiling core-foundation-sys v0.8.7\n   Compiling pin-utils v0.1.0\n   Compiling icu_properties_data v2.1.2\n   Compiling typenum v1.19.0\n   Compiling serde_core v1.0.228\n   Compiling rustls-pki-types v1.14.0\n   Compiling tracing-core v0.1.36\n   Compiling generic-array v0.14.7\n   Compiling http v1.4.0\n   Compiling slab v0.4.12\n   Compiling rustls v0.23.36\n   Compiling httparse v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling futures-task v0.3.31\n   Compiling untrusted v0.9.0\n   Compiling futures-util v0.3.31\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.2\n   Compiling mio v1.1.1\n   Compiling syn v2.0.114\n   Compiling cc v1.2.55\n   Compiling tokio v1.49.0\n   Compiling tower-service v0.3.3\n   Compiling utf8parse v0.2.2\n   Compiling serde v1.0.228\n   Compiling http-body v1.0.1\n   Compiling rustix v1.1.3\n   Compiling subtle v2.6.1\n   Compiling percent-encoding v2.3.2\n   Compiling try-lock v0.2.5\n   Compiling want v0.3.1\n   Compiling anstyle-parse v0.2.7\n   Compiling errno v0.3.14\n   Compiling futures-channel v0.3.31\n   Compiling aho-corasick v1.1.4\n   Compiling foldhash v0.1.5\n   Compiling log v0.4.29\n   Compiling anstyle-query v1.1.5\n   Compiling atomic-waker v1.1.2\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling cmake v0.1.57\n   Compiling anstyle v1.0.13\n   Compiling regex-syntax v0.8.9\n   Compiling autocfg v1.5.0\n   Compiling getrandom v0.4.1\n   Compiling zmij v1.0.20\n   Compiling colorchoice v1.0.4\n   Compiling anstream v0.6.21\n   Compiling aws-lc-sys v0.37.0\n   Compiling num-traits v0.2.19\n   Compiling hashbrown v0.15.5\n   Compiling core-foundation v0.10.1\n   Compiling security-framework-sys v2.15.0\n   Compiling sync_wrapper v1.0.2\n   Compiling serde_json v1.0.149\n   Compiling doc-comment v0.3.4\n   Compiling portable-atomic v1.13.1\n   Compiling heck v0.5.0\n   Compiling unicode-width v0.2.2\n   Compiling base64 v0.22.1\n   Compiling strsim v0.11.1\n   Compiling utf8_iter v1.0.4\n   Compiling tower-layer v0.3.3\n   Compiling ipnet v2.11.0\n   Compiling clap_lex v0.7.7\n   Compiling clap_builder v4.5.57\n   Compiling console v0.16.2\n   Compiling security-framework v3.5.1\n   Compiling regex-automata v0.4.14\n   Compiling hashlink v0.10.0\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling form_urlencoded v1.2.2\n   Compiling encoding_rs v0.8.35\n   Compiling iri-string v0.7.10\n   Compiling thiserror v2.0.18\n   Compiling hashbrown v0.16.1\n   Compiling synstructure v0.13.2\n   Compiling hyper v1.8.1\n   Compiling tower v0.5.3\n   Compiling lazy_static v1.5.0\n   Compiling anyhow v1.0.101\n   Compiling arraydeque v0.5.1\n   Compiling option-ext v0.2.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.1\n   Compiling zerovec-derive v0.11.2\n   Compiling displaydoc v0.2.5\n   Compiling tracing-attributes v0.1.31\n   Compiling serde_derive v1.0.228\n   Compiling clap_derive v4.5.55\n   Compiling fastrand v2.3.0\n   Compiling equivalent v1.0.2\n   Compiling tempfile v3.25.0\n   Compiling matchers v0.2.0\n   Compiling zerofrom v0.1.6\n   Compiling indexmap v2.13.0\n   Compiling yaml-rust2 v0.10.4\n   Compiling yoke v0.8.1\n   Compiling dirs-sys v0.5.0\n   Compiling thiserror-impl v2.0.18\n   Compiling zerovec v0.11.5\n   Compiling zerotrie v0.2.3\n   Compiling tracing v0.1.44\n   Compiling tinystr v0.8.2\n   Compiling potential_utf v0.1.4\n   Compiling icu_locale_core v2.1.1\n   Compiling icu_collections v2.1.1\n   Compiling hyper-util v0.1.20\n   Compiling tower-http v0.6.8\n   Compiling sharded-slab v0.1.7\n   Compiling clap v4.5.57\n   Compiling digest v0.10.7\n   Compiling tracing-log v0.2.0\n   Compiling http-body-util v0.1.3\n   Compiling include_dir_macros v0.7.4\n   Compiling cpufeatures v0.2.17\n   Compiling icu_provider v2.1.1\n   Compiling iana-time-zone v0.1.65\n   Compiling thread_local v1.1.9\n   Compiling same-file v1.0.6\n   Compiling icu_properties v2.1.2\n   Compiling icu_normalizer v2.1.1\n   Compiling env_home v0.1.0\n   Compiling pathdiff v0.2.3\n   Compiling unsafe-libyaml v0.2.11\n   Compiling ryu v1.0.23\n   Compiling unit-prefix v0.5.2\n   Compiling shell-words v1.1.1\n   Compiling nu-ansi-term v0.50.3\n   Compiling chrono v0.4.43\n   Compiling dialoguer v0.12.0\n   Compiling tracing-subscriber v0.3.22\n   Compiling indicatif v0.18.3\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling open v5.3.3\n   Compiling which v8.0.0\n   Compiling include_dir v0.7.4\n   Compiling walkdir v2.5.0\n   Compiling sha2 v0.10.9\n   Compiling marked-yaml v0.8.0\n   Compiling clap_complete v4.5.65\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.1.0\n   Compiling dirs v6.0.0\n   Compiling regex v1.12.3\n   Compiling getrandom v0.2.17\n   Compiling urlencoding v2.1.3\n   Compiling hex v0.4.3\n   Compiling url v2.5.8\n   Compiling glob v0.3.3\n   Compiling rustls-webpki v0.103.9\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.6.2\n   Compiling hyper-rustls v0.27.7\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 33s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "272e43ef-6246-42e6-a28a-66a34f078300",
+              "uuid": "cd4a09b3-3deb-414c-badb-551e85879e56",
+              "tool_use_result": {
+                "stdout": "   Compiling libc v0.2.181\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.44\n   Compiling unicode-ident v1.0.23\n   Compiling once_cell v1.21.3\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling memchr v2.8.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling pin-project-lite v0.2.16\n   Compiling bytes v1.11.1\n   Compiling cfg-if v1.0.4\n   Compiling itoa v1.0.17\n   Compiling futures-core v0.3.31\n   Compiling smallvec v1.15.1\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.15.4\n   Compiling litemap v0.8.1\n   Compiling bitflags v2.10.0\n   Compiling writeable v0.6.2\n   Compiling futures-sink v0.3.31\n   Compiling version_check v0.9.5\n   Compiling icu_normalizer_data v2.1.1\n   Compiling core-foundation-sys v0.8.7\n   Compiling pin-utils v0.1.0\n   Compiling icu_properties_data v2.1.2\n   Compiling typenum v1.19.0\n   Compiling serde_core v1.0.228\n   Compiling rustls-pki-types v1.14.0\n   Compiling tracing-core v0.1.36\n   Compiling generic-array v0.14.7\n   Compiling http v1.4.0\n   Compiling slab v0.4.12\n   Compiling rustls v0.23.36\n   Compiling httparse v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling futures-task v0.3.31\n   Compiling untrusted v0.9.0\n   Compiling futures-util v0.3.31\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.2\n   Compiling mio v1.1.1\n   Compiling syn v2.0.114\n   Compiling cc v1.2.55\n   Compiling tokio v1.49.0\n   Compiling tower-service v0.3.3\n   Compiling utf8parse v0.2.2\n   Compiling serde v1.0.228\n   Compiling http-body v1.0.1\n   Compiling rustix v1.1.3\n   Compiling subtle v2.6.1\n   Compiling percent-encoding v2.3.2\n   Compiling try-lock v0.2.5\n   Compiling want v0.3.1\n   Compiling anstyle-parse v0.2.7\n   Compiling errno v0.3.14\n   Compiling futures-channel v0.3.31\n   Compiling aho-corasick v1.1.4\n   Compiling foldhash v0.1.5\n   Compiling log v0.4.29\n   Compiling anstyle-query v1.1.5\n   Compiling atomic-waker v1.1.2\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling cmake v0.1.57\n   Compiling anstyle v1.0.13\n   Compiling regex-syntax v0.8.9\n   Compiling autocfg v1.5.0\n   Compiling getrandom v0.4.1\n   Compiling zmij v1.0.20\n   Compiling colorchoice v1.0.4\n   Compiling anstream v0.6.21\n   Compiling aws-lc-sys v0.37.0\n   Compiling num-traits v0.2.19\n   Compiling hashbrown v0.15.5\n   Compiling core-foundation v0.10.1\n   Compiling security-framework-sys v2.15.0\n   Compiling sync_wrapper v1.0.2\n   Compiling serde_json v1.0.149\n   Compiling doc-comment v0.3.4\n   Compiling portable-atomic v1.13.1\n   Compiling heck v0.5.0\n   Compiling unicode-width v0.2.2\n   Compiling base64 v0.22.1\n   Compiling strsim v0.11.1\n   Compiling utf8_iter v1.0.4\n   Compiling tower-layer v0.3.3\n   Compiling ipnet v2.11.0\n   Compiling clap_lex v0.7.7\n   Compiling clap_builder v4.5.57\n   Compiling console v0.16.2\n   Compiling security-framework v3.5.1\n   Compiling regex-automata v0.4.14\n   Compiling hashlink v0.10.0\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling form_urlencoded v1.2.2\n   Compiling encoding_rs v0.8.35\n   Compiling iri-string v0.7.10\n   Compiling thiserror v2.0.18\n   Compiling hashbrown v0.16.1\n   Compiling synstructure v0.13.2\n   Compiling hyper v1.8.1\n   Compiling tower v0.5.3\n   Compiling lazy_static v1.5.0\n   Compiling anyhow v1.0.101\n   Compiling arraydeque v0.5.1\n   Compiling option-ext v0.2.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.1\n   Compiling zerovec-derive v0.11.2\n   Compiling displaydoc v0.2.5\n   Compiling tracing-attributes v0.1.31\n   Compiling serde_derive v1.0.228\n   Compiling clap_derive v4.5.55\n   Compiling fastrand v2.3.0\n   Compiling equivalent v1.0.2\n   Compiling tempfile v3.25.0\n   Compiling matchers v0.2.0\n   Compiling zerofrom v0.1.6\n   Compiling indexmap v2.13.0\n   Compiling yaml-rust2 v0.10.4\n   Compiling yoke v0.8.1\n   Compiling dirs-sys v0.5.0\n   Compiling thiserror-impl v2.0.18\n   Compiling zerovec v0.11.5\n   Compiling zerotrie v0.2.3\n   Compiling tracing v0.1.44\n   Compiling tinystr v0.8.2\n   Compiling potential_utf v0.1.4\n   Compiling icu_locale_core v2.1.1\n   Compiling icu_collections v2.1.1\n   Compiling hyper-util v0.1.20\n   Compiling tower-http v0.6.8\n   Compiling sharded-slab v0.1.7\n   Compiling clap v4.5.57\n   Compiling digest v0.10.7\n   Compiling tracing-log v0.2.0\n   Compiling http-body-util v0.1.3\n   Compiling include_dir_macros v0.7.4\n   Compiling cpufeatures v0.2.17\n   Compiling icu_provider v2.1.1\n   Compiling iana-time-zone v0.1.65\n   Compiling thread_local v1.1.9\n   Compiling same-file v1.0.6\n   Compiling icu_properties v2.1.2\n   Compiling icu_normalizer v2.1.1\n   Compiling env_home v0.1.0\n   Compiling pathdiff v0.2.3\n   Compiling unsafe-libyaml v0.2.11\n   Compiling ryu v1.0.23\n   Compiling unit-prefix v0.5.2\n   Compiling shell-words v1.1.1\n   Compiling nu-ansi-term v0.50.3\n   Compiling chrono v0.4.43\n   Compiling dialoguer v0.12.0\n   Compiling tracing-subscriber v0.3.22\n   Compiling indicatif v0.18.3\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling open v5.3.3\n   Compiling which v8.0.0\n   Compiling include_dir v0.7.4\n   Compiling walkdir v2.5.0\n   Compiling sha2 v0.10.9\n   Compiling marked-yaml v0.8.0\n   Compiling clap_complete v4.5.65\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.1.0\n   Compiling dirs v6.0.0\n   Compiling regex v1.12.3\n   Compiling getrandom v0.2.17\n   Compiling urlencoding v2.1.3\n   Compiling hex v0.4.3\n   Compiling url v2.5.8\n   Compiling glob v0.3.3\n   Compiling rustls-webpki v0.103.9\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.6.2\n   Compiling hyper-rustls v0.27.7\n   Compiling reqwest v0.13.2\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gkzzm31t)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 33s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo build 2>&1"
+        }
+      ],
+      "result_indices": [
+        33,
+        34,
+        35,
+        36
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2489827.215334416,
+      "operator": "exists_between",
+      "metric_value": [
+        33,
+        34,
+        35,
+        36
+      ],
+      "target_value": [
+        [
+          28,
+          29
+        ],
+        [
+          21,
+          23,
+          24
+        ]
+      ],
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2489827.215340375,
+      "passed": false,
+      "detail": "'cargo test' (Bash) did not occur between a test-content file write (Write/Edit with #[test]) and a pure implementation write (Write/Edit to src/ without test markers)"
+    }
+  ]
+}

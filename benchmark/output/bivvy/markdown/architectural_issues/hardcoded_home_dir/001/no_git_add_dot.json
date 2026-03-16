@@ -1,0 +1,56 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -type f -name \"*.toml\" -o -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"state*\" -o -name \"session*\"', 'grep -r \"\\\\.join\\\\|dirs::\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(bivvy|home_dir|cache_dir|data_local)\" | head -40', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"updates*\"', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -name \"*.md\" -type f | head -5', 'grep -r \"fn.*path\\\\|fn.*dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(state_dir|cache|data_local|home_dir|default.*path)\" | head -20'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -type f -name \"*.toml\" -o -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"state*\" -o -name \"session*\"",
+    "grep -r \"\\.join\\|dirs::\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(bivvy|home_dir|cache_dir|data_local)\" | head -40",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"updates*\"",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -name \"*.md\" -type f | head -5",
+    "grep -r \"fn.*path\\|fn.*dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(state_dir|cache|data_local|home_dir|default.*path)\" | head -20"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2486218.034679958,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2486218.034692583,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -type f -name \"*.toml\" -o -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"state*\" -o -name \"session*\"",
+        "grep -r \"\\.join\\|dirs::\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(bivvy|home_dir|cache_dir|data_local)\" | head -40",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"updates*\"",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -name \"*.md\" -type f | head -5",
+        "grep -r \"fn.*path\\|fn.*dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(state_dir|cache|data_local|home_dir|default.*path)\" | head -20"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2486218.034701,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -type f -name \"*.toml\" -o -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"state*\" -o -name \"session*\"', 'grep -r \"\\\\.join\\\\|dirs::\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(bivvy|home_dir|cache_dir|data_local)\" | head -40', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src -name \"updates*\"', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum -name \"*.md\" -type f | head -5', 'grep -r \"fn.*path\\\\|fn.*dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-8mk2fsum/src --include=\"*.rs\" | grep -E \"(state_dir|cache|data_local|home_dir|default.*path)\" | head -20'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

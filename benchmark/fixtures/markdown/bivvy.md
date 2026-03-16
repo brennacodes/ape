@@ -59,25 +59,24 @@ The linter must pass with zero warnings. If it doesn't, go back and fix all issu
 
 ### 5. Testing and Coverage
 
-After linting, run the full test suite and verify coverage meets the minimum threshold of 90%:
+After linting, verify coverage meets the minimum threshold of 90%:
 
 ```sh
-cargo test --all-features
 cargo llvm-cov --all-features
 ```
 
-All tests must pass and coverage must be at or above 90%. If either fails, go back and fix the implementation.
+This runs the full test suite and reports coverage. All tests must pass and coverage must be at or above 90%. If either condition fails, go back and fix the implementation.
 
 ### 6. Build
 
-Run both development and release builds to confirm the code compiles cleanly:
+Verify the code compiles for both development and release targets:
 
 ```sh
-cargo build --all-targets --all-features
+cargo check --all-targets --all-features
 cargo build --release
 ```
 
-Both builds must succeed before committing.
+Both must succeed before committing. The dev check uses `cargo check` since debug targets were already compiled during testing; the release build verifies the release profile separately.
 
 ### 7. Commit
 
@@ -95,15 +94,14 @@ Commit message conventions:
 
 ### 8. Post-Commit Verification
 
-After committing, re-run the test suite and build to confirm the committed state is clean:
+After committing, confirm the committed state compiles cleanly:
 
 ```sh
-cargo test --all-features
-cargo build
+cargo check --all-features
 git log -1 --stat
 ```
 
-All tests and the build must pass. If anything fails, go back and fix it.
+The check must pass. If it fails, go back and fix it.
 
 ## Test Runner Rules
 

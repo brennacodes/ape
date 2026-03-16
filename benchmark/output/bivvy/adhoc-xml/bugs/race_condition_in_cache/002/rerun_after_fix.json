@@ -1,0 +1,498 @@
+{
+  "check_id": "rerun_after_fix",
+  "phase": "failure_recovery",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found",
+  "category": "bugs",
+  "metric_value": [],
+  "target_value": [
+    1,
+    23,
+    25,
+    31,
+    33,
+    35,
+    37
+  ],
+  "operator": "followed_by",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2487533.922116625,
+      "check_id": "rerun_after_fix",
+      "phase": "failure_recovery",
+      "condition": {
+        "metric": "tool_call.file_edit",
+        "operator": "followed_by",
+        "target": "tool_call.execute_command"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2487533.922128,
+      "metric": "tool_call.file_edit",
+      "tool_name": "Edit",
+      "tool_calls": [],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2487533.922140916,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01KShdjHx41RBRicBDL35NXh",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01B99trgp4gMjgSN9SaxNZvT",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz -type f -name \"*.rs\" | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 5210,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 5210,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "d76d7a3f-40ea-490c-9ecb-2daa353091c0"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01B99trgp4gMjgSN9SaxNZvT",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/spinner.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "00b6bddb-686d-4ba7-84bf-443a21f26d43"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01TrwAENL99R1vkSNw2PUhcZ",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01Q9eHDX7bidUpoHAmipXvHn",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -r \"atomic\\|tempfile\\|fslock\\|lock\" Cargo.toml | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 3441,
+                "cache_read_input_tokens": 61113,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3441,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "12bd6fdf-6443-47fe-b82d-741fe6e45b4e"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01Q9eHDX7bidUpoHAmipXvHn",
+                  "type": "tool_result",
+                  "content": "Cargo.toml:reqwest = { version = \"0.13.1\", default-features = false, features = [\"blocking\", \"json\", \"rustls\"] }\nCargo.toml:tempfile = \"3.24.0\"",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "d6093fd4-c37f-4f41-aad4-6fd2f2a68b7d"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_016EQqKhwPxzk5daHNjZ2imE",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01XRsEkrYdNGEvqRuVtSLf7t",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps -name \"*.rs\" -type f"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 2179,
+                "cache_read_input_tokens": 64554,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 2179,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "49c6e313-bdea-4dba-8b19-02d0b0279742"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01XRsEkrYdNGEvqRuVtSLf7t",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/steps/completed_check.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "a1066493-b588-4970-b718-328b65de5357"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01EdPjsnkcGmfYsZe19LzsDw",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_0169DKxeSzTGk8tynbXioawV",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz -name \"*.md\" -type f | grep -E \"plan|README\""
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 4886,
+                "cache_read_input_tokens": 70108,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 4886,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "0e8b13df-534a-4854-bc22-4a276aec0508"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_0169DKxeSzTGk8tynbXioawV",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/dist/pip/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/tests/fixtures/remote/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/ui/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/requirements/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/environment/README.md",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "569c7ce6-295d-40dc-ac9b-b6024184f551"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01NBQTjXqy46qt6PP74sUvDV",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01U8rsEHmkdQMrZruEjN5cEm",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/plans/ 2>/dev/null || echo \"Plans directory not found\""
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 1567,
+                "cache_read_input_tokens": 74994,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1567,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "0e2334b0-8756-4acb-ba1b-91e003c9486f"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01U8rsEHmkdQMrZruEjN5cEm",
+                  "type": "tool_result",
+                  "content": "Plans directory not found",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "6134ca79-021a-415d-85e6-d9d71599e003"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01NpdBPP4Z3DkLrVQN2ugT3L",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_014wc1a5DGjerfEjgmpckXR8",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -r \"thread\\|concurrent\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/ 2>/dev/null | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 1818,
+                "cache_read_input_tokens": 76561,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1818,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "6b7f9b3b-4bba-4776-ac18-cf9c6dfb8238"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_014wc1a5DGjerfEjgmpckXR8",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/workflow.rs:        // b and c should be in the same parallel group (both depend only on a)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/workflow.rs:        let groups = graph.parallel_groups().unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    /// Returns groups of steps that can execute in parallel.\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    pub fn parallel_groups(&self) -> Result<Vec<Vec<String>>> {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    fn parallel_groups_empty_graph() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:        let groups = graph.parallel_groups().unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    fn parallel_groups_independent_steps() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:        let groups = graph.parallel_groups().unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    fn parallel_groups_linear_chain() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:        let groups = graph.parallel_groups().unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:    fn parallel_groups_diamond() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/dependency.rs:        let groups = graph.parallel_groups().unwrap();",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "65ad1ed0-2ba6-48d8-9d5d-0a4cd0fe7100"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01CivfZgMwJGDyxYgtQTmDpN",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_015sir5nrSKTTSdgbkvecd7Y",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -A 20 \"for.*steps_to_run\\|for.*index\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-pvgs1xdz/src/runner/workflow.rs | head -40"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 2500,
+                "cache_read_input_tokens": 79550,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 2500,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "1a4bdd9b-f17f-4fb3-a09e-983003768bfd"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_015sir5nrSKTTSdgbkvecd7Y",
+                  "type": "tool_result",
+                  "content": "        for (index, step_name) in steps_to_run.iter().enumerate() {\n            let step =\n                self.steps\n                    .get(step_name)\n                    .ok_or_else(|| BivvyError::ConfigValidationError {\n                        message: format!(\"Step '{}' not found in resolved steps\", step_name),\n                    })?;\n\n            // Check if any dependency failed\n            if step.depends_on.iter().any(|dep| failed_steps.contains(dep)) {\n                on_progress(RunProgress::StepSkipped { name: step_name });\n                all_success = false;\n                failed_steps.insert(step_name.clone());\n                continue;\n            }\n\n            // Check requirement gaps (non-UI: any blocking gap is an error)\n            if let Some(ref mut checker) = gap_checker {\n                let provided = if options.provided_requirements.is_empty() {\n                    None\n                } else {\n--\n        for (index, step_name) in steps_to_run.iter().enumerate() {\n            let step =\n                self.steps\n                    .get(step_name)\n                    .ok_or_else(|| BivvyError::ConfigValidationError {\n                        message: format!(\"Step '{}' not found in resolved steps\", step_name),\n                    })?;\n\n            // Blank line between steps\n            if index > 0 {\n                ui.message(\"\");\n            }\n\n            // Format step display with numbering: \"[1/7] name \u2014 title\" or \"[1/7] name\"\n            let step_number = format!(\"[{}/{}]\", index + 1, total);\n            let step_display = if *step_name == step.title {\n                format!(\n                    \"{} {}\",",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01NPnS4yRupoKr1p6NBqbNdH",
+            "session_id": "863b3439-7610-4366-b32e-fbceb820311e",
+            "uuid": "55b998c1-8718-4e1f-a309-1d1aa9511178"
+          }
+        }
+      ],
+      "result_indices": [
+        1,
+        23,
+        25,
+        31,
+        33,
+        35,
+        37
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2487533.922142625,
+      "operator": "followed_by",
+      "metric_value": [],
+      "target_value": [
+        1,
+        23,
+        25,
+        31,
+        33,
+        35,
+        37
+      ],
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2487533.92214475,
+      "passed": false,
+      "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found"
+    }
+  ]
+}

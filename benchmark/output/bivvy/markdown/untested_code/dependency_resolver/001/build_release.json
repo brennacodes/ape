@@ -1,0 +1,351 @@
+{
+  "check_id": "build_release",
+  "phase": "build",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "got 0, expected >= 1",
+  "category": "untested_code",
+  "metric_value": 0,
+  "target_value": 1,
+  "operator": "gte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2491646.370124416,
+      "check_id": "build_release",
+      "phase": "build",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "transform": "count",
+        "operator": "gte",
+        "target": 1,
+        "metric_args": "cargo build --release"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2491646.370128708,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JRi3NkrCx87M9soAkYv6HL",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_015aioSSewA2m1fceKzAwwQk",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 3603,
+                "cache_read_input_tokens": 52965,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 3603
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+            "uuid": "f2084cd7-23ce-4c07-80d7-59a0bfe6c12c"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_015aioSSewA2m1fceKzAwwQk",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: bxmdzvpqb. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench--eo8vfeu/tasks/bxmdzvpqb.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+            "uuid": "5b51e3ee-6a09-4298-be33-fefdf3e0e303",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "bxmdzvpqb"
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_016H2Szy19mCBaVfJbNeLYY6",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_012EQKAsmCo1p5rABfxyZhfh",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1 | grep -E \"dependency|filtered\"",
+                    "timeout": 300000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 9724,
+                "cache_read_input_tokens": 66668,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 9724
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+            "uuid": "a6ffae89-b630-471c-9749-f701c7149562"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_012EQKAsmCo1p5rABfxyZhfh",
+                  "type": "tool_result",
+                  "content": "test cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest error::tests::circular_dependency_displays_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_simple_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_three_step_cycle ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_diamond_deps ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_valid_deps ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency_with_other_deps ... ok\ntest lint::rules::self_dependency::tests::passes_without_self_dependency ... ok\ntest lint::rules::undefined_dependency::tests::detects_multiple_undefined_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::detects_undefined_dependency ... ok\ntest lint::rules::undefined_dependency::tests::no_false_positives_with_no_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::passes_with_valid_dependencies ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_base_ok ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_per_environment ... ok\ntest requirements::checker::tests::dependency_chain_resolves_in_order ... ok\ntest runner::dependency::tests::builder_adds_single_step_without_dependencies ... ok\ntest runner::dependency::tests::builder_adds_step_with_dependencies ... ok\ntest runner::dependency::tests::builder_creates_empty_graph ... ok\ntest runner::dependency::tests::builder_rejects_unknown_dependency ... ok\ntest runner::dependency::tests::builder_merges_dependencies_for_same_step ... ok\ntest runner::dependency::tests::builder_tracks_dependents ... ok\ntest runner::dependency::tests::compute_skips_only ... ok\ntest runner::dependency::tests::compute_skips_run_anyway ... ok\ntest runner::dependency::tests::compute_skips_run_anyway_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_skip_only_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_with_dependents ... ok\ntest runner::dependency::tests::compute_skips_with_dependents_on_cycle ... ok\ntest runner::dependency::tests::dependencies_of_nonexistent_step ... ok\ntest runner::dependency::tests::contains_returns_false_for_nonexistent_step ... ok\ntest runner::dependency::tests::dependents_of_nonexistent_step ... ok\ntest runner::dependency::tests::find_cycle_on_empty_graph ... ok\ntest runner::dependency::tests::is_ready_dependencies_met ... ok\ntest runner::dependency::tests::find_cycle_with_mixed_cyclic_and_acyclic ... ok\ntest runner::dependency::tests::is_ready_no_dependencies ... ok\ntest runner::dependency::tests::is_ready_with_partial_multi_dependencies ... ok\ntest runner::dependency::tests::is_ready_dependencies_not_met ... ok\ntest runner::dependency::tests::longer_cycle_returns_full_path ... ok\ntest runner::dependency::tests::parallel_groups_empty_graph ... ok\ntest runner::dependency::tests::no_cycle_returns_none ... ok\ntest runner::dependency::tests::parallel_groups_diamond ... ok\ntest runner::dependency::tests::parallel_groups_linear_chain ... ok\ntest runner::dependency::tests::parallel_groups_independent_steps ... ok\ntest runner::dependency::tests::parallel_groups_rejects_cycle ... ok\ntest runner::dependency::tests::parallel_groups_rejects_self_cycle ... ok\ntest runner::dependency::tests::self_cycle_detected ... ok\ntest runner::dependency::tests::simple_cycle_returns_path ... ok\ntest runner::dependency::tests::skip_behavior_default_is_skip_with_dependents ... ok\ntest runner::dependency::tests::steps_returns_all_step_names ... ok\ntest runner::dependency::tests::topo_sort_detects_self_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_simple_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_three_node_cycle ... ok\ntest runner::dependency::tests::topo_sort_diamond_dependency ... ok\ntest runner::dependency::tests::topo_sort_empty_graph ... ok\ntest runner::dependency::tests::topo_sort_independent_steps ... ok\ntest runner::dependency::tests::topo_sort_linear_chain ... ok\ntest runner::dependency::tests::topo_sort_single_step ... ok\ntest runner::dependency::tests::transitive_dependents_direct ... ok\ntest runner::dependency::tests::transitive_dependents_diamond_collects_all ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_self_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_two_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_three_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_indirect ... ok\ntest runner::dependency::tests::transitive_dependents_none ... ok\ntest runner::dependency::tests::transitive_dependents_nonexistent_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest result: FAILED. 1481 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 176.70s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+            "uuid": "7af37232-0c38-439e-a81e-12516ebc4d45",
+            "tool_use_result": {
+              "stdout": "test cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest error::tests::circular_dependency_displays_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_simple_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_three_step_cycle ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_diamond_deps ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_valid_deps ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency_with_other_deps ... ok\ntest lint::rules::self_dependency::tests::passes_without_self_dependency ... ok\ntest lint::rules::undefined_dependency::tests::detects_multiple_undefined_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::detects_undefined_dependency ... ok\ntest lint::rules::undefined_dependency::tests::no_false_positives_with_no_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::passes_with_valid_dependencies ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_base_ok ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_per_environment ... ok\ntest requirements::checker::tests::dependency_chain_resolves_in_order ... ok\ntest runner::dependency::tests::builder_adds_single_step_without_dependencies ... ok\ntest runner::dependency::tests::builder_adds_step_with_dependencies ... ok\ntest runner::dependency::tests::builder_creates_empty_graph ... ok\ntest runner::dependency::tests::builder_rejects_unknown_dependency ... ok\ntest runner::dependency::tests::builder_merges_dependencies_for_same_step ... ok\ntest runner::dependency::tests::builder_tracks_dependents ... ok\ntest runner::dependency::tests::compute_skips_only ... ok\ntest runner::dependency::tests::compute_skips_run_anyway ... ok\ntest runner::dependency::tests::compute_skips_run_anyway_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_skip_only_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_with_dependents ... ok\ntest runner::dependency::tests::compute_skips_with_dependents_on_cycle ... ok\ntest runner::dependency::tests::dependencies_of_nonexistent_step ... ok\ntest runner::dependency::tests::contains_returns_false_for_nonexistent_step ... ok\ntest runner::dependency::tests::dependents_of_nonexistent_step ... ok\ntest runner::dependency::tests::find_cycle_on_empty_graph ... ok\ntest runner::dependency::tests::is_ready_dependencies_met ... ok\ntest runner::dependency::tests::find_cycle_with_mixed_cyclic_and_acyclic ... ok\ntest runner::dependency::tests::is_ready_no_dependencies ... ok\ntest runner::dependency::tests::is_ready_with_partial_multi_dependencies ... ok\ntest runner::dependency::tests::is_ready_dependencies_not_met ... ok\ntest runner::dependency::tests::longer_cycle_returns_full_path ... ok\ntest runner::dependency::tests::parallel_groups_empty_graph ... ok\ntest runner::dependency::tests::no_cycle_returns_none ... ok\ntest runner::dependency::tests::parallel_groups_diamond ... ok\ntest runner::dependency::tests::parallel_groups_linear_chain ... ok\ntest runner::dependency::tests::parallel_groups_independent_steps ... ok\ntest runner::dependency::tests::parallel_groups_rejects_cycle ... ok\ntest runner::dependency::tests::parallel_groups_rejects_self_cycle ... ok\ntest runner::dependency::tests::self_cycle_detected ... ok\ntest runner::dependency::tests::simple_cycle_returns_path ... ok\ntest runner::dependency::tests::skip_behavior_default_is_skip_with_dependents ... ok\ntest runner::dependency::tests::steps_returns_all_step_names ... ok\ntest runner::dependency::tests::topo_sort_detects_self_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_simple_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_three_node_cycle ... ok\ntest runner::dependency::tests::topo_sort_diamond_dependency ... ok\ntest runner::dependency::tests::topo_sort_empty_graph ... ok\ntest runner::dependency::tests::topo_sort_independent_steps ... ok\ntest runner::dependency::tests::topo_sort_linear_chain ... ok\ntest runner::dependency::tests::topo_sort_single_step ... ok\ntest runner::dependency::tests::transitive_dependents_direct ... ok\ntest runner::dependency::tests::transitive_dependents_diamond_collects_all ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_self_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_two_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_three_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_indirect ... ok\ntest runner::dependency::tests::transitive_dependents_none ... ok\ntest runner::dependency::tests::transitive_dependents_nonexistent_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest result: FAILED. 1481 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 176.70s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        4,
+        7
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2491646.370132541,
+      "tool_name": "Bash",
+      "substring": "cargo build --release",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01JRi3NkrCx87M9soAkYv6HL",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_015aioSSewA2m1fceKzAwwQk",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 3603,
+                  "cache_read_input_tokens": 52965,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 3603
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+              "uuid": "f2084cd7-23ce-4c07-80d7-59a0bfe6c12c"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_015aioSSewA2m1fceKzAwwQk",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: bxmdzvpqb. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench--eo8vfeu/tasks/bxmdzvpqb.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+              "uuid": "5b51e3ee-6a09-4298-be33-fefdf3e0e303",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "bxmdzvpqb"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_016H2Szy19mCBaVfJbNeLYY6",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_012EQKAsmCo1p5rABfxyZhfh",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep -E \"dependency|filtered\"",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 9724,
+                  "cache_read_input_tokens": 66668,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 9724
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+              "uuid": "a6ffae89-b630-471c-9749-f701c7149562"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_012EQKAsmCo1p5rABfxyZhfh",
+                    "type": "tool_result",
+                    "content": "test cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest error::tests::circular_dependency_displays_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_simple_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_three_step_cycle ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_diamond_deps ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_valid_deps ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency_with_other_deps ... ok\ntest lint::rules::self_dependency::tests::passes_without_self_dependency ... ok\ntest lint::rules::undefined_dependency::tests::detects_multiple_undefined_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::detects_undefined_dependency ... ok\ntest lint::rules::undefined_dependency::tests::no_false_positives_with_no_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::passes_with_valid_dependencies ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_base_ok ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_per_environment ... ok\ntest requirements::checker::tests::dependency_chain_resolves_in_order ... ok\ntest runner::dependency::tests::builder_adds_single_step_without_dependencies ... ok\ntest runner::dependency::tests::builder_adds_step_with_dependencies ... ok\ntest runner::dependency::tests::builder_creates_empty_graph ... ok\ntest runner::dependency::tests::builder_rejects_unknown_dependency ... ok\ntest runner::dependency::tests::builder_merges_dependencies_for_same_step ... ok\ntest runner::dependency::tests::builder_tracks_dependents ... ok\ntest runner::dependency::tests::compute_skips_only ... ok\ntest runner::dependency::tests::compute_skips_run_anyway ... ok\ntest runner::dependency::tests::compute_skips_run_anyway_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_skip_only_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_with_dependents ... ok\ntest runner::dependency::tests::compute_skips_with_dependents_on_cycle ... ok\ntest runner::dependency::tests::dependencies_of_nonexistent_step ... ok\ntest runner::dependency::tests::contains_returns_false_for_nonexistent_step ... ok\ntest runner::dependency::tests::dependents_of_nonexistent_step ... ok\ntest runner::dependency::tests::find_cycle_on_empty_graph ... ok\ntest runner::dependency::tests::is_ready_dependencies_met ... ok\ntest runner::dependency::tests::find_cycle_with_mixed_cyclic_and_acyclic ... ok\ntest runner::dependency::tests::is_ready_no_dependencies ... ok\ntest runner::dependency::tests::is_ready_with_partial_multi_dependencies ... ok\ntest runner::dependency::tests::is_ready_dependencies_not_met ... ok\ntest runner::dependency::tests::longer_cycle_returns_full_path ... ok\ntest runner::dependency::tests::parallel_groups_empty_graph ... ok\ntest runner::dependency::tests::no_cycle_returns_none ... ok\ntest runner::dependency::tests::parallel_groups_diamond ... ok\ntest runner::dependency::tests::parallel_groups_linear_chain ... ok\ntest runner::dependency::tests::parallel_groups_independent_steps ... ok\ntest runner::dependency::tests::parallel_groups_rejects_cycle ... ok\ntest runner::dependency::tests::parallel_groups_rejects_self_cycle ... ok\ntest runner::dependency::tests::self_cycle_detected ... ok\ntest runner::dependency::tests::simple_cycle_returns_path ... ok\ntest runner::dependency::tests::skip_behavior_default_is_skip_with_dependents ... ok\ntest runner::dependency::tests::steps_returns_all_step_names ... ok\ntest runner::dependency::tests::topo_sort_detects_self_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_simple_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_three_node_cycle ... ok\ntest runner::dependency::tests::topo_sort_diamond_dependency ... ok\ntest runner::dependency::tests::topo_sort_empty_graph ... ok\ntest runner::dependency::tests::topo_sort_independent_steps ... ok\ntest runner::dependency::tests::topo_sort_linear_chain ... ok\ntest runner::dependency::tests::topo_sort_single_step ... ok\ntest runner::dependency::tests::transitive_dependents_direct ... ok\ntest runner::dependency::tests::transitive_dependents_diamond_collects_all ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_self_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_two_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_three_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_indirect ... ok\ntest runner::dependency::tests::transitive_dependents_none ... ok\ntest runner::dependency::tests::transitive_dependents_nonexistent_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest result: FAILED. 1481 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 176.70s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "3cde8718-d849-48c0-8d84-28d49c012641",
+              "uuid": "7af37232-0c38-439e-a81e-12516ebc4d45",
+              "tool_use_result": {
+                "stdout": "test cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest error::tests::circular_dependency_displays_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_simple_cycle ... ok\ntest lint::rules::circular_dependency::tests::detects_three_step_cycle ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_diamond_deps ... ok\ntest lint::rules::circular_dependency::tests::no_cycle_in_valid_deps ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency ... ok\ntest lint::rules::self_dependency::tests::detects_self_dependency_with_other_deps ... ok\ntest lint::rules::self_dependency::tests::passes_without_self_dependency ... ok\ntest lint::rules::undefined_dependency::tests::detects_multiple_undefined_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::detects_undefined_dependency ... ok\ntest lint::rules::undefined_dependency::tests::no_false_positives_with_no_dependencies ... ok\ntest lint::rules::undefined_dependency::tests::passes_with_valid_dependencies ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_base_ok ... ok\ntest lint::rules::valid_environments::tests::lint_env_circular_dependency_per_environment ... ok\ntest requirements::checker::tests::dependency_chain_resolves_in_order ... ok\ntest runner::dependency::tests::builder_adds_single_step_without_dependencies ... ok\ntest runner::dependency::tests::builder_adds_step_with_dependencies ... ok\ntest runner::dependency::tests::builder_creates_empty_graph ... ok\ntest runner::dependency::tests::builder_rejects_unknown_dependency ... ok\ntest runner::dependency::tests::builder_merges_dependencies_for_same_step ... ok\ntest runner::dependency::tests::builder_tracks_dependents ... ok\ntest runner::dependency::tests::compute_skips_only ... ok\ntest runner::dependency::tests::compute_skips_run_anyway ... ok\ntest runner::dependency::tests::compute_skips_run_anyway_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_skip_only_on_cycle ... ok\ntest runner::dependency::tests::compute_skips_with_dependents ... ok\ntest runner::dependency::tests::compute_skips_with_dependents_on_cycle ... ok\ntest runner::dependency::tests::dependencies_of_nonexistent_step ... ok\ntest runner::dependency::tests::contains_returns_false_for_nonexistent_step ... ok\ntest runner::dependency::tests::dependents_of_nonexistent_step ... ok\ntest runner::dependency::tests::find_cycle_on_empty_graph ... ok\ntest runner::dependency::tests::is_ready_dependencies_met ... ok\ntest runner::dependency::tests::find_cycle_with_mixed_cyclic_and_acyclic ... ok\ntest runner::dependency::tests::is_ready_no_dependencies ... ok\ntest runner::dependency::tests::is_ready_with_partial_multi_dependencies ... ok\ntest runner::dependency::tests::is_ready_dependencies_not_met ... ok\ntest runner::dependency::tests::longer_cycle_returns_full_path ... ok\ntest runner::dependency::tests::parallel_groups_empty_graph ... ok\ntest runner::dependency::tests::no_cycle_returns_none ... ok\ntest runner::dependency::tests::parallel_groups_diamond ... ok\ntest runner::dependency::tests::parallel_groups_linear_chain ... ok\ntest runner::dependency::tests::parallel_groups_independent_steps ... ok\ntest runner::dependency::tests::parallel_groups_rejects_cycle ... ok\ntest runner::dependency::tests::parallel_groups_rejects_self_cycle ... ok\ntest runner::dependency::tests::self_cycle_detected ... ok\ntest runner::dependency::tests::simple_cycle_returns_path ... ok\ntest runner::dependency::tests::skip_behavior_default_is_skip_with_dependents ... ok\ntest runner::dependency::tests::steps_returns_all_step_names ... ok\ntest runner::dependency::tests::topo_sort_detects_self_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_simple_cycle ... ok\ntest runner::dependency::tests::topo_sort_detects_three_node_cycle ... ok\ntest runner::dependency::tests::topo_sort_diamond_dependency ... ok\ntest runner::dependency::tests::topo_sort_empty_graph ... ok\ntest runner::dependency::tests::topo_sort_independent_steps ... ok\ntest runner::dependency::tests::topo_sort_linear_chain ... ok\ntest runner::dependency::tests::topo_sort_single_step ... ok\ntest runner::dependency::tests::transitive_dependents_direct ... ok\ntest runner::dependency::tests::transitive_dependents_diamond_collects_all ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_self_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_two_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_does_not_loop_on_three_node_cycle ... ok\ntest runner::dependency::tests::transitive_dependents_indirect ... ok\ntest runner::dependency::tests::transitive_dependents_none ... ok\ntest runner::dependency::tests::transitive_dependents_nonexistent_step ... ok\ntest runner::workflow::tests::transitive_dependency_blocked ... ok\ntest result: FAILED. 1481 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 176.70s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1 | grep -E \"dependency|filtered\""
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_transform",
+      "timestamp": 2491646.370133125,
+      "transform": "count",
+      "result": 0
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2491646.370134208,
+      "operator": "gte",
+      "metric_value": 0,
+      "target_value": 1,
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2491646.37013575,
+      "passed": false,
+      "detail": "got 0, expected >= 1"
+    }
+  ]
+}

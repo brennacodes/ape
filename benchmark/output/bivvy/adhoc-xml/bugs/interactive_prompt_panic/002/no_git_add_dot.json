@@ -1,0 +1,90 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy -type f -name \"*.rs\" | head -20', 'grep -r \"\\\\.unwrap()\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/*.rs | grep -E \"interact|confirm|prompt|read_key\" | head -20', 'grep -n \"\\\\.map_err\\\\|\\\\.unwrap\\\\|\\\\.expect\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/prompts.rs | head -30', 'python3 -c \"\\nimport re\\nimport os\\n\\n# Find all .rs files in src/\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        filepath = os.path.join(root, f)\\n        with open(filepath) as fh:\\n            content = fh.read()\\n        \\n        # Simple approach: find all .unwrap() calls that are NOT inside #[cfg(test)] blocks\\n        lines = content.split(\\'\\\\n\\')\\n        in_test = False\\n        for i, line in enumerate(lines, 1):\\n            if \\'#[cfg(test)]\\' in line:\\n                in_test = True\\n            if in_test:\\n                continue\\n            if \\'.unwrap()\\' in line and \\'/// \\' not in line and \\'///\\' not in line and \\'// \\' not in line[:line.find(\\'.unwrap()\\')] if \\'.unwrap()\\' in line else True:\\n                # Skip doc comments and regular comments\\n                stripped = line.lstrip()\\n                if stripped.startswith(\\'///\\') or stripped.startswith(\\'//\\'):\\n                    continue\\n                print(f\\'{filepath}:{i}: {line.strip()}\\')\\n\"\\n', 'python3 -c \"\\nimport os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        filepath = os.path.join(root, f)\\n        with open(filepath) as fh:\\n            lines = fh.readlines()\\n        \\n        in_test = False\\n        brace_depth = 0\\n        test_brace_start = 0\\n        \\n        for i, line in enumerate(lines, 1):\\n            stripped = line.strip()\\n            \\n            # Track test module\\n            if \\'#[cfg(test)]\\' in stripped:\\n                in_test = True\\n                test_brace_start = 0\\n                continue\\n            \\n            if in_test:\\n                brace_depth += stripped.count(\\'{\\') - stripped.count(\\'}\\')\\n                if test_brace_start == 0 and \\'{\\' in stripped:\\n                    test_brace_start = 1\\n                    brace_depth = stripped.count(\\'{\\') - stripped.count(\\'}\\')\\n                if test_brace_start > 0 and brace_depth <= 0:\\n                    in_test = False\\n                continue\\n            \\n            # Skip comments\\n            if stripped.startswith(\\'//\\'):\\n                continue\\n            \\n            if \\'.unwrap()\\' in stripped:\\n                print(f\\'{filepath}:{i}: {stripped}\\')\\n\"\\n', 'grep -A5 \\'name = \"console\"\\' Cargo.lock | head -10', 'grep -A5 \\'name = \"dialoguer\"\\' Cargo.lock | head -10', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null | head -1', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src\" -type d 2>/dev/null | head -1', 'cargo build --all-targets --all-features 2>&1 | tail -30', 'cargo build --all-targets --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|failures|panicked)\"', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|fail|error\\\\[)\" ', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-hpcc93qy/4415e4e5-031a-4e36-8ae6-42a08ec2551c/tool-results/b477iat7g.txt', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy -type f -name \"*.rs\" | head -20",
+    "grep -r \"\\.unwrap()\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/*.rs | grep -E \"interact|confirm|prompt|read_key\" | head -20",
+    "grep -n \"\\.map_err\\|\\.unwrap\\|\\.expect\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/prompts.rs | head -30",
+    "python3 -c \"\nimport re\nimport os\n\n# Find all .rs files in src/\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        filepath = os.path.join(root, f)\n        with open(filepath) as fh:\n            content = fh.read()\n        \n        # Simple approach: find all .unwrap() calls that are NOT inside #[cfg(test)] blocks\n        lines = content.split('\\n')\n        in_test = False\n        for i, line in enumerate(lines, 1):\n            if '#[cfg(test)]' in line:\n                in_test = True\n            if in_test:\n                continue\n            if '.unwrap()' in line and '/// ' not in line and '///' not in line and '// ' not in line[:line.find('.unwrap()')] if '.unwrap()' in line else True:\n                # Skip doc comments and regular comments\n                stripped = line.lstrip()\n                if stripped.startswith('///') or stripped.startswith('//'):\n                    continue\n                print(f'{filepath}:{i}: {line.strip()}')\n\"\n",
+    "python3 -c \"\nimport os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        filepath = os.path.join(root, f)\n        with open(filepath) as fh:\n            lines = fh.readlines()\n        \n        in_test = False\n        brace_depth = 0\n        test_brace_start = 0\n        \n        for i, line in enumerate(lines, 1):\n            stripped = line.strip()\n            \n            # Track test module\n            if '#[cfg(test)]' in stripped:\n                in_test = True\n                test_brace_start = 0\n                continue\n            \n            if in_test:\n                brace_depth += stripped.count('{') - stripped.count('}')\n                if test_brace_start == 0 and '{' in stripped:\n                    test_brace_start = 1\n                    brace_depth = stripped.count('{') - stripped.count('}')\n                if test_brace_start > 0 and brace_depth <= 0:\n                    in_test = False\n                continue\n            \n            # Skip comments\n            if stripped.startswith('//'):\n                continue\n            \n            if '.unwrap()' in stripped:\n                print(f'{filepath}:{i}: {stripped}')\n\"\n",
+    "grep -A5 'name = \"console\"' Cargo.lock | head -10",
+    "grep -A5 'name = \"dialoguer\"' Cargo.lock | head -10",
+    "find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null | head -1",
+    "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src\" -type d 2>/dev/null | head -1",
+    "cargo build --all-targets --all-features 2>&1 | tail -30",
+    "cargo build --all-targets --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"(FAILED|failures|panicked)\"",
+    "cargo test --all-features 2>&1 | grep -E \"(FAILED|fail|error\\[)\" ",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo test --all-features 2>&1",
+    "grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-hpcc93qy/4415e4e5-031a-4e36-8ae6-42a08ec2551c/tool-results/b477iat7g.txt",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2487778.245171916,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2487778.245205916,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy -type f -name \"*.rs\" | head -20",
+        "grep -r \"\\.unwrap()\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/*.rs | grep -E \"interact|confirm|prompt|read_key\" | head -20",
+        "grep -n \"\\.map_err\\|\\.unwrap\\|\\.expect\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/prompts.rs | head -30",
+        "python3 -c \"\nimport re\nimport os\n\n# Find all .rs files in src/\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        filepath = os.path.join(root, f)\n        with open(filepath) as fh:\n            content = fh.read()\n        \n        # Simple approach: find all .unwrap() calls that are NOT inside #[cfg(test)] blocks\n        lines = content.split('\\n')\n        in_test = False\n        for i, line in enumerate(lines, 1):\n            if '#[cfg(test)]' in line:\n                in_test = True\n            if in_test:\n                continue\n            if '.unwrap()' in line and '/// ' not in line and '///' not in line and '// ' not in line[:line.find('.unwrap()')] if '.unwrap()' in line else True:\n                # Skip doc comments and regular comments\n                stripped = line.lstrip()\n                if stripped.startswith('///') or stripped.startswith('//'):\n                    continue\n                print(f'{filepath}:{i}: {line.strip()}')\n\"\n",
+        "python3 -c \"\nimport os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        filepath = os.path.join(root, f)\n        with open(filepath) as fh:\n            lines = fh.readlines()\n        \n        in_test = False\n        brace_depth = 0\n        test_brace_start = 0\n        \n        for i, line in enumerate(lines, 1):\n            stripped = line.strip()\n            \n            # Track test module\n            if '#[cfg(test)]' in stripped:\n                in_test = True\n                test_brace_start = 0\n                continue\n            \n            if in_test:\n                brace_depth += stripped.count('{') - stripped.count('}')\n                if test_brace_start == 0 and '{' in stripped:\n                    test_brace_start = 1\n                    brace_depth = stripped.count('{') - stripped.count('}')\n                if test_brace_start > 0 and brace_depth <= 0:\n                    in_test = False\n                continue\n            \n            # Skip comments\n            if stripped.startswith('//'):\n                continue\n            \n            if '.unwrap()' in stripped:\n                print(f'{filepath}:{i}: {stripped}')\n\"\n",
+        "grep -A5 'name = \"console\"' Cargo.lock | head -10",
+        "grep -A5 'name = \"dialoguer\"' Cargo.lock | head -10",
+        "find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null | head -1",
+        "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src\" -type d 2>/dev/null | head -1",
+        "cargo build --all-targets --all-features 2>&1 | tail -30",
+        "cargo build --all-targets --all-features 2>&1",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"(FAILED|failures|panicked)\"",
+        "cargo test --all-features 2>&1 | grep -E \"(FAILED|fail|error\\[)\" ",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo test --all-features 2>&1",
+        "grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-hpcc93qy/4415e4e5-031a-4e36-8ae6-42a08ec2551c/tool-results/b477iat7g.txt",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2487778.245241375,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy -type f -name \"*.rs\" | head -20', 'grep -r \"\\\\.unwrap()\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/*.rs | grep -E \"interact|confirm|prompt|read_key\" | head -20', 'grep -n \"\\\\.map_err\\\\|\\\\.unwrap\\\\|\\\\.expect\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-hpcc93qy/src/ui/prompts.rs | head -30', 'python3 -c \"\\nimport re\\nimport os\\n\\n# Find all .rs files in src/\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        filepath = os.path.join(root, f)\\n        with open(filepath) as fh:\\n            content = fh.read()\\n        \\n        # Simple approach: find all .unwrap() calls that are NOT inside #[cfg(test)] blocks\\n        lines = content.split(\\'\\\\n\\')\\n        in_test = False\\n        for i, line in enumerate(lines, 1):\\n            if \\'#[cfg(test)]\\' in line:\\n                in_test = True\\n            if in_test:\\n                continue\\n            if \\'.unwrap()\\' in line and \\'/// \\' not in line and \\'///\\' not in line and \\'// \\' not in line[:line.find(\\'.unwrap()\\')] if \\'.unwrap()\\' in line else True:\\n                # Skip doc comments and regular comments\\n                stripped = line.lstrip()\\n                if stripped.startswith(\\'///\\') or stripped.startswith(\\'//\\'):\\n                    continue\\n                print(f\\'{filepath}:{i}: {line.strip()}\\')\\n\"\\n', 'python3 -c \"\\nimport os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        filepath = os.path.join(root, f)\\n        with open(filepath) as fh:\\n            lines = fh.readlines()\\n        \\n        in_test = False\\n        brace_depth = 0\\n        test_brace_start = 0\\n        \\n        for i, line in enumerate(lines, 1):\\n            stripped = line.strip()\\n            \\n            # Track test module\\n            if \\'#[cfg(test)]\\' in stripped:\\n                in_test = True\\n                test_brace_start = 0\\n                continue\\n            \\n            if in_test:\\n                brace_depth += stripped.count(\\'{\\') - stripped.count(\\'}\\')\\n                if test_brace_start == 0 and \\'{\\' in stripped:\\n                    test_brace_start = 1\\n                    brace_depth = stripped.count(\\'{\\') - stripped.count(\\'}\\')\\n                if test_brace_start > 0 and brace_depth <= 0:\\n                    in_test = False\\n                continue\\n            \\n            # Skip comments\\n            if stripped.startswith(\\'//\\'):\\n                continue\\n            \\n            if \\'.unwrap()\\' in stripped:\\n                print(f\\'{filepath}:{i}: {stripped}\\')\\n\"\\n', 'grep -A5 \\'name = \"console\"\\' Cargo.lock | head -10', 'grep -A5 \\'name = \"dialoguer\"\\' Cargo.lock | head -10', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null | head -1', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src\" -type d 2>/dev/null | head -1', 'cargo build --all-targets --all-features 2>&1 | tail -30', 'cargo build --all-targets --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|failures|panicked)\"', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|fail|error\\\\[)\" ', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-hpcc93qy/4415e4e5-031a-4e36-8ae6-42a08ec2551c/tool-results/b477iat7g.txt', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

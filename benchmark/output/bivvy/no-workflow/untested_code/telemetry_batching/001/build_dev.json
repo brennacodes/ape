@@ -1,0 +1,355 @@
+{
+  "check_id": "build_dev",
+  "phase": "build",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "got 0, expected >= 1",
+  "category": "untested_code",
+  "metric_value": 0,
+  "target_value": 1,
+  "operator": "gte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2492801.752833916,
+      "check_id": "build_dev",
+      "phase": "build",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "transform": "count",
+        "operator": "gte",
+        "target": 1,
+        "metric_args": "cargo build --all-targets"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2492801.752840875,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JT4f2JQCoEcGmA3ukFjvgL",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01NYDU95hA2sZXqUAeFdUA9K",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test runner::telemetry 2>&1",
+                    "description": "Run telemetry tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 5127,
+                "cache_read_input_tokens": 66961,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 5127
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+            "uuid": "f1f375be-35b0-4f8c-905d-cc6842715fbb"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01NYDU95hA2sZXqUAeFdUA9K",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: bkvbq4wll. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lrn0j6ay/tasks/bkvbq4wll.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+            "uuid": "d26a2685-ac62-4973-bc90-35075e592b82",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "bkvbq4wll"
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_018SsrhTExxz5FPcYxYiiNNH",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01CfFdtLjsVMzj72eZMS7YER",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test runner::telemetry 2>&1",
+                    "description": "Run telemetry tests",
+                    "timeout": 180000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1125,
+                "cache_read_input_tokens": 77349,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 1125
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+            "uuid": "4625c3e0-5a2b-4756-9486-a7462e2a2fa0"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01CfFdtLjsVMzj72eZMS7YER",
+                  "type": "tool_result",
+                  "content": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lrn0j6ay)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.17s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 50 tests\ntest runner::telemetry::tests::consent_display_always ... ok\ntest runner::telemetry::tests::consent_display_no_thanks ... ok\ntest runner::telemetry::tests::consent_display_send ... ok\ntest runner::telemetry::tests::consent_display_never ... ok\ntest runner::telemetry::tests::reports_dir_ends_with_failure_reports ... ok\ntest runner::telemetry::tests::failure_report_serialize_deserialize ... ok\ntest runner::telemetry::tests::build_report_scrubs_error_output ... ok\ntest runner::telemetry::tests::save_report_creates_directory ... ok\ntest runner::telemetry::tests::save_report_roundtrip_yaml ... ok\ntest runner::telemetry::tests::build_report_platform_format ... ok\ntest runner::telemetry::tests::scrub_does_not_mask_non_secret_env_vars ... ok\ntest runner::telemetry::tests::scrub_empty_input ... ok\ntest runner::telemetry::tests::build_report_creates_correct_structure ... ok\ntest runner::telemetry::tests::build_report_with_none_exit_code ... ok\ntest runner::telemetry::tests::scrub_handles_multiple_sensitive_items ... ok\ntest runner::telemetry::tests::scrub_preserves_safe_text ... ok\ntest runner::telemetry::tests::scrub_masks_multiple_secret_env_vars ... ok\ntest runner::telemetry::tests::failure_report_contains_no_paths ... ok\ntest runner::telemetry::tests::save_report_filename_contains_step_name ... ok\ntest runner::telemetry::tests::scrub_removes_home_paths ... ok\ntest runner::telemetry::tests::build_report_scrubs_command ... ok\ntest runner::telemetry::tests::scrub_removes_filesystem_paths ... ok\ntest runner::telemetry::tests::scrub_removes_secret_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxp_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_sk_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxb_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_tmp_paths ... ok\ntest runner::telemetry::tests::scrub_removes_windows_paths ... ok\ntest runner::telemetry::tests::scrub_skips_empty_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_long_hex_strings ... ok\ntest runner::telemetry::tests::scrub_truncation_boundary ... ok\ntest runner::telemetry::tests::scrub_removes_gho_tokens ... ok\ntest runner::telemetry::tests::scrub_truncates_long_output ... ok\ntest runner::telemetry::tests::scrub_removes_tokens ... ok\ntest runner::telemetry::tests::save_report_roundtrip_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_default_falls_back_to_no_thanks ... ok\ntest runner::telemetry::tests::scrub_truncation_one_over ... ok\ntest runner::telemetry::tests::telemetry_auto_sends_when_always ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_empty_error ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_step_name_in_messages ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_send ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_saved_preference_still_prompts ... ok\ntest runner::telemetry::tests::telemetry_prompt_not_shown_when_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_response_defaults_to_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_always ... ok\ntest runner::telemetry::tests::telemetry_saves_report_to_disk ... ok\n\ntest result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 1446 filtered out; finished in 0.50s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-23ee8dd9121c464b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/cli_test.rs (target/debug/deps/cli_test-0fc0a47ab7aea17b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s\n\n     Running tests/config_api_test.rs (target/debug/deps/config_api_test-63cfb04fd15ffd21)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n     Running tests/lib_test.rs (target/debug/deps/lib_test-1c555368d3005f98)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/registry_api_test.rs (target/debug/deps/registry_api_test-e76440cf6c5f493d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-190c0dc738a7f632)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/steps_api_test.rs (target/debug/deps/steps_api_test-0941b5cc1e3501dc)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+            "uuid": "f3d8721a-1faf-4951-b5b5-d9e46ade312a",
+            "tool_use_result": {
+              "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lrn0j6ay)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.17s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 50 tests\ntest runner::telemetry::tests::consent_display_always ... ok\ntest runner::telemetry::tests::consent_display_no_thanks ... ok\ntest runner::telemetry::tests::consent_display_send ... ok\ntest runner::telemetry::tests::consent_display_never ... ok\ntest runner::telemetry::tests::reports_dir_ends_with_failure_reports ... ok\ntest runner::telemetry::tests::failure_report_serialize_deserialize ... ok\ntest runner::telemetry::tests::build_report_scrubs_error_output ... ok\ntest runner::telemetry::tests::save_report_creates_directory ... ok\ntest runner::telemetry::tests::save_report_roundtrip_yaml ... ok\ntest runner::telemetry::tests::build_report_platform_format ... ok\ntest runner::telemetry::tests::scrub_does_not_mask_non_secret_env_vars ... ok\ntest runner::telemetry::tests::scrub_empty_input ... ok\ntest runner::telemetry::tests::build_report_creates_correct_structure ... ok\ntest runner::telemetry::tests::build_report_with_none_exit_code ... ok\ntest runner::telemetry::tests::scrub_handles_multiple_sensitive_items ... ok\ntest runner::telemetry::tests::scrub_preserves_safe_text ... ok\ntest runner::telemetry::tests::scrub_masks_multiple_secret_env_vars ... ok\ntest runner::telemetry::tests::failure_report_contains_no_paths ... ok\ntest runner::telemetry::tests::save_report_filename_contains_step_name ... ok\ntest runner::telemetry::tests::scrub_removes_home_paths ... ok\ntest runner::telemetry::tests::build_report_scrubs_command ... ok\ntest runner::telemetry::tests::scrub_removes_filesystem_paths ... ok\ntest runner::telemetry::tests::scrub_removes_secret_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxp_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_sk_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxb_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_tmp_paths ... ok\ntest runner::telemetry::tests::scrub_removes_windows_paths ... ok\ntest runner::telemetry::tests::scrub_skips_empty_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_long_hex_strings ... ok\ntest runner::telemetry::tests::scrub_truncation_boundary ... ok\ntest runner::telemetry::tests::scrub_removes_gho_tokens ... ok\ntest runner::telemetry::tests::scrub_truncates_long_output ... ok\ntest runner::telemetry::tests::scrub_removes_tokens ... ok\ntest runner::telemetry::tests::save_report_roundtrip_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_default_falls_back_to_no_thanks ... ok\ntest runner::telemetry::tests::scrub_truncation_one_over ... ok\ntest runner::telemetry::tests::telemetry_auto_sends_when_always ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_empty_error ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_step_name_in_messages ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_send ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_saved_preference_still_prompts ... ok\ntest runner::telemetry::tests::telemetry_prompt_not_shown_when_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_response_defaults_to_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_always ... ok\ntest runner::telemetry::tests::telemetry_saves_report_to_disk ... ok\n\ntest result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 1446 filtered out; finished in 0.50s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-23ee8dd9121c464b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/cli_test.rs (target/debug/deps/cli_test-0fc0a47ab7aea17b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s\n\n     Running tests/config_api_test.rs (target/debug/deps/config_api_test-63cfb04fd15ffd21)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n     Running tests/lib_test.rs (target/debug/deps/lib_test-1c555368d3005f98)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/registry_api_test.rs (target/debug/deps/registry_api_test-e76440cf6c5f493d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-190c0dc738a7f632)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/steps_api_test.rs (target/debug/deps/steps_api_test-0941b5cc1e3501dc)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        8,
+        11
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2492801.752846875,
+      "tool_name": "Bash",
+      "substring": "cargo build --all-targets",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01JT4f2JQCoEcGmA3ukFjvgL",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01NYDU95hA2sZXqUAeFdUA9K",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test runner::telemetry 2>&1",
+                      "description": "Run telemetry tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 5127,
+                  "cache_read_input_tokens": 66961,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 5127
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+              "uuid": "f1f375be-35b0-4f8c-905d-cc6842715fbb"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01NYDU95hA2sZXqUAeFdUA9K",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: bkvbq4wll. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lrn0j6ay/tasks/bkvbq4wll.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+              "uuid": "d26a2685-ac62-4973-bc90-35075e592b82",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "bkvbq4wll"
+              }
+            }
+          },
+          "primary_arg": "cargo test runner::telemetry 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_018SsrhTExxz5FPcYxYiiNNH",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01CfFdtLjsVMzj72eZMS7YER",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test runner::telemetry 2>&1",
+                      "description": "Run telemetry tests",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1125,
+                  "cache_read_input_tokens": 77349,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1125
+                  },
+                  "output_tokens": 26,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+              "uuid": "4625c3e0-5a2b-4756-9486-a7462e2a2fa0"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01CfFdtLjsVMzj72eZMS7YER",
+                    "type": "tool_result",
+                    "content": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lrn0j6ay)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.17s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 50 tests\ntest runner::telemetry::tests::consent_display_always ... ok\ntest runner::telemetry::tests::consent_display_no_thanks ... ok\ntest runner::telemetry::tests::consent_display_send ... ok\ntest runner::telemetry::tests::consent_display_never ... ok\ntest runner::telemetry::tests::reports_dir_ends_with_failure_reports ... ok\ntest runner::telemetry::tests::failure_report_serialize_deserialize ... ok\ntest runner::telemetry::tests::build_report_scrubs_error_output ... ok\ntest runner::telemetry::tests::save_report_creates_directory ... ok\ntest runner::telemetry::tests::save_report_roundtrip_yaml ... ok\ntest runner::telemetry::tests::build_report_platform_format ... ok\ntest runner::telemetry::tests::scrub_does_not_mask_non_secret_env_vars ... ok\ntest runner::telemetry::tests::scrub_empty_input ... ok\ntest runner::telemetry::tests::build_report_creates_correct_structure ... ok\ntest runner::telemetry::tests::build_report_with_none_exit_code ... ok\ntest runner::telemetry::tests::scrub_handles_multiple_sensitive_items ... ok\ntest runner::telemetry::tests::scrub_preserves_safe_text ... ok\ntest runner::telemetry::tests::scrub_masks_multiple_secret_env_vars ... ok\ntest runner::telemetry::tests::failure_report_contains_no_paths ... ok\ntest runner::telemetry::tests::save_report_filename_contains_step_name ... ok\ntest runner::telemetry::tests::scrub_removes_home_paths ... ok\ntest runner::telemetry::tests::build_report_scrubs_command ... ok\ntest runner::telemetry::tests::scrub_removes_filesystem_paths ... ok\ntest runner::telemetry::tests::scrub_removes_secret_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxp_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_sk_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxb_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_tmp_paths ... ok\ntest runner::telemetry::tests::scrub_removes_windows_paths ... ok\ntest runner::telemetry::tests::scrub_skips_empty_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_long_hex_strings ... ok\ntest runner::telemetry::tests::scrub_truncation_boundary ... ok\ntest runner::telemetry::tests::scrub_removes_gho_tokens ... ok\ntest runner::telemetry::tests::scrub_truncates_long_output ... ok\ntest runner::telemetry::tests::scrub_removes_tokens ... ok\ntest runner::telemetry::tests::save_report_roundtrip_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_default_falls_back_to_no_thanks ... ok\ntest runner::telemetry::tests::scrub_truncation_one_over ... ok\ntest runner::telemetry::tests::telemetry_auto_sends_when_always ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_empty_error ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_step_name_in_messages ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_send ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_saved_preference_still_prompts ... ok\ntest runner::telemetry::tests::telemetry_prompt_not_shown_when_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_response_defaults_to_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_always ... ok\ntest runner::telemetry::tests::telemetry_saves_report_to_disk ... ok\n\ntest result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 1446 filtered out; finished in 0.50s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-23ee8dd9121c464b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/cli_test.rs (target/debug/deps/cli_test-0fc0a47ab7aea17b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s\n\n     Running tests/config_api_test.rs (target/debug/deps/config_api_test-63cfb04fd15ffd21)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n     Running tests/lib_test.rs (target/debug/deps/lib_test-1c555368d3005f98)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/registry_api_test.rs (target/debug/deps/registry_api_test-e76440cf6c5f493d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-190c0dc738a7f632)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/steps_api_test.rs (target/debug/deps/steps_api_test-0941b5cc1e3501dc)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "740a971d-5bb0-4b4c-ba33-e0b68ff9c32b",
+              "uuid": "f3d8721a-1faf-4951-b5b5-d9e46ade312a",
+              "tool_use_result": {
+                "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lrn0j6ay)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.17s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 50 tests\ntest runner::telemetry::tests::consent_display_always ... ok\ntest runner::telemetry::tests::consent_display_no_thanks ... ok\ntest runner::telemetry::tests::consent_display_send ... ok\ntest runner::telemetry::tests::consent_display_never ... ok\ntest runner::telemetry::tests::reports_dir_ends_with_failure_reports ... ok\ntest runner::telemetry::tests::failure_report_serialize_deserialize ... ok\ntest runner::telemetry::tests::build_report_scrubs_error_output ... ok\ntest runner::telemetry::tests::save_report_creates_directory ... ok\ntest runner::telemetry::tests::save_report_roundtrip_yaml ... ok\ntest runner::telemetry::tests::build_report_platform_format ... ok\ntest runner::telemetry::tests::scrub_does_not_mask_non_secret_env_vars ... ok\ntest runner::telemetry::tests::scrub_empty_input ... ok\ntest runner::telemetry::tests::build_report_creates_correct_structure ... ok\ntest runner::telemetry::tests::build_report_with_none_exit_code ... ok\ntest runner::telemetry::tests::scrub_handles_multiple_sensitive_items ... ok\ntest runner::telemetry::tests::scrub_preserves_safe_text ... ok\ntest runner::telemetry::tests::scrub_masks_multiple_secret_env_vars ... ok\ntest runner::telemetry::tests::failure_report_contains_no_paths ... ok\ntest runner::telemetry::tests::save_report_filename_contains_step_name ... ok\ntest runner::telemetry::tests::scrub_removes_home_paths ... ok\ntest runner::telemetry::tests::build_report_scrubs_command ... ok\ntest runner::telemetry::tests::scrub_removes_filesystem_paths ... ok\ntest runner::telemetry::tests::scrub_removes_secret_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxp_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_sk_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_slack_xoxb_tokens ... ok\ntest runner::telemetry::tests::scrub_removes_tmp_paths ... ok\ntest runner::telemetry::tests::scrub_removes_windows_paths ... ok\ntest runner::telemetry::tests::scrub_skips_empty_env_values ... ok\ntest runner::telemetry::tests::scrub_removes_long_hex_strings ... ok\ntest runner::telemetry::tests::scrub_truncation_boundary ... ok\ntest runner::telemetry::tests::scrub_removes_gho_tokens ... ok\ntest runner::telemetry::tests::scrub_truncates_long_output ... ok\ntest runner::telemetry::tests::scrub_removes_tokens ... ok\ntest runner::telemetry::tests::save_report_roundtrip_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_default_falls_back_to_no_thanks ... ok\ntest runner::telemetry::tests::scrub_truncation_one_over ... ok\ntest runner::telemetry::tests::telemetry_auto_sends_when_always ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_empty_error ... ok\ntest runner::telemetry::tests::telemetry_prompt_shows_step_name_in_messages ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_send ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_saved_preference_still_prompts ... ok\ntest runner::telemetry::tests::telemetry_prompt_not_shown_when_never ... ok\ntest runner::telemetry::tests::telemetry_prompt_unknown_response_defaults_to_no_thanks ... ok\ntest runner::telemetry::tests::telemetry_prompt_skips_none_exit_code ... ok\ntest runner::telemetry::tests::telemetry_prompt_returns_always ... ok\ntest runner::telemetry::tests::telemetry_saves_report_to_disk ... ok\n\ntest result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 1446 filtered out; finished in 0.50s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-23ee8dd9121c464b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/cli_test.rs (target/debug/deps/cli_test-0fc0a47ab7aea17b)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s\n\n     Running tests/config_api_test.rs (target/debug/deps/config_api_test-63cfb04fd15ffd21)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n     Running tests/lib_test.rs (target/debug/deps/lib_test-1c555368d3005f98)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/registry_api_test.rs (target/debug/deps/registry_api_test-e76440cf6c5f493d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-190c0dc738a7f632)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/steps_api_test.rs (target/debug/deps/steps_api_test-0941b5cc1e3501dc)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo test runner::telemetry 2>&1"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_transform",
+      "timestamp": 2492801.752848166,
+      "transform": "count",
+      "result": 0
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2492801.752850833,
+      "operator": "gte",
+      "metric_value": 0,
+      "target_value": 1,
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2492801.752853958,
+      "passed": false,
+      "detail": "got 0, expected >= 1"
+    }
+  ]
+}

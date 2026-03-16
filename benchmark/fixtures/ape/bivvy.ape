@@ -39,6 +39,8 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <command id="build">cargo build</command>
       <command id="build-dev">cargo build --all-targets --all-features</command>
       <command id="build-release">cargo build --release</command>
+      <command id="check">cargo check --all-features</command>
+      <command id="check-dev">cargo check --all-targets --all-features</command>
       <command id="clippy">cargo clippy --all-targets --all-features -- -D warnings</command>
       <command id="fmt">cargo fmt -- --check</command>
       <command id="doc">cargo doc --no-deps --all-features</command>
@@ -50,6 +52,8 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <command id="build-error-count">cargo build 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="build-dev-error-count">cargo build --all-targets --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="build-release-error-count">cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="check-dev-error-count">cargo check --all-targets --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
+      <command id="check-error-count">cargo check --all-features 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="clippy-error-count">cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="fmt-error-count">cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command>
       <command id="cov-pct">cargo llvm-cov --all-features 2>&1 | awk '/TOTAL/ { for(i=1;i<=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; found=1; exit } } END { if(!found) print -1 }'</command>
@@ -150,6 +154,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       </gate>
     </step>
 
+    <!-- Optimization: cargo llvm-cov already runs the full test suite.
+         If tests fail, no TOTAL line is produced, so cov-pct returns -1,
+         which fails the coverage criterion. Separate test-failure-count removed. -->
     <step number="5" id="testing">
       <prerequisite ref="linting" goto="linting" />
       <output>Working on: testing</output>
@@ -158,32 +165,28 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
         <run ref="cov-pct" set="coverage_pct" />
         <output>Coverage: {{ coverage_pct }}%</output>
 
-        <run ref="test-failure-count" set="test_failures" />
-        <output>Test failures: {{ test_failures }}</output>
-
-        <criteria operator="and">
-          <criterion check="{{ test_failures == 0 }}" />
-          <criterion check="{{ coverage_pct >= min_coverage }}" />
-        </criteria>
+        <criterion check="{{ coverage_pct >= min_coverage }}" />
 
         <on-fail goto="implementation" />
         <on-pass goto="build" />
       </gate>
     </step>
 
+    <!-- Optimization: cargo test and clippy already compiled debug targets.
+         cargo check validates compilation without redundant codegen/linking. -->
     <step number="6" id="build">
       <prerequisite ref="testing" goto="testing" />
       <output>Working on: build</output>
 
       <gate>
-        <run ref="build-dev-error-count" set="build_dev_errors" />
-        <output>Build dev errors: {{ build_dev_errors }}</output>
+        <run ref="check-dev-error-count" set="check_dev_errors" />
+        <output>Check dev errors: {{ check_dev_errors }}</output>
 
         <run ref="build-release-error-count" set="build_release_errors" />
         <output>Build release errors: {{ build_release_errors }}</output>
 
         <criteria operator="and">
-          <criterion check="{{ build_dev_errors == 0 }}" />
+          <criterion check="{{ check_dev_errors == 0 }}" />
           <criterion check="{{ build_release_errors == 0 }}" />
         </criteria>
 
@@ -216,6 +219,9 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       </gate>
     </step>
 
+    <!-- Optimization: no source code changes between step 6 and here (only git add/commit).
+         A lightweight cargo check confirms compilation still holds post-commit,
+         replacing the redundant full test suite + build. -->
     <step number="8" id="post-commit">
       <prerequisite ref="commit" goto="commit" />
       <output>Working on: post-commit</output>
@@ -223,16 +229,10 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <run>git log -1 --stat</run>
 
       <gate>
-        <run ref="test-failure-count" set="test_failures" />
-        <output>Test failures: {{ test_failures }}</output>
+        <run ref="check-error-count" set="check_errors" />
+        <output>Check errors: {{ check_errors }}</output>
 
-        <run ref="build-error-count" set="build_errors" />
-        <output>Build errors: {{ build_errors }}</output>
-
-        <criteria operator="and">
-          <criterion check="{{ test_failures == 0 }}" />
-          <criterion check="{{ build_errors == 0 }}" />
-        </criteria>
+        <criterion check="{{ check_errors == 0 }}" />
 
         <on-fail goto="implementation" />
         <on-pass>

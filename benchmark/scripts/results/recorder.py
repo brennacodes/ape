@@ -188,6 +188,10 @@ class RunRecord:
     # Model usage
     model_usage: dict = field(default_factory=dict)
 
+    # Version tracking
+    ape_version: str = ""
+    workflow_hash: str = ""
+
     # Meta
     timestamp: str = ""
     consistency_scores: dict = field(default_factory=dict)
@@ -403,6 +407,8 @@ class Recorder:
             "format": record.format,
             "prompt_id": record.prompt_id,
             "run_id": record.run_id,
+            "ape_version": record.ape_version,
+            "workflow_hash": record.workflow_hash,
             "model": record.model,
             "session_id": session_id,
             "started_at": record.started_at,
@@ -507,6 +513,8 @@ class Recorder:
             max_turns_configured=summary.get("max_turns_configured", 0),
             hit_turn_limit=summary.get("hit_turn_limit", False),
             model_usage=summary.get("model_usage", {}),
+            ape_version=summary.get("ape_version", ""),
+            workflow_hash=summary.get("workflow_hash", ""),
             timestamp=summary.get("timestamp", ""),
         )
 
