@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#
+# Summarise benchmark results into pass-rate and aggregate tables.
+# All arguments are passed through to benchmark/summary.py.
+#
+# Usage:
+#   bin/summary                                  # summarise all results
+#   bin/summary --results-dir path/to/output/    # custom results path
+#
+# Options:
+#   --results-dir PATH   Root of the results directory (default: benchmark/output/)
+#   -h, --help           Show help message and exit
+
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 "$REPO_ROOT/benchmark/summary.py" "$@"
