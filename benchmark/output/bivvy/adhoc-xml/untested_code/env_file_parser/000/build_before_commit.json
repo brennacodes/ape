@@ -1,0 +1,372 @@
+{
+  "check_id": "build_before_commit",
+  "phase": "build",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'cargo build' (Bash) occurred before 'git commit' (Bash)",
+  "category": "untested_code",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2479703.748284583,
+      "check_id": "build_before_commit",
+      "phase": "build",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "strictly_precedes",
+        "target": "tool_call.execute_command",
+        "metric_args": "cargo build",
+        "target_args": "git commit"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2479703.748288,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01VXfCfhVvnvA137esouR3NQ",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 4230,
+                "cache_read_input_tokens": 43590,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 4230
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+            "uuid": "9da759a4-6975-4bdd-9948-a6cc983ba2c8"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: bibblpmu5. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-b82ovdgu/tasks/bibblpmu5.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+            "uuid": "d0d37b20-6c06-4fb4-8abb-fb032e3d279e",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "bibblpmu5"
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        3
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2479703.748290708,
+      "tool_name": "Bash",
+      "substring": "cargo build",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01VXfCfhVvnvA137esouR3NQ",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 4230,
+                  "cache_read_input_tokens": 43590,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 4230
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+              "uuid": "9da759a4-6975-4bdd-9948-a6cc983ba2c8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: bibblpmu5. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-b82ovdgu/tasks/bibblpmu5.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+              "uuid": "d0d37b20-6c06-4fb4-8abb-fb032e3d279e",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "bibblpmu5"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2479703.748294458,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01VXfCfhVvnvA137esouR3NQ",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 4230,
+                "cache_read_input_tokens": 43590,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 4230
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+            "uuid": "9da759a4-6975-4bdd-9948-a6cc983ba2c8"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: bibblpmu5. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-b82ovdgu/tasks/bibblpmu5.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+            "uuid": "d0d37b20-6c06-4fb4-8abb-fb032e3d279e",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "bibblpmu5"
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        3
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2479703.74829725,
+      "tool_name": "Bash",
+      "substring": "git commit",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01VXfCfhVvnvA137esouR3NQ",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 4230,
+                  "cache_read_input_tokens": 43590,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 4230
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+              "uuid": "9da759a4-6975-4bdd-9948-a6cc983ba2c8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01HUTn8iiBZ8sGuUWoFDLhfc",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: bibblpmu5. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-b82ovdgu/tasks/bibblpmu5.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "dbb5584f-223e-4a9d-bf1d-9d707aa0fa0c",
+              "uuid": "d0d37b20-6c06-4fb4-8abb-fb032e3d279e",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "bibblpmu5"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2479703.748298958,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2479703.748302166,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'cargo build' (Bash) occurred before 'git commit' (Bash)"
+    }
+  ]
+}

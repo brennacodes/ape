@@ -1,0 +1,56 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -type f -name \"*.rs\" | wc -l', 'tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src 2>/dev/null | head -80', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -maxdepth 1 -type d | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | sort'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" | head -20",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -type f -name \"*.rs\" | wc -l",
+    "tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src 2>/dev/null | head -80",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -maxdepth 1 -type d | sort",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | sort"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2474828.216256916,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2474828.216275666,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" | head -20",
+        "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -type f -name \"*.rs\" | wc -l",
+        "tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src 2>/dev/null | head -80",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -maxdepth 1 -type d | sort",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | sort"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2474828.216285291,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -type f -name \"*.rs\" | wc -l', 'tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src 2>/dev/null | head -80', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td/src -maxdepth 1 -type d | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-5tb769td -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | sort'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

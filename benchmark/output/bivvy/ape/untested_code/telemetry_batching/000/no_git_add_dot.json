@@ -1,0 +1,82 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'cargo test --all-features runner::telemetry 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'tail -20 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff src/runner/telemetry.rs', 'git log --oneline -5', 'git diff src/runner/telemetry.rs', 'git log -1 --oneline', 'git add src/runner/telemetry.rs && git commit -m \"$(cat <<\\'EOF\\'\\nAdd comprehensive tests for telemetry module\\n\\nThe telemetry scrubbing, report building, consent prompting, and\\ndisk persistence paths had gaps in test coverage. This adds 31 new\\ntests covering:\\n\\n- Token scrubbing: gho_, xoxb-, xoxp- variants\\n- Path scrubbing: /tmp, Windows C:\\\\Users\\\\ paths\\n- Edge cases: empty input, exact MAX_ERROR_LENGTH boundary,\\n  multiple env secrets, non-secret env vars, empty env values\\n- Combined scrubbing: env + path + token in one input\\n- TelemetryConsent Display impl for all variants\\n- build_report: None exit code, command-field scrubbing\\n- prompt_telemetry: all UI responses (always, never, unknown),\\n  unknown saved preference, message content verification,\\n  conditional exit code / error display\\n- save_report_to: nested dir creation, filename format,\\n  YAML roundtrip deserialization\\n- FailureReport: serde roundtrip with Some and None exit_code\\n- reports_dir: path structure assertion\\nEOF\\n)\"', 'git log -1 --stat'], expected regex_not_match 'git add \\\\.'",
+  "category": "untested_code",
+  "metric_value": [
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features runner::telemetry 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo test --all-features 2>&1",
+    "tail -20 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt",
+    "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt",
+    "cargo build --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git status",
+    "git diff src/runner/telemetry.rs",
+    "git log --oneline -5",
+    "git diff src/runner/telemetry.rs",
+    "git log -1 --oneline",
+    "git add src/runner/telemetry.rs && git commit -m \"$(cat <<'EOF'\nAdd comprehensive tests for telemetry module\n\nThe telemetry scrubbing, report building, consent prompting, and\ndisk persistence paths had gaps in test coverage. This adds 31 new\ntests covering:\n\n- Token scrubbing: gho_, xoxb-, xoxp- variants\n- Path scrubbing: /tmp, Windows C:\\Users\\ paths\n- Edge cases: empty input, exact MAX_ERROR_LENGTH boundary,\n  multiple env secrets, non-secret env vars, empty env values\n- Combined scrubbing: env + path + token in one input\n- TelemetryConsent Display impl for all variants\n- build_report: None exit code, command-field scrubbing\n- prompt_telemetry: all UI responses (always, never, unknown),\n  unknown saved preference, message content verification,\n  conditional exit code / error display\n- save_report_to: nested dir creation, filename format,\n  YAML roundtrip deserialization\n- FailureReport: serde roundtrip with Some and None exit_code\n- reports_dir: path structure assertion\nEOF\n)\"",
+    "git log -1 --stat"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2480840.180479916,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2480840.180494458,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features runner::telemetry 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo test --all-features 2>&1",
+        "tail -20 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt",
+        "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt",
+        "cargo build --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git status",
+        "git diff src/runner/telemetry.rs",
+        "git log --oneline -5",
+        "git diff src/runner/telemetry.rs",
+        "git log -1 --oneline",
+        "git add src/runner/telemetry.rs && git commit -m \"$(cat <<'EOF'\nAdd comprehensive tests for telemetry module\n\nThe telemetry scrubbing, report building, consent prompting, and\ndisk persistence paths had gaps in test coverage. This adds 31 new\ntests covering:\n\n- Token scrubbing: gho_, xoxb-, xoxp- variants\n- Path scrubbing: /tmp, Windows C:\\Users\\ paths\n- Edge cases: empty input, exact MAX_ERROR_LENGTH boundary,\n  multiple env secrets, non-secret env vars, empty env values\n- Combined scrubbing: env + path + token in one input\n- TelemetryConsent Display impl for all variants\n- build_report: None exit code, command-field scrubbing\n- prompt_telemetry: all UI responses (always, never, unknown),\n  unknown saved preference, message content verification,\n  conditional exit code / error display\n- save_report_to: nested dir creation, filename format,\n  YAML roundtrip deserialization\n- FailureReport: serde roundtrip with Some and None exit_code\n- reports_dir: path structure assertion\nEOF\n)\"",
+        "git log -1 --stat"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2480840.180509958,
+      "passed": true,
+      "detail": "got ['cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'cargo test --all-features runner::telemetry 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'tail -20 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lwwzddcf/8b0189c8-8450-4fde-9a70-704d93a572eb/tool-results/bb47vgj0a.txt', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff src/runner/telemetry.rs', 'git log --oneline -5', 'git diff src/runner/telemetry.rs', 'git log -1 --oneline', 'git add src/runner/telemetry.rs && git commit -m \"$(cat <<\\'EOF\\'\\nAdd comprehensive tests for telemetry module\\n\\nThe telemetry scrubbing, report building, consent prompting, and\\ndisk persistence paths had gaps in test coverage. This adds 31 new\\ntests covering:\\n\\n- Token scrubbing: gho_, xoxb-, xoxp- variants\\n- Path scrubbing: /tmp, Windows C:\\\\Users\\\\ paths\\n- Edge cases: empty input, exact MAX_ERROR_LENGTH boundary,\\n  multiple env secrets, non-secret env vars, empty env values\\n- Combined scrubbing: env + path + token in one input\\n- TelemetryConsent Display impl for all variants\\n- build_report: None exit code, command-field scrubbing\\n- prompt_telemetry: all UI responses (always, never, unknown),\\n  unknown saved preference, message content verification,\\n  conditional exit code / error display\\n- save_report_to: nested dir creation, filename format,\\n  YAML roundtrip deserialization\\n- FailureReport: serde roundtrip with Some and None exit_code\\n- reports_dir: path structure assertion\\nEOF\\n)\"', 'git log -1 --stat'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

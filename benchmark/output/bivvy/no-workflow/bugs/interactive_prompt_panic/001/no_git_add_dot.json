@@ -1,0 +1,64 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -type f | head -30', 'python3 -c \"\\nimport re, os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        path = os.path.join(root, f)\\n        with open(path) as fh:\\n            lines = fh.readlines()\\n        \\n        in_test = False\\n        brace_depth = 0\\n        test_start_depth = 0\\n        \\n        for i, line in enumerate(lines, 1):\\n            stripped = line.strip()\\n            \\n            # Track #[cfg(test)] blocks\\n            if \\'#[cfg(test)]\\' in stripped:\\n                in_test = True\\n                # Find the opening brace of the test module\\n                test_start_depth = brace_depth\\n            \\n            # Count braces\\n            brace_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n            \\n            if in_test and brace_depth <= test_start_depth:\\n                in_test = False\\n            \\n            if not in_test and \\'.unwrap()\\' in line:\\n                print(f\\'{path}:{i}: {line.rstrip()}\\')\\n\"\\n', 'for f in $(find src -name \\'*.rs\\' -not -name \\'mock.rs\\'); do\\n  # Get the line number where #[cfg(test)] starts, if any\\n  test_start=$(grep -n \\'#\\\\[cfg(test)\\\\]\\' \"$f\" | head -1 | cut -d: -f1)\\n  if [ -n \"$test_start\" ]; then\\n    # Only search lines before the test module\\n    head -n \"$((test_start - 1))\" \"$f\" | grep -n \\'\\\\.unwrap()\\' | while read line; do\\n      echo \"$f:$line\"\\n    done\\n  else\\n    grep -n \\'\\\\.unwrap()\\' \"$f\" | while read line; do\\n      echo \"$f:$line\"\\n    done\\n  fi\\ndone 2>/dev/null | grep -v \\'^\\\\s*//\\' | grep -v \\'doc comment\\'', \"find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -name 'Cargo.lock' -exec head -200 {} \\\\;\", \"find ~/.cargo/registry/src -path '*/dialoguer-0.12*' -name '*.rs' 2>/dev/null | head -20\", \"grep -rn '\\\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/ | grep -v '^\\\\s*//' | grep -v 'example' | grep -v '#\\\\[test\\\\]'\", \"find ~/.cargo/registry/src -path '*/console-0.16*' -name '*.rs' | head -20\", \"grep -n 'unwrap\\\\|read_key\\\\|read_single_key\\\\|read_char' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.16.2/src/unix_term.rs\", 'cargo check 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -type f | head -30",
+    "python3 -c \"\nimport re, os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        path = os.path.join(root, f)\n        with open(path) as fh:\n            lines = fh.readlines()\n        \n        in_test = False\n        brace_depth = 0\n        test_start_depth = 0\n        \n        for i, line in enumerate(lines, 1):\n            stripped = line.strip()\n            \n            # Track #[cfg(test)] blocks\n            if '#[cfg(test)]' in stripped:\n                in_test = True\n                # Find the opening brace of the test module\n                test_start_depth = brace_depth\n            \n            # Count braces\n            brace_depth += line.count('{') - line.count('}')\n            \n            if in_test and brace_depth <= test_start_depth:\n                in_test = False\n            \n            if not in_test and '.unwrap()' in line:\n                print(f'{path}:{i}: {line.rstrip()}')\n\"\n",
+    "for f in $(find src -name '*.rs' -not -name 'mock.rs'); do\n  # Get the line number where #[cfg(test)] starts, if any\n  test_start=$(grep -n '#\\[cfg(test)\\]' \"$f\" | head -1 | cut -d: -f1)\n  if [ -n \"$test_start\" ]; then\n    # Only search lines before the test module\n    head -n \"$((test_start - 1))\" \"$f\" | grep -n '\\.unwrap()' | while read line; do\n      echo \"$f:$line\"\n    done\n  else\n    grep -n '\\.unwrap()' \"$f\" | while read line; do\n      echo \"$f:$line\"\n    done\n  fi\ndone 2>/dev/null | grep -v '^\\s*//' | grep -v 'doc comment'",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -name 'Cargo.lock' -exec head -200 {} \\;",
+    "find ~/.cargo/registry/src -path '*/dialoguer-0.12*' -name '*.rs' 2>/dev/null | head -20",
+    "grep -rn '\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/ | grep -v '^\\s*//' | grep -v 'example' | grep -v '#\\[test\\]'",
+    "find ~/.cargo/registry/src -path '*/console-0.16*' -name '*.rs' | head -20",
+    "grep -n 'unwrap\\|read_key\\|read_single_key\\|read_char' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.16.2/src/unix_term.rs",
+    "cargo check 2>&1",
+    "cargo test 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2476445.558796583,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2476445.55881875,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -type f | head -30",
+        "python3 -c \"\nimport re, os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        path = os.path.join(root, f)\n        with open(path) as fh:\n            lines = fh.readlines()\n        \n        in_test = False\n        brace_depth = 0\n        test_start_depth = 0\n        \n        for i, line in enumerate(lines, 1):\n            stripped = line.strip()\n            \n            # Track #[cfg(test)] blocks\n            if '#[cfg(test)]' in stripped:\n                in_test = True\n                # Find the opening brace of the test module\n                test_start_depth = brace_depth\n            \n            # Count braces\n            brace_depth += line.count('{') - line.count('}')\n            \n            if in_test and brace_depth <= test_start_depth:\n                in_test = False\n            \n            if not in_test and '.unwrap()' in line:\n                print(f'{path}:{i}: {line.rstrip()}')\n\"\n",
+        "for f in $(find src -name '*.rs' -not -name 'mock.rs'); do\n  # Get the line number where #[cfg(test)] starts, if any\n  test_start=$(grep -n '#\\[cfg(test)\\]' \"$f\" | head -1 | cut -d: -f1)\n  if [ -n \"$test_start\" ]; then\n    # Only search lines before the test module\n    head -n \"$((test_start - 1))\" \"$f\" | grep -n '\\.unwrap()' | while read line; do\n      echo \"$f:$line\"\n    done\n  else\n    grep -n '\\.unwrap()' \"$f\" | while read line; do\n      echo \"$f:$line\"\n    done\n  fi\ndone 2>/dev/null | grep -v '^\\s*//' | grep -v 'doc comment'",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -name 'Cargo.lock' -exec head -200 {} \\;",
+        "find ~/.cargo/registry/src -path '*/dialoguer-0.12*' -name '*.rs' 2>/dev/null | head -20",
+        "grep -rn '\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/ | grep -v '^\\s*//' | grep -v 'example' | grep -v '#\\[test\\]'",
+        "find ~/.cargo/registry/src -path '*/console-0.16*' -name '*.rs' | head -20",
+        "grep -n 'unwrap\\|read_key\\|read_single_key\\|read_char' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.16.2/src/unix_term.rs",
+        "cargo check 2>&1",
+        "cargo test 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2476445.558838916,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -type f | head -30', 'python3 -c \"\\nimport re, os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        path = os.path.join(root, f)\\n        with open(path) as fh:\\n            lines = fh.readlines()\\n        \\n        in_test = False\\n        brace_depth = 0\\n        test_start_depth = 0\\n        \\n        for i, line in enumerate(lines, 1):\\n            stripped = line.strip()\\n            \\n            # Track #[cfg(test)] blocks\\n            if \\'#[cfg(test)]\\' in stripped:\\n                in_test = True\\n                # Find the opening brace of the test module\\n                test_start_depth = brace_depth\\n            \\n            # Count braces\\n            brace_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n            \\n            if in_test and brace_depth <= test_start_depth:\\n                in_test = False\\n            \\n            if not in_test and \\'.unwrap()\\' in line:\\n                print(f\\'{path}:{i}: {line.rstrip()}\\')\\n\"\\n', 'for f in $(find src -name \\'*.rs\\' -not -name \\'mock.rs\\'); do\\n  # Get the line number where #[cfg(test)] starts, if any\\n  test_start=$(grep -n \\'#\\\\[cfg(test)\\\\]\\' \"$f\" | head -1 | cut -d: -f1)\\n  if [ -n \"$test_start\" ]; then\\n    # Only search lines before the test module\\n    head -n \"$((test_start - 1))\" \"$f\" | grep -n \\'\\\\.unwrap()\\' | while read line; do\\n      echo \"$f:$line\"\\n    done\\n  else\\n    grep -n \\'\\\\.unwrap()\\' \"$f\" | while read line; do\\n      echo \"$f:$line\"\\n    done\\n  fi\\ndone 2>/dev/null | grep -v \\'^\\\\s*//\\' | grep -v \\'doc comment\\'', \"find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-46uqdcmw -name 'Cargo.lock' -exec head -200 {} \\\\;\", \"find ~/.cargo/registry/src -path '*/dialoguer-0.12*' -name '*.rs' 2>/dev/null | head -20\", \"grep -rn '\\\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/ | grep -v '^\\\\s*//' | grep -v 'example' | grep -v '#\\\\[test\\\\]'\", \"find ~/.cargo/registry/src -path '*/console-0.16*' -name '*.rs' | head -20\", \"grep -n 'unwrap\\\\|read_key\\\\|read_single_key\\\\|read_char' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.16.2/src/unix_term.rs\", 'cargo check 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

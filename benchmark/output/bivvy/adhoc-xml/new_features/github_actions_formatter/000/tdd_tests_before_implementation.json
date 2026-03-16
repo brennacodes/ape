@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "new_features",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2478026.627138083,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2478026.627211375,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01B6Jrgn1QGw8ZW12vRQnxNL",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                    "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 716,
+                "cache_read_input_tokens": 121498,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 716
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+            "uuid": "776b6ffa-c4bf-43fa-8f06-f43e54b277bd"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/snuggly-marinating-rocket.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+            "uuid": "64325928-f10a-43ca-bae6-9ebe7d4269d5",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+              "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        127
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2478026.6272565,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01B6Jrgn1QGw8ZW12vRQnxNL",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                      "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 716,
+                  "cache_read_input_tokens": 121498,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 716
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+              "uuid": "776b6ffa-c4bf-43fa-8f06-f43e54b277bd"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/snuggly-marinating-rocket.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+              "uuid": "64325928-f10a-43ca-bae6-9ebe7d4269d5",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2478026.627302666,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01B6Jrgn1QGw8ZW12vRQnxNL",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                    "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 716,
+                "cache_read_input_tokens": 121498,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 716
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+            "uuid": "776b6ffa-c4bf-43fa-8f06-f43e54b277bd"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/snuggly-marinating-rocket.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+            "uuid": "64325928-f10a-43ca-bae6-9ebe7d4269d5",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+              "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        127
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2478026.627330333,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01B6Jrgn1QGw8ZW12vRQnxNL",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                      "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 716,
+                  "cache_read_input_tokens": 121498,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 716
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+              "uuid": "776b6ffa-c4bf-43fa-8f06-f43e54b277bd"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01RyB8WFBf3ZL1LxEE3t1Xij",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/snuggly-marinating-rocket.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "b8469389-84d9-4a89-aa0d-9849fd2c23b3",
+              "uuid": "64325928-f10a-43ca-bae6-9ebe7d4269d5",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+                "content": "# GitHub Actions Output Formatter\n\n## Context\n\nWhen bivvy runs in GitHub Actions, errors and warnings are printed as plain text in CI logs. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions) like `::error::`, `::warning::`, and `::group::` that create inline annotations on PRs and collapsible log sections. This feature adds that integration so bivvy surfaces errors directly in the GitHub Actions UI.\n\n## Approach: GHA Annotation Module + UserInterface Decorator + Lint Formatter\n\nThree components, each building on the previous:\n\n### Component 1: GHA Workflow Command Module (`src/ui/gha.rs`)\n\nLow-level functions for emitting GitHub Actions workflow commands. Encapsulates the `::` protocol.\n\n```rust\npub enum GhaLevel { Notice, Warning, Error }\n\n#[derive(Default)]\npub struct GhaProperties {\n    pub file: Option<String>,\n    pub line: Option<usize>,\n    pub col: Option<usize>,\n    pub end_line: Option<usize>,\n    pub title: Option<String>,\n}\n\n/// Format a GHA annotation string (does NOT print, returns String for testability).\npub fn format_annotation(level: GhaLevel, message: &str, props: &GhaProperties) -> String\n\n/// Write ::group::{title} to stdout.\npub fn group_start(title: &str)\n\n/// Write ::endgroup:: to stdout.\npub fn group_end()\n\n/// Escape a message per GHA requirements (% -> %25, \\n -> %0A, \\r -> %0D).\nfn escape_message(msg: &str) -> String\n```\n\nTests: Unit tests on `format_annotation` and `escape_message` \u2014 no stdout capture needed since `format_annotation` returns a String.\n\n### Component 2: GhaAnnotator UserInterface Decorator (`src/ui/gha_annotator.rs`)\n\nWraps any `Box<dyn UserInterface>` and adds GHA annotations:\n\n```rust\npub struct GhaAnnotator {\n    inner: Box<dyn UserInterface>,\n}\n```\n\nDelegation + additional behavior:\n\n| Method | GHA addition |\n|--------|-------------|\n| `error(msg)` | Also prints `::error::{msg}` |\n| `warning(msg)` | Also prints `::warning::{msg}` |\n| `show_error_block(cmd, output, hint)` | Also prints `::error title={cmd}::{output}` |\n| `show_run_summary(summary)` | For each failed step, prints `::error title=Step failed::{name}` |\n| All other methods | Pure delegation to inner |\n\nKey design decisions:\n- Annotations emit regardless of OutputMode (they're CI metadata, not user output)\n- `GhaAnnotator` implements `UserInterface` by delegating all 15+ trait methods\n- No `::group::` wrapping for now (keeps it simple; can add later)\n\n### Component 3: GHA Lint Formatter (`src/lint/output/gha.rs`)\n\nNew `LintFormatter` implementation for `bivvy lint --format gha`:\n\n```rust\npub struct GhaFormatter;\n\nimpl LintFormatter for GhaFormatter {\n    fn format<W: Write>(&self, diagnostics: &[LintDiagnostic], writer: &mut W) -> io::Result<()> {\n        // For each diagnostic, emit:\n        // ::error file={file},line={line},title={rule_id}::{message}\n    }\n}\n```\n\nReuses `gha::format_annotation` from Component 1.\n\n### Component 4: CLI Integration\n\n**`src/cli/args.rs`** \u2014 Add `--gha` global flag:\n```rust\n#[arg(long, global = true)]\npub gha: bool,\n```\n\n**`src/shell/platform.rs`** \u2014 Add `is_github_actions()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\n\n**`src/ui/terminal.rs`** \u2014 Update `create_ui` to accept GHA flag:\n```rust\npub fn create_ui(interactive: bool, mode: OutputMode, gha: bool) -> Box<dyn UserInterface>\n```\n\n**`src/main.rs`** \u2014 Wire detection:\n```rust\nlet gha_mode = cli.gha || is_github_actions();\nlet mut ui = create_ui(is_interactive, output_mode, gha_mode);\n```\n\n**`src/cli/commands/lint.rs`** \u2014 Add `\"gha\"` format branch in `format_output()`.\n\n## Files to Create\n\n| File | Purpose |\n|------|---------|\n| `src/ui/gha.rs` | GHA workflow command formatting + escaping |\n| `src/ui/gha_annotator.rs` | `UserInterface` decorator that adds `::error::`/`::warning::` |\n| `src/lint/output/gha.rs` | `LintFormatter` for `--format gha` |\n\n## Files to Modify\n\n| File | Change |\n|------|--------|\n| `src/ui/mod.rs` | Add `pub mod gha; pub mod gha_annotator;` and re-exports |\n| `src/ui/terminal.rs` | Add `gha: bool` param to `create_ui`, wrap with `GhaAnnotator` |\n| `src/shell/platform.rs` | Add `is_github_actions()` function |\n| `src/shell/mod.rs` | Re-export `is_github_actions` |\n| `src/cli/args.rs` | Add `--gha` global flag |\n| `src/main.rs` | Wire GHA detection into `create_ui` call |\n| `src/lint/output/mod.rs` | Add `pub mod gha;`, `Gha` variant to `OutputFormat`, re-export |\n| `src/lint/mod.rs` | Re-export `GhaFormatter` |\n| `src/cli/commands/lint.rs` | Add `\"gha\"` branch in `format_output()` |\n\n## Commit Sequence\n\n1. **Add GHA workflow command module** \u2014 `src/ui/gha.rs` + `is_github_actions()` + module registration + tests\n2. **Add GHA lint formatter** \u2014 `src/lint/output/gha.rs` + lint command integration + tests\n3. **Add GhaAnnotator UI decorator** \u2014 `src/ui/gha_annotator.rs` + tests\n4. **Wire GHA mode into CLI** \u2014 `--gha` flag, `create_ui` update, `main.rs` auto-detection + tests\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\n\n# Manual verification:\nGITHUB_ACTIONS=true cargo run -- lint --format gha   # Should emit ::error:: / ::warning::\nGITHUB_ACTIONS=true cargo run -- run                  # Errors should produce ::error:: annotations\ncargo run -- --gha lint --format gha                  # Explicit --gha flag\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/snuggly-marinating-rocket.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2478026.627341916,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2478026.627353125,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}
