@@ -434,6 +434,7 @@ def _run_in_workspace(
     on_state: Any = None,
     ape_version: str = "",
     workflow_hash: str = "",
+    label: str = "",
 ) -> CaseResult:
     """Execute a test case inside an already-created workspace.
 
@@ -446,14 +447,15 @@ def _run_in_workspace(
     *on_state*, when provided, is called with the workspace_state dict
     each time it is updated so the caller can persist it incrementally.
     """
+    label = label or case.case_id
     workspace_state: dict = {}
 
     # Capture setup state NOW — after all setup, before prompt submission.
     setup_snapshot: SetupSnapshot | None = None
     try:
-        setup_snapshot = env.capture_setup_state(workspace_path, case_id=case.case_id, app_name=case.app.name)
+        setup_snapshot = env.capture_setup_state(workspace_path, case_id=label, app_name=case.app.name)
     except Exception:
-        logger.warning("%s: failed to capture setup state", case.case_id, exc_info=True)
+        logger.warning("%s: failed to capture setup state", label, exc_info=True)
 
     # Write setup snapshot to disk immediately so it's visible during the run
     if on_state is not None and setup_snapshot is not None:
@@ -477,20 +479,20 @@ def _run_in_workspace(
         full_prompt = f"{workflow_content}\n\n---\n\nUser task:\n{prompt_text}"
         logger.info(
             "%s: workflow prepended (%d chars) + prompt (%d chars) = %d chars total",
-            case.case_id, len(workflow_content), len(prompt_text), len(full_prompt),
+            label, len(workflow_content), len(prompt_text), len(full_prompt),
         )
     else:
         full_prompt = prompt_text
         logger.info(
             "%s: workflow placed as CLAUDE.md (format=%s), prompt only (%d chars)",
-            case.case_id, case.workflow.format, len(full_prompt),
+            label, case.workflow.format, len(full_prompt),
         )
     command = build_command(full_prompt, model, max_turns=max_turns)
 
-    logger.debug("%s: cwd=%s", case.case_id, workspace_path)
+    logger.debug("%s: cwd=%s", label, workspace_path)
 
     # 4. Execute CLI in isolated workspace
-    logger.info("%s: executing CLI (timeout=%ds)", case.case_id, timeout)
+    logger.info("%s: executing CLI (timeout=%ds)", label, timeout)
     import tempfile
     from datetime import datetime as _dt
     started_at = _dt.now().isoformat()
@@ -508,10 +510,10 @@ def _run_in_workspace(
         kwargs["stream_path"] = stream_file
         result = executor(command, timeout, **kwargs)
     except subprocess.TimeoutExpired:
-        logger.warning("CLI timeout for %s after %ds", case.case_id, timeout)
+        logger.warning("CLI timeout for %s after %ds", label, timeout)
         return CaseResult(case=case, summary=None, trace_path=None, error="CLI timeout", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file, ape_version=ape_version, workflow_hash=workflow_hash)
     except Exception as exc:
-        logger.warning("CLI error for %s: %s", case.case_id, exc)
+        logger.warning("CLI error for %s: %s", label, exc)
         return CaseResult(case=case, summary=None, trace_path=None, error=f"CLI error: {exc}", prompt_text=full_prompt, started_at=started_at, stream_path=stream_file, ape_version=ape_version, workflow_hash=workflow_hash)
     finally:
         wall_clock_ns = time.perf_counter_ns() - t0
@@ -522,13 +524,13 @@ def _run_in_workspace(
     stderr = getattr(result, "stderr", "") or ""
     logger.info(
         "%s: CLI finished in %.1fs (exit %d)",
-        case.case_id, wall_clock_ms / 1000, exit_code,
+        label, wall_clock_ms / 1000, exit_code,
     )
 
     # 5. Capture workspace state
-    logger.info("%s: capturing post-run workspace state", case.case_id)
+    logger.info("%s: capturing post-run workspace state", label)
     try:
-        ws = env.capture_state(workspace_path, setup_snapshot=setup_snapshot, case_id=case.case_id)
+        ws = env.capture_state(workspace_path, setup_snapshot=setup_snapshot, case_id=label)
         workspace_state = {
             "git_log": ws.git_log,
             "modified_files": ws.modified_files,
@@ -557,7 +559,7 @@ def _run_in_workspace(
             workspace_state["memory_leak"] = memory_leak
             logger.warning(
                 "Memory isolation failure for %s: %s",
-                case.case_id, memory_leak,
+                label, memory_leak,
             )
     except Exception:
         pass
@@ -567,7 +569,7 @@ def _run_in_workspace(
 
     if exit_code != 0:
         error_detail = _extract_cli_error(raw_output, stderr, exit_code)
-        logger.warning("CLI exited %d for %s: %s", exit_code, case.case_id, error_detail)
+        logger.warning("CLI exited %d for %s: %s", exit_code, label, error_detail)
         return CaseResult(
             case=case, summary=None, trace_path=None,
             error=error_detail,
@@ -582,7 +584,7 @@ def _run_in_workspace(
         )
 
     # 6. Parse trace — try stdout first, then session file in workspace
-    logger.info("%s: parsing session trace", case.case_id)
+    logger.info("%s: parsing session trace", label)
     trace = None
     trace_path = None
     stale_trace = False
@@ -592,10 +594,10 @@ def _run_in_workspace(
             trace = parse_trace_jsonl(raw_output)
             logger.debug(
                 "Parsed trace from CLI stdout (%d events) for %s",
-                len(trace.events), case.case_id,
+                len(trace.events), label,
             )
         except (ValueError, Exception):
-            logger.debug("Stdout not parseable as trace for %s, trying session file", case.case_id)
+            logger.debug("Stdout not parseable as trace for %s, trying session file", label)
 
     if trace is None:
         session_dir = env.get_session_dir(workspace_path)
@@ -605,7 +607,7 @@ def _run_in_workspace(
             msg = f"No session trace found in {session_dir}"
             if not session_dir.is_dir():
                 msg += " (directory does not exist)"
-            logger.warning("%s for %s", msg, case.case_id)
+            logger.warning("%s for %s", msg, label)
             return CaseResult(
                 case=case, summary=None, trace_path=None,
                 error=msg,
@@ -621,7 +623,7 @@ def _run_in_workspace(
 
         if trace_path.stat().st_mtime < cli_start:
             stale_trace = True
-            logger.warning("Stale trace for %s — trace predates CLI invocation", case.case_id)
+            logger.warning("Stale trace for %s — trace predates CLI invocation", label)
 
         try:
             trace = load_trace(trace_path)
@@ -640,7 +642,7 @@ def _run_in_workspace(
             )
 
     # 7. Evaluate
-    logger.info("%s: evaluating %d checks", case.case_id, len(checks))
+    logger.info("%s: evaluating %d checks", label, len(checks))
     context["workspace_state"] = workspace_state
     context["workspace_path"] = str(workspace_path)
     # Capture evaluation context for re-evaluation reproducibility
@@ -665,7 +667,7 @@ def _run_in_workspace(
         )
 
     # 8. Summarize
-    logger.info("%s: summarizing results", case.case_id)
+    logger.info("%s: summarizing results", label)
     outcomes = check_results_to_outcomes(check_results, category=case.category)
     # For template cases, prompt_id encodes category/item for unique identification
     if case.category and case.item_id:
@@ -707,6 +709,7 @@ def run_case(
     _execute: Any = None,
     on_output: Any = None,
     on_state: Any = None,
+    run_index: int | None = None,
 ) -> CaseResult:
     """Execute one TestCase end-to-end in an isolated workspace.
 
@@ -722,6 +725,7 @@ def run_case(
     """
     executor = _execute or execute_cli
     env = environment or BenchmarkEnvironment()
+    label = f"#{run_index} {case.case_id}" if run_index is not None else case.case_id
     workspace_path = None
     workspace_state = {}
 
@@ -730,7 +734,7 @@ def run_case(
         prompt_data = load_prompt(case.prompt.path)
         config_data = load_test_config(case.test_config.path)
     except Exception as exc:
-        logger.warning("Load error for %s: %s", case.case_id, exc)
+        logger.warning("Load error for %s: %s", label, exc)
         return CaseResult(case=case, summary=None, trace_path=None, error=f"Load error: {exc}")
 
     prompt_text = prompt_data.get("prompt", "")
@@ -749,11 +753,11 @@ def run_case(
             fixture_workflow_files = ac_data.get("workflow_files")
             logger.debug(
                 "%s: interpolated prompt for %s/%s (%d vars)",
-                case.case_id, case.category, case.item_id,
+                label, case.category, case.item_id,
                 len(app_config_variables),
             )
         except Exception as exc:
-            logger.warning("App-config interpolation error for %s: %s", case.case_id, exc)
+            logger.warning("App-config interpolation error for %s: %s", label, exc)
     elif case.app_config_path:
         # Non-template case but app config exists — still load workflow_files
         try:
@@ -778,7 +782,7 @@ def run_case(
             case.workflow.path,
             case.workflow.format,
             fixture_workflow_files=fixture_workflow_files,
-            case_id=case.case_id,
+            case_id=label,
         )
     except Exception as exc:
         return CaseResult(case=case, summary=None, trace_path=None, error=f"Workspace setup error: {exc}", ape_version=ape_version, workflow_hash=workflow_hash)
@@ -796,6 +800,7 @@ def run_case(
             on_state=on_state,
             ape_version=ape_version,
             workflow_hash=workflow_hash,
+            label=label,
         )
     finally:
         env.teardown(workspace_path)
@@ -855,16 +860,16 @@ def run_parallel(
     rate_lock = threading.Lock()
     last_launch = [0.0]
 
-    def _run_one(case: TestCase) -> CaseResult:
+    def _run_one(case: TestCase, run_index: int) -> CaseResult:
         with rate_lock:
             now = time.monotonic()
             wait = delay_s - (now - last_launch[0])
             if wait > 0:
                 time.sleep(wait)
             last_launch[0] = time.monotonic()
-        cb = on_output_factory(case) if on_output_factory else on_output
+        cb = on_output_factory(case, run_index) if on_output_factory else on_output
         state_cb = on_state_factory(case) if on_state_factory else None
-        return run_case(case, model, timeout, max_turns, environment, _execute, on_output=cb, on_state=state_cb)
+        return run_case(case, model, timeout, max_turns, environment, _execute, on_output=cb, on_state=state_cb, run_index=run_index)
 
     completed = 0
     total = len(cases)
@@ -872,7 +877,7 @@ def run_parallel(
     try:
         with ThreadPoolExecutor(max_workers=workers) as pool:
             future_to_idx = {
-                pool.submit(_run_one, case): i
+                pool.submit(_run_one, case, i): i
                 for i, case in enumerate(cases)
             }
             for future in as_completed(future_to_idx):
@@ -887,15 +892,17 @@ def run_parallel(
                         status = f"pass={s.passed}/{s.total} rate={s.pass_rate:.0%}"
                     else:
                         status = "no summary"
+                    done_label = f"#{idx} {cases[idx].case_id}"
                     logger.info(
                         "[%d/%d] DONE %s  %s",
-                        completed, total, cases[idx].case_id, status,
+                        completed, total, done_label, status,
                     )
                     yield result
                 except Exception as exc:
+                    done_label = f"#{idx} {cases[idx].case_id}"
                     logger.exception(
                         "[%d/%d] FAILED %s",
-                        completed, total, cases[idx].case_id,
+                        completed, total, done_label,
                     )
                     yield CaseResult(
                         case=cases[idx], summary=None, trace_path=None,

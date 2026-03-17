@@ -206,6 +206,7 @@ class LiveProgress:
         self._lock = threading.Lock()
         # case_id -> latest status string
         self._statuses: dict[str, str] = {}
+        self._indices: dict[str, int] = {}
         self._completed = 0
         self._live: Live | None = None
 
@@ -223,9 +224,11 @@ class LiveProgress:
             self._live.stop()
             self._live = None
 
-    def set_active(self, case_id: str) -> None:
+    def set_active(self, case_id: str, run_index: int | None = None) -> None:
         with self._lock:
             self._statuses[case_id] = "starting..."
+            if run_index is not None:
+                self._indices[case_id] = run_index
         self._refresh()
 
     def update(self, case_id: str, line: str) -> None:
@@ -239,6 +242,7 @@ class LiveProgress:
     def mark_done(self, case_id: str, result_line: str) -> None:
         with self._lock:
             self._statuses.pop(case_id, None)
+            self._indices.pop(case_id, None)
             self._completed += 1
         self._refresh()
 
@@ -252,8 +256,11 @@ class LiveProgress:
                 table.add_row(progress, "waiting...")
             else:
                 for i, (cid, status) in enumerate(self._statuses.items()):
-                    # Shorten case_id for display
-                    short_id = cid if len(cid) <= 40 else "..." + cid[-37:]
+                    # Shorten case_id for display, prefixed with run index
+                    idx = self._indices.get(cid)
+                    idx_str = f"#{idx} " if idx is not None else ""
+                    short_cid = cid if len(cid) <= 40 else "..." + cid[-37:]
+                    short_id = f"{idx_str}{short_cid}"
                     prefix = progress if i == 0 else ""
                     table.add_row(prefix, Text(f"{short_id}  {status}", style="cyan"))
         return table
@@ -628,8 +635,8 @@ def run(args: argparse.Namespace) -> int:
 
     try:
         if args.workers > 1:
-            def _make_cb(case):
-                progress.set_active(case.case_id)
+            def _make_cb(case, run_index=None):
+                progress.set_active(case.case_id, run_index=run_index)
                 return progress.make_callback(case.case_id)
 
             def _make_state_cb(case):
@@ -661,9 +668,10 @@ def run(args: argparse.Namespace) -> int:
                     progress.mark_done(cid, f"pass={s.passed}/{s.total}")
                 _on_result(result)
         else:
-            for i, case in enumerate(cases, 1):
-                progress.set_active(case.case_id)
-                logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), case.case_id)
+            for i, case in enumerate(cases):
+                progress.set_active(case.case_id, run_index=i)
+                run_label = f"#{i} {case.case_id}"
+                logger.info("[%d/%d] [cyan]%s[/cyan] ...", i + 1, len(cases), run_label)
 
                 # Allocate run_id upfront so state can be written incrementally
                 state_cb = None
@@ -682,18 +690,19 @@ def run(args: argparse.Namespace) -> int:
                     environment=environment,
                     on_output=progress.make_callback(case.case_id),
                     on_state=state_cb,
+                    run_index=i,
                 )
                 progress.mark_done(case.case_id, "")
                 _on_result(result)
                 if result.error:
-                    logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i, len(cases), case.case_id, result.error)
+                    logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i + 1, len(cases), run_label, result.error)
                 else:
                     s = result.summary
                     t = _format_duration(result.wall_clock_ms)
                     warn = " [yellow](stale trace)[/yellow]" if result.stale_trace else ""
                     logger.info(
                         "[%d/%d] DONE %s  pass=%d fail=%d skip=%d rate=%.0f%% %s%s",
-                        i, len(cases), case.case_id,
+                        i + 1, len(cases), run_label,
                         s.passed, s.failed, s.skipped, s.pass_rate * 100, t, warn,
                     )
     finally:
