@@ -1,0 +1,78 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/tests -name \"*.rs\" -type f', 'grep -n \"set_prompt_response\\\\|queue_prompt_responses\\\\|PromptType\\\\|Prompt {\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/src/runner/telemetry.rs | head -50', 'grep -A 3 \\'name = \"console\"\\' Cargo.lock && echo \"---\" && grep -A 3 \\'name = \"dialoguer\"\\' Cargo.lock', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src/unix.rs\" -o -path \"*/console-0.16.2/src/common_term.rs\" | head -5', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src/*.rs\" | sort', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src/*.rs\" | sort', \"grep -n '\\\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/select.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/confirm.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/input.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/multi_select.rs | grep -v '///'\", 'cargo test --all-features 2>&1', 'tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt', 'grep -E \"^test result:|failures:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED|failures\"'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/tests -name \"*.rs\" -type f",
+    "grep -n \"set_prompt_response\\|queue_prompt_responses\\|PromptType\\|Prompt {\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/src/runner/telemetry.rs | head -50",
+    "grep -A 3 'name = \"console\"' Cargo.lock && echo \"---\" && grep -A 3 'name = \"dialoguer\"' Cargo.lock",
+    "find ~/.cargo/registry/src -path \"*/console-0.16.2/src/unix.rs\" -o -path \"*/console-0.16.2/src/common_term.rs\" | head -5",
+    "find ~/.cargo/registry/src -path \"*/console-0.16.2/src/*.rs\" | sort",
+    "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src/*.rs\" | sort",
+    "grep -n '\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/select.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/confirm.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/input.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/multi_select.rs | grep -v '///'",
+    "cargo test --all-features 2>&1",
+    "tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt",
+    "grep -E \"^test result:|failures:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt",
+    "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED|failures\""
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2575594.325157708,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2575594.325191916,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk -type f -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/tests -name \"*.rs\" -type f",
+        "grep -n \"set_prompt_response\\|queue_prompt_responses\\|PromptType\\|Prompt {\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/src/runner/telemetry.rs | head -50",
+        "grep -A 3 'name = \"console\"' Cargo.lock && echo \"---\" && grep -A 3 'name = \"dialoguer\"' Cargo.lock",
+        "find ~/.cargo/registry/src -path \"*/console-0.16.2/src/unix.rs\" -o -path \"*/console-0.16.2/src/common_term.rs\" | head -5",
+        "find ~/.cargo/registry/src -path \"*/console-0.16.2/src/*.rs\" | sort",
+        "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src/*.rs\" | sort",
+        "grep -n '\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/select.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/confirm.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/input.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/multi_select.rs | grep -v '///'",
+        "cargo test --all-features 2>&1",
+        "tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt",
+        "grep -E \"^test result:|failures:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt",
+        "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20",
+        "cargo fmt -- --check 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED|failures\""
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2575594.3252115,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/tests -name \"*.rs\" -type f', 'grep -n \"set_prompt_response\\\\|queue_prompt_responses\\\\|PromptType\\\\|Prompt {\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-0eswa0fk/src/runner/telemetry.rs | head -50', 'grep -A 3 \\'name = \"console\"\\' Cargo.lock && echo \"---\" && grep -A 3 \\'name = \"dialoguer\"\\' Cargo.lock', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src/unix.rs\" -o -path \"*/console-0.16.2/src/common_term.rs\" | head -5', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src/*.rs\" | sort', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0/src/*.rs\" | sort', \"grep -n '\\\\.unwrap()' ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/select.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/confirm.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/input.rs ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dialoguer-0.12.0/src/prompts/multi_select.rs | grep -v '///'\", 'cargo test --all-features 2>&1', 'tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt', 'grep -E \"^test result:|failures:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-0eswa0fk/c94f8258-d1f8-48f6-a2aa-ed434aae4fa3/tool-results/b0nrej187.txt', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED|failures\"'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

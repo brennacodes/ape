@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "new_features",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2561628.244244708,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2561628.244292083,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01UHGejigxpux1uTQdzCJ6K7",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                    "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 6215,
+                "cache_read_input_tokens": 84658,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 6215
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+            "uuid": "bb1e5015-942e-4eb6-bb6b-2af1b18a9fd4"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/buzzing-finding-plum.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+            "uuid": "66c8ea93-108e-4129-bbeb-201337e2fc13",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+              "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        111
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2561628.244325208,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01UHGejigxpux1uTQdzCJ6K7",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                      "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 6215,
+                  "cache_read_input_tokens": 84658,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 6215
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+              "uuid": "bb1e5015-942e-4eb6-bb6b-2af1b18a9fd4"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/buzzing-finding-plum.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+              "uuid": "66c8ea93-108e-4129-bbeb-201337e2fc13",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2561628.244367041,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01UHGejigxpux1uTQdzCJ6K7",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                    "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 6215,
+                "cache_read_input_tokens": 84658,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 6215
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+            "uuid": "bb1e5015-942e-4eb6-bb6b-2af1b18a9fd4"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/buzzing-finding-plum.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+            "uuid": "66c8ea93-108e-4129-bbeb-201337e2fc13",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+              "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        111
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2561628.244538125,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01UHGejigxpux1uTQdzCJ6K7",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                      "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 6215,
+                  "cache_read_input_tokens": 84658,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 6215
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+              "uuid": "bb1e5015-942e-4eb6-bb6b-2af1b18a9fd4"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_017hhEbwhh8rZGRAC7dRCpSw",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/buzzing-finding-plum.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "00d77175-ee72-4a71-a867-add86b26a9e7",
+              "uuid": "66c8ea93-108e-4129-bbeb-201337e2fc13",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+                "content": "# GitHub Actions Output Formatter\n\n## Context\n\nBivvy runs in CI environments but currently emits plain text output. GitHub Actions supports [workflow commands](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions) like `::error::`, `::warning::`, `::notice::`, and `::group::`/`::endgroup::` that create structured annotations and collapsible log groups. Adding a dedicated formatter will give Bivvy users rich CI feedback (error annotations on PRs, collapsible step logs) with zero configuration.\n\n## Plan\n\n### 1. Add `is_github_actions()` helper\n\n**File:** `src/shell/platform.rs` (modify), `src/shell/mod.rs` (modify export)\n\nAdd a focused detection function alongside existing `is_ci()`:\n```rust\npub fn is_github_actions() -> bool {\n    std::env::var(\"GITHUB_ACTIONS\").is_ok()\n}\n```\nExport from `src/shell/mod.rs`.\n\n---\n\n### 2. Add `--format` global CLI flag\n\n**File:** `src/cli/args.rs`\n\nAdd to `Cli` struct:\n```rust\n/// Output format for CI integration (e.g., github-actions)\n#[arg(long, global = true, value_name = \"FORMAT\")]\npub format: Option<String>,\n```\n\n---\n\n### 3. Create `GitHubActionsUI` implementation\n\n**File:** `src/ui/github_actions.rs` (new)\n\nA new `UserInterface` implementation following the `NonInteractiveUI` pattern:\n\n| Trait method | Behavior |\n|---|---|\n| `error()` | `::error::{msg}` to stderr |\n| `warning()` | `::warning::{msg}` to stderr |\n| `success()` | `::notice::{msg}` to stdout |\n| `message()` | Plain stdout (avoids annotation noise) |\n| `show_hint()` | `::notice::{hint}` |\n| `show_error_block()` | `::error::{command}` + plain output lines |\n| `start_spinner()` | Emits `::group::{message}`, returns handle |\n| `show_workflow_progress()` | No-op (progress bars are noise in logs) |\n| `show_run_summary()` | Per-step `::notice::`/`::error::` + plain summary |\n| `prompt()` | Same as `NonInteractiveUI` (env overrides -> defaults -> error) |\n| `is_interactive()` | `false` |\n\n**Spinner handle:** `GitHubActionsSpinnerHandle` that emits `::endgroup::` on `finish_*()` and in `Drop` (safety net for early returns/panics).\n\n**Escaping helper:** GitHub Actions requires `%` -> `%25`, `\\r` -> `%0D`, `\\n` -> `%0A` in annotation messages, plus `,` -> `%2C`, `:` -> `%3A` in property values.\n\n---\n\n### 4. Register module and update factory\n\n**Files:** `src/ui/mod.rs`, `src/ui/terminal.rs`\n\n- Add `pub mod github_actions` and `pub use github_actions::GitHubActionsUI` to `src/ui/mod.rs`\n- Add `create_ui_with_format(interactive, mode, format)` to `src/ui/terminal.rs`:\n  - `Some(\"github-actions\")` -> `GitHubActionsUI`\n  - `None` + `GITHUB_ACTIONS` env var set -> `GitHubActionsUI` (auto-detect)\n  - Otherwise -> existing `create_ui()` logic\n\n---\n\n### 5. Wire up in main\n\n**File:** `src/main.rs`\n\nReplace `create_ui(is_interactive, output_mode)` with `create_ui_with_format(is_interactive, output_mode, cli.format.as_deref())`.\n\n---\n\n### 6. Documentation\n\n**File:** `src/ui/README.md`\n\nAdd a \"GitHub Actions Output\" section documenting the annotation mapping, auto-detection, and `--format` flag.\n\n## Files changed\n\n| File | Action |\n|---|---|\n| `src/ui/github_actions.rs` | Create |\n| `src/ui/mod.rs` | Modify (add module + re-export) |\n| `src/ui/terminal.rs` | Modify (add `create_ui_with_format`) |\n| `src/cli/args.rs` | Modify (add `--format` flag) |\n| `src/main.rs` | Modify (use new factory) |\n| `src/shell/platform.rs` | Modify (add `is_github_actions()`) |\n| `src/shell/mod.rs` | Modify (export `is_github_actions`) |\n| `src/ui/README.md` | Modify (document new mode) |\n\n## Verification\n\n```bash\ncargo test --all-features          # All tests pass\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n\nIntegration test: run `GITHUB_ACTIONS=true cargo run -- run` against a test project and verify `::group::`, `::error::`, `::notice::` appear in output.\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/buzzing-finding-plum.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2561628.244546208,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2561628.244556625,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}

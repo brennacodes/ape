@@ -1,0 +1,80 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | sort', 'grep -r \"concurrent\\\\|parallel\\\\|rayon\\\\|spawn\\\\|tokio\\\\|thread\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null | head -30', 'grep -A 50 \"parallel:\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/runner/workflow.rs | head -80', 'grep -r \"for.*spawn\\\\|join_all\\\\|par_iter\\\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null', 'grep -r \"fs::write\\\\|fs::read\\\\|create_dir_all\\\\|open\\\\|OpenOptions\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/cache --include=\"*.rs\"', 'cargo test --all-features 2>&1 | tail -20', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|error\\\\[|write_content|concurrent|no_temp)\" ', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(test result:|FAILED|failures:)\" ', 'cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1 | grep -A 20 \"FAILED\\\\|panicked\"', 'cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | sort",
+    "grep -r \"concurrent\\|parallel\\|rayon\\|spawn\\|tokio\\|thread\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null | head -30",
+    "grep -A 50 \"parallel:\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/runner/workflow.rs | head -80",
+    "grep -r \"for.*spawn\\|join_all\\|par_iter\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null",
+    "grep -r \"fs::write\\|fs::read\\|create_dir_all\\|open\\|OpenOptions\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/cache --include=\"*.rs\"",
+    "cargo test --all-features 2>&1 | tail -20",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"(FAILED|error\\[|write_content|concurrent|no_temp)\" ",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"(test result:|FAILED|failures:)\" ",
+    "cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1 | grep -A 20 \"FAILED\\|panicked\"",
+    "cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2560024.124002541,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2560024.124238791,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | sort",
+        "grep -r \"concurrent\\|parallel\\|rayon\\|spawn\\|tokio\\|thread\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null | head -30",
+        "grep -A 50 \"parallel:\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/runner/workflow.rs | head -80",
+        "grep -r \"for.*spawn\\|join_all\\|par_iter\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null",
+        "grep -r \"fs::write\\|fs::read\\|create_dir_all\\|open\\|OpenOptions\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/cache --include=\"*.rs\"",
+        "cargo test --all-features 2>&1 | tail -20",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"(FAILED|error\\[|write_content|concurrent|no_temp)\" ",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"(test result:|FAILED|failures:)\" ",
+        "cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1 | grep -A 20 \"FAILED\\|panicked\"",
+        "cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2560024.124278791,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh -type f -name \"*.rs\" | sort', 'grep -r \"concurrent\\\\|parallel\\\\|rayon\\\\|spawn\\\\|tokio\\\\|thread\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null | head -30', 'grep -A 50 \"parallel:\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/runner/workflow.rs | head -80', 'grep -r \"for.*spawn\\\\|join_all\\\\|par_iter\\\\|parallel\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src --include=\"*.rs\" 2>/dev/null', 'grep -r \"fs::write\\\\|fs::read\\\\|create_dir_all\\\\|open\\\\|OpenOptions\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-oiqx3mrh/src/cache --include=\"*.rs\"', 'cargo test --all-features 2>&1 | tail -20', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(FAILED|error\\\\[|write_content|concurrent|no_temp)\" ', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(test result:|FAILED|failures:)\" ', 'cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1 | grep -A 20 \"FAILED\\\\|panicked\"', 'cargo test --all-features cache::entry::tests::cache_entry_expiration 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

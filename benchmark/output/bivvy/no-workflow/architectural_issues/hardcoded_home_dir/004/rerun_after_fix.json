@@ -1,0 +1,506 @@
+{
+  "check_id": "rerun_after_fix",
+  "phase": "failure_recovery",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [
+    1,
+    3,
+    4,
+    6,
+    8,
+    15,
+    30
+  ],
+  "operator": "followed_by",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2573654.800011166,
+      "check_id": "rerun_after_fix",
+      "phase": "failure_recovery",
+      "condition": {
+        "metric": "tool_call.file_edit",
+        "operator": "followed_by",
+        "target": "tool_call.execute_command"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2573654.800018791,
+      "metric": "tool_call.file_edit",
+      "tool_name": "Edit",
+      "tool_calls": [],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2573654.800028208,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01MUEqATDLBTeYo3gPhWBvsi",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01TFbqwFTr5tuPBxBYnMzbKY",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk -type f \\( -name \"Cargo.toml\" -o -name \"package.json\" -o -name \"pyproject.toml\" -o -name \".gitignore\" \\) | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 1444,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1444,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "aa8ae010-8e0c-4a39-9f01-d2a6019a5f57"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01TFbqwFTr5tuPBxBYnMzbKY",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/dist/pip/pyproject.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/.gitignore",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "211d7754-62d8-400c-83df-de3f4abe6602"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01VJAvDJ6VXxCK5LFpLEAA5Z",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_013X1FotddkKdjV4PzAoPgJB",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/ | head -30"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 384,
+                "cache_read_input_tokens": 22759,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 384,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "6a68f853-5d65-41a1-bb93-7466b5d85923"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_013X1FotddkKdjV4PzAoPgJB",
+                  "type": "tool_result",
+                  "content": "total 224\ndrwxr-xr-x@    20 brenna  staff     640 Mar 16 23:49 .\ndrwx------@ 28566 brenna  staff  914112 Mar 16 23:50 ..\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 23:49 .bivvy\ndrwxr-xr-x@     5 brenna  staff     160 Mar 16 23:49 .claude\n-rw-r--r--@     1 brenna  staff    8196 Mar 16 23:49 .DS_Store\ndrwxr-xr-x@    13 brenna  staff     416 Mar 16 23:49 .git\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 23:49 .github\n-rw-r--r--@     1 brenna  staff     176 Mar 16 23:49 .gitignore\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 23:49 bin\n-rw-r--r--@     1 brenna  staff   78262 Mar 16 23:49 Cargo.lock\n-rw-r--r--@     1 brenna  staff    1809 Mar 16 23:49 Cargo.toml\n-rw-r--r--@     1 brenna  staff    1273 Mar 16 23:49 CHANGELOG.md\ndrwxr-xr-x@     6 brenna  staff     192 Mar 16 23:49 dist\ndrwxr-xr-x@    10 brenna  staff     320 Mar 16 23:49 docs\n-rw-r--r--@     1 brenna  staff    3760 Mar 16 23:49 LICENSE\n-rw-r--r--@     1 brenna  staff    3112 Mar 16 23:49 README.md\ndrwxr-xr-x@     5 brenna  staff     160 Mar 16 23:49 scripts\ndrwxr-xr-x@    22 brenna  staff     704 Mar 16 23:49 src\ndrwxr-xr-x@     4 brenna  staff     128 Mar 16 23:49 templates\ndrwxr-xr-x@     9 brenna  staff     288 Mar 16 23:49 tests",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "84e74b81-6509-4f0e-a7a1-6fefdab91567"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01VJAvDJ6VXxCK5LFpLEAA5Z",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01JZfbcaYZDondmSPz6tCzuo",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk -type f -name \"*.rs\" | head -50"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 384,
+                "cache_read_input_tokens": 22759,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 384,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "67492d50-c675-4473-a175-043ffb66e73e"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01JZfbcaYZDondmSPz6tCzuo",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/interpolation.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "261c35e8-9510-429b-ba6d-3e6b102a4cdb"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_011R5By7sEdfiuDinomCccto",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01GYLQ99XH79YXCPKbSHk2JT",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk -type f \\( -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.json\" -o -name \"*.yaml\" -o -name \"*.yml\" \\) | wc -l"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 2695,
+                "cache_creation_input_tokens": 1967,
+                "cache_read_input_tokens": 23143,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1967,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "495e765d-6352-4fba-9ca7-cad10d77d768"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01GYLQ99XH79YXCPKbSHk2JT",
+                  "type": "tool_result",
+                  "content": "     196",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "0eb319a1-508a-4aad-a58b-eaf2fecfba12"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01Dxms85ewDW5asKyRQvUxxE",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01Q8RX9fzNHABxmzPa7WY4UH",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -r \"\\.bivvy\\|~/.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk --include=\"*.rs\" --include=\"*.toml\" --include=\"*.md\""
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 6,
+                "cache_creation_input_tokens": 3081,
+                "cache_read_input_tokens": 25110,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3081,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "61a3d154-e70a-49e7-9cc1-1787c4fc9e0c"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01Q8RX9fzNHABxmzPa7WY4UH",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/dist/pip/README.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/registry_api_test.rs:    let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/registry_api_test.rs:    let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/registry_api_test.rs:    let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/config_api_test.rs:    let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/config_api_test.rs:    let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/cli_test.rs:    let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/cli_test.rs:        .stdout(predicate::str::contains(\"Created .bivvy/config.yml\"));\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/tests/cli_test.rs:    assert!(temp.path().join(\".bivvy/config.yml\").exists());\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/state.md:2. Loads any existing state from `~/.bivvy/projects/{hash}/`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/state.md:| State | `~/.bivvy/projects/{hash}/state.yml` |\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/state.md:| Preferences | `~/.bivvy/projects/{hash}/preferences.yml` |\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/state.md:| Project Index | `~/.bivvy/projects/index.yml` |\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/index.md:2. User global config (`~/.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/index.md:3. Project config (`.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/index.md:4. Local overrides (`.bivvy/config.local.yml`) - gitignored\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/index.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/configuration/index.md:# .bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/index.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/guides/ci-integration.md:2. Run `bivvy lint --format=sarif > .bivvy/lint.sarif`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/guides/ci-integration.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/guides/ide-integration.md:    \"https://bivvy.dev/schemas/config.json\": \".bivvy/config.yml\"\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/guides/ide-integration.md:   - File pattern: `.bivvy/config.yml`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/guides/ide-integration.md:    \"./bivvy-schema.json\": \".bivvy/config.yml\"\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/remote-sources.md:1. Project-local templates (`.bivvy/templates/`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/remote-sources.md:2. User-local templates (`~/.bivvy/templates/`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/remote-sources.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/remote-sources.md:    url: https://registry.bivvy.dev/templates\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/index.md:1. **Project templates** - `.bivvy/templates/steps/`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/index.md:2. **User templates** - `~/.bivvy/templates/steps/`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/templates/index.md:Create `.bivvy/templates/steps/<name>.yml`:\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/commands/init.md:4. Generates `.bivvy/config.yml`\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/commands/config.md:2. `~/.bivvy/config.yml` (user global)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/commands/config.md:3. `.bivvy/config.yml` (project)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/commands/config.md:4. `.bivvy/config.local.yml` (local overrides)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/reference/lint-rules.md:      \"file\": \".bivvy/config.yml\",\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/reference/config-reference.md:- [config-reference.yml](config-reference.yml) \u2014 full `.bivvy/config.yml` reference\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/reference/config-reference.md:## Config File (`.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/docs/reference/config-reference.md:## Template File (`.bivvy/templates/steps/<name>.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/README.md:# .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/template_inputs.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/mod.rs://! let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/mod.rs://! 2. User global config (`~/.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/mod.rs://! 3. Project config (`.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/mod.rs://! 4. Local overrides (`.bivvy/config.local.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 2. User global config (`~/.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 3. Project config (`.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 4. Local overrides (`.bivvy/config.local.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// User's global config: ~/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// Project config: .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// Local overrides: .bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// Find user's global config at ~/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = dirs::home_dir()?.join(\".bivvy\").join(\"config.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// Find project config at .bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = project_root.join(\".bivvy\").join(\"config.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:    /// Find local overrides at .bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = project_root.join(\".bivvy\").join(\"config.local.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 1. `.bivvy` directory (primary indicator)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        // Check for .bivvy directory\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        if current.join(\".bivvy\").is_dir() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 2. User global config (`~/.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 3. Project config (`.bivvy/config.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 4. Local overrides (`.bivvy/config.local.yml`)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:            path: project_root.join(\".bivvy\").join(\"config.yml\"),\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:            path: project_root.join(\".bivvy\").join(\"config.yml\"),\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        fs::create_dir_all(temp.path().join(\".bivvy\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        fs::create_dir_all(subdir.join(\".bivvy\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs://! Reports are stored locally as YAML files under `~/.bivvy/failure-reports/`.\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs:        .join(\".bivvy\")\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs:/// Reports are saved as timestamped YAML files in `~/.bivvy/failure-reports/`.\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs:        assert!(!report.bivvy_version.is_empty());\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/clx-mock-output.md:Added .bivvy/config.local.yml to .gitignore\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/clx-mock-output.md:\u2713 Created .bivvy/config.yml                             \u2190 [green] \u2713\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/list.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/config.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/run.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/lint.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/status.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        self.project_root.join(\".bivvy/config.yml\").exists()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let gitignore_entry = \".bivvy/config.local.yml\";\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:                ui.message(\"Added .bivvy/config.local.yml to .gitignore\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = self.project_root.join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        ui.success(\"Created .bivvy/config.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        assert!(temp.path().join(\".bivvy/config.yml\").exists());\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let config = fs::read_to_string(temp.path().join(\".bivvy/config.yml\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        assert!(gitignore.contains(\".bivvy/config.local.yml\"));\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:            \"node_modules\\n.bivvy/config.local.yml\\n\",\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let count = gitignore.matches(\".bivvy/config.local.yml\").count();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let config = fs::read_to_string(temp.path().join(\".bivvy/config.yml\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let config = fs::read_to_string(temp.path().join(\".bivvy/config.yml\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/args.rs:    /// Path to config file (overrides default .bivvy/config.yml)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/state/index.rs:            .join(\".bivvy\")\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/state/store.rs:            .join(\".bivvy\")\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/feedback/delivery.rs:        meta.set_config(\".bivvy/config.yml\", \"abc12345def67890\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:        // Load user templates (~/.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:        // Load project templates (.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:            let project_dir = root.join(\".bivvy\").join(\"templates\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:        dirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/local.rs:            .join(\".bivvy\")\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/mod.rs://! - User templates (~/.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/mod.rs://! - Project templates (.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs://! 1. Project-local (.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs://! 2. User-local (~/.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:    /// 1. Project-local (.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:    /// 2. User-local (~/.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/resolver.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/template.rs:    /// Project-local templates (.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/registry/template.rs:    /// User-local templates (~/.bivvy/templates/)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/session/metadata.rs:        meta.set_config(\"/project/.bivvy/config.yml\", \"abc123\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/session/metadata.rs:            Some(\"/project/.bivvy/config.yml\".to_string())",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "ce25e413-0eea-4334-907a-3421dba18a69"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01HQHZzAvXjuSXktCfJpYsF9",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01B2waQZkMdnJbr9VN5moF73",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -r \"\\.bivvy\\|home_dir\\|dirs::\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src --include=\"*.rs\" | grep -E \"(join|path|dir)\" | head -40"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 6,
+                "cache_creation_input_tokens": 3717,
+                "cache_read_input_tokens": 59902,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3717,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "35f97c31-48b8-4ff1-a659-c0d20e6c4e86"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01B2waQZkMdnJbr9VN5moF73",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/lint/rules/template_inputs.rs:        let templates_dir = temp.path().join(\".bivvy\").join(\"templates\").join(\"steps\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cache/mod.rs:    dirs::cache_dir()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/remote.rs:        let cache_dir = dirs::cache_dir()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/mod.rs://! let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = dirs::home_dir()?.join(\".bivvy\").join(\"config.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = project_root.join(\".bivvy\").join(\"config.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let path = project_root.join(\".bivvy\").join(\"config.local.yml\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:/// 1. `.bivvy` directory (primary indicator)\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        // Check for .bivvy directory\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        if current.join(\".bivvy\").is_dir() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:            path: project_root.join(\".bivvy\").join(\"config.yml\"),\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:            path: project_root.join(\".bivvy\").join(\"config.yml\"),\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        fs::create_dir_all(temp.path().join(\".bivvy\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        fs::create_dir_all(subdir.join(\".bivvy\")).unwrap();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/config/loader.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/shell/resume.rs:        dirs::data_local_dir()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/shell/platform.rs:    let home = dirs::home_dir().unwrap_or_default();\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/shell/platform.rs:            if let Some(docs) = dirs::document_dir() {\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs:    dirs::home_dir()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/runner/telemetry.rs:        .join(\".bivvy\")\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/requirements/probe.rs:        let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from(\"/\"));\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/requirements/probe.rs:        // We can't easily mock home_dir, so test probe_manager directly.\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/list.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/config.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/run.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/lint.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/status.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        self.project_root.join(\".bivvy/config.yml\").exists()\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = self.project_root.join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = temp.path().join(\".bivvy\");\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/cli/commands/init.rs:        let bivvy_dir = temp.path().join(\".bivvy\");",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_013osTJMEVV9L3G4rL2mzuk2",
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "598ea2d1-0da1-40d0-9b19-32fdb6de6b1b"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01HscaCLaQcfhGXUS6mNJojX",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01G4GQvAcEzp5JKPKd4mG3r7",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-7hfgouyk/src/",
+                    "description": "List src directory structure"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 834,
+                "cache_read_input_tokens": 80650,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 834,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 8,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "f8ba855d-8186-41aa-9467-9dd97ebf2ac2"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01G4GQvAcEzp5JKPKd4mG3r7",
+                  "type": "tool_result",
+                  "content": "cache\ncli\nconfig\ndetection\nenvironment\nerror.rs\nfeedback\nlib.rs\nlint\nmain.rs\nregistry\nrequirements\nrunner\nsecrets\nsession\nshell\nstate\nsteps\nui\nupdates",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "962b5852-131e-4814-b079-27989bb9e0e7",
+            "uuid": "935049ce-816b-4290-9a5b-dc07f8503210",
+            "tool_use_result": {
+              "stdout": "cache\ncli\nconfig\ndetection\nenvironment\nerror.rs\nfeedback\nlib.rs\nlint\nmain.rs\nregistry\nrequirements\nrunner\nsecrets\nsession\nshell\nstate\nsteps\nui\nupdates",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        1,
+        3,
+        4,
+        6,
+        8,
+        15,
+        30
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2573654.800029833,
+      "operator": "followed_by",
+      "metric_value": [],
+      "target_value": [
+        1,
+        3,
+        4,
+        6,
+        8,
+        15,
+        30
+      ],
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2573654.800032041,
+      "passed": false,
+      "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found"
+    }
+  ]
+}

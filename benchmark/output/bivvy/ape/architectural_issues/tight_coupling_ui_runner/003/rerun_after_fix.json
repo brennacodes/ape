@@ -1,0 +1,374 @@
+{
+  "check_id": "rerun_after_fix",
+  "phase": "failure_recovery",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [
+    1,
+    3,
+    4,
+    5,
+    23
+  ],
+  "operator": "followed_by",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2566539.847834791,
+      "check_id": "rerun_after_fix",
+      "phase": "failure_recovery",
+      "condition": {
+        "metric": "tool_call.file_edit",
+        "operator": "followed_by",
+        "target": "tool_call.execute_command"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2566539.847846208,
+      "metric": "tool_call.file_edit",
+      "tool_name": "Edit",
+      "tool_calls": [],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2566539.84789475,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_017vngR6ENyeT4jnw6vyf3To",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_018P1fkwoCQFd97VvPe5xn6A",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng -type f -name \"Cargo.toml\" | head -20"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 4828,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 4828,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "7b9611c1-563d-4d09-93a0-f4d03ee1abb6"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_018P1fkwoCQFd97VvPe5xn6A",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/Cargo.toml",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "e463adfc-c18a-4a7a-80db-c79b26c4cfcf"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01FBD95oFhSDgWFPLuVtrzMa",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01SASZmSuNWc6TGfuHvvUm5G",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng -type f -name \"*.rs\" | head -50"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 231,
+                "cache_read_input_tokens": 26143,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 231,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "181b7422-2f95-46ce-a30c-2132363eb60f"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01SASZmSuNWc6TGfuHvvUm5G",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/interpolation.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "d2781720-7303-4fdb-bbaf-ec682aa963dc"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01FBD95oFhSDgWFPLuVtrzMa",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01NuVZ1FoHuuZPPFsRkq6nhU",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 231,
+                "cache_read_input_tokens": 26143,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 231,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "feae8741-27e2-4f2d-8c87-475796de9473"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01NuVZ1FoHuuZPPFsRkq6nhU",
+                  "type": "tool_result",
+                  "content": "total 248\ndrwxr-xr-x@    21 brenna  staff     672 Mar 16 21:49 .\ndrwx------@ 24782 brenna  staff  793024 Mar 16 21:50 ..\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 21:49 .bivvy\ndrwxr-xr-x@     5 brenna  staff     160 Mar 16 21:49 .claude\n-rw-r--r--@     1 brenna  staff    8196 Mar 16 21:49 .DS_Store\ndrwxr-xr-x@    13 brenna  staff     416 Mar 16 21:49 .git\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 21:49 .github\n-rw-r--r--@     1 brenna  staff     176 Mar 16 21:49 .gitignore\ndrwxr-xr-x@     3 brenna  staff      96 Mar 16 21:49 bin\n-rw-r--r--@     1 brenna  staff   78262 Mar 16 21:49 Cargo.lock\n-rw-r--r--@     1 brenna  staff    1809 Mar 16 21:49 Cargo.toml\n-rw-r--r--@     1 brenna  staff    1273 Mar 16 21:49 CHANGELOG.md\n-rw-r--r--@     1 brenna  staff   11448 Mar 16 21:49 CLAUDE.md\ndrwxr-xr-x@     6 brenna  staff     192 Mar 16 21:49 dist\ndrwxr-xr-x@    10 brenna  staff     320 Mar 16 21:49 docs\n-rw-r--r--@     1 brenna  staff    3760 Mar 16 21:49 LICENSE\n-rw-r--r--@     1 brenna  staff    3112 Mar 16 21:49 README.md\ndrwxr-xr-x@     5 brenna  staff     160 Mar 16 21:49 scripts\ndrwxr-xr-x@    22 brenna  staff     704 Mar 16 21:49 src\ndrwxr-xr-x@     4 brenna  staff     128 Mar 16 21:49 templates\ndrwxr-xr-x@     9 brenna  staff     288 Mar 16 21:49 tests",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "84c2ee37-b1c3-4e2b-b46f-8bdee59a5802"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01PMjGqVUTWJ2QBTVDPsARcZ",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01CbQkMPx2VBA1adkDKQtF33",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src -type f -name \"*.rs\" | sort"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 6,
+                "cache_creation_input_tokens": 4677,
+                "cache_read_input_tokens": 26374,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 4677,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "964e766f-cf2a-4e7b-ab76-45ef8819503d"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01CbQkMPx2VBA1adkDKQtF33",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/updates/version.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "b6b2f28a-c6a4-4c7f-978d-b0afeab0b043"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01XFpFAC3SixC7DJ9MBBW9PG",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01DDBrzGFncPSz5FJMKZEE8C",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui -type f -name \"*.rs\" | sort"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 8794,
+                "cache_read_input_tokens": 66953,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 8794,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "4811b8c9-56cd-42cc-b80d-4f3cb249a78f"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01DDBrzGFncPSz5FJMKZEE8C",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-1d7rncng/src/ui/tui/screens/init.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01Vssvj3c4hJKh56hvkSkGxu",
+            "session_id": "37a0f008-b567-409c-859c-185c60f5bcca",
+            "uuid": "b617a7c9-bd59-49e2-a4b5-51d151159982"
+          }
+        }
+      ],
+      "result_indices": [
+        1,
+        3,
+        4,
+        5,
+        23
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2566539.847899666,
+      "operator": "followed_by",
+      "metric_value": [],
+      "target_value": [
+        1,
+        3,
+        4,
+        5,
+        23
+      ],
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2566539.847904416,
+      "passed": false,
+      "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found"
+    }
+  ]
+}

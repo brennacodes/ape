@@ -1,0 +1,86 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | head -40', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/config/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/commands/', 'cargo test --all-features 2>&1 | tail -50', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff', 'git log --oneline -5', 'git log -1 --oneline', 'git add src/config/schema.rs && git commit -m \"$(cat <<\\'EOF\\'\\nReject unknown fields in config instead of silently using defaults\\n\\nAdd #[serde(deny_unknown_fields)] to all config structs that use\\n#[serde(default)]. Previously, typos in field names (e.g., \"stpes\"\\ninstead of \"steps\") were silently ignored by serde, causing the app\\nto fall back to default config without any warning. Now serde\\nproduces a clear error message identifying the unknown field.\\n\\nAffected structs: BivvyConfig, Settings, StepConfig, WorkflowConfig,\\nStepOverride, WorkflowSettings, EnvironmentConfig, and\\nStepEnvironmentOverride.\\nEOF\\n)\"', 'cargo check --all-features 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | head -40",
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/",
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/",
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/config/",
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/",
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/commands/",
+    "cargo test --all-features 2>&1 | tail -50",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo check --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git status",
+    "git diff",
+    "git log --oneline -5",
+    "git log -1 --oneline",
+    "git add src/config/schema.rs && git commit -m \"$(cat <<'EOF'\nReject unknown fields in config instead of silently using defaults\n\nAdd #[serde(deny_unknown_fields)] to all config structs that use\n#[serde(default)]. Previously, typos in field names (e.g., \"stpes\"\ninstead of \"steps\") were silently ignored by serde, causing the app\nto fall back to default config without any warning. Now serde\nproduces a clear error message identifying the unknown field.\n\nAffected structs: BivvyConfig, Settings, StepConfig, WorkflowConfig,\nStepOverride, WorkflowSettings, EnvironmentConfig, and\nStepEnvironmentOverride.\nEOF\n)\"",
+    "cargo check --all-features 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2569891.77640025,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2569891.776435,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | head -40",
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/",
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/",
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/config/",
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/",
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/commands/",
+        "cargo test --all-features 2>&1 | tail -50",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo check --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git status",
+        "git diff",
+        "git log --oneline -5",
+        "git log -1 --oneline",
+        "git add src/config/schema.rs && git commit -m \"$(cat <<'EOF'\nReject unknown fields in config instead of silently using defaults\n\nAdd #[serde(deny_unknown_fields)] to all config structs that use\n#[serde(default)]. Previously, typos in field names (e.g., \"stpes\"\ninstead of \"steps\") were silently ignored by serde, causing the app\nto fall back to default config without any warning. Now serde\nproduces a clear error message identifying the unknown field.\n\nAffected structs: BivvyConfig, Settings, StepConfig, WorkflowConfig,\nStepOverride, WorkflowSettings, EnvironmentConfig, and\nStepEnvironmentOverride.\nEOF\n)\"",
+        "cargo check --all-features 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2569891.776457958,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.yml\" | head -40', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/config/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/', 'ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vy_nsebs/src/cli/commands/', 'cargo test --all-features 2>&1 | tail -50', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status', 'git diff', 'git log --oneline -5', 'git log -1 --oneline', 'git add src/config/schema.rs && git commit -m \"$(cat <<\\'EOF\\'\\nReject unknown fields in config instead of silently using defaults\\n\\nAdd #[serde(deny_unknown_fields)] to all config structs that use\\n#[serde(default)]. Previously, typos in field names (e.g., \"stpes\"\\ninstead of \"steps\") were silently ignored by serde, causing the app\\nto fall back to default config without any warning. Now serde\\nproduces a clear error message identifying the unknown field.\\n\\nAffected structs: BivvyConfig, Settings, StepConfig, WorkflowConfig,\\nStepOverride, WorkflowSettings, EnvironmentConfig, and\\nStepEnvironmentOverride.\\nEOF\\n)\"', 'cargo check --all-features 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

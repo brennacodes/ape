@@ -1,0 +1,66 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f \\\\( -name \"*.rs\" -o -name \"*.toml\" \\\\) | sort', 'grep -r \"create_ui\\\\|TerminalUI\\\\|NonInteractiveUI\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se/src/cli --include=\"*.rs\"', 'cargo test --all-features 2>&1', 'tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt', 'grep \"filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt | head -5', 'cargo doc --no-deps --all-features 2>&1 | tail -20', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f \\( -name \"*.rs\" -o -name \"*.toml\" \\) | sort",
+    "grep -r \"create_ui\\|TerminalUI\\|NonInteractiveUI\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se/src/cli --include=\"*.rs\"",
+    "cargo test --all-features 2>&1",
+    "tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt",
+    "grep \"filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt | head -5",
+    "cargo doc --no-deps --all-features 2>&1 | tail -20",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2567390.103995333,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2567390.104023166,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f \\( -name \"*.rs\" -o -name \"*.toml\" \\) | sort",
+        "grep -r \"create_ui\\|TerminalUI\\|NonInteractiveUI\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se/src/cli --include=\"*.rs\"",
+        "cargo test --all-features 2>&1",
+        "tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt",
+        "grep \"filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt | head -5",
+        "cargo doc --no-deps --all-features 2>&1 | tail -20",
+        "cargo fmt -- --check 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2567390.104036666,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se -type f \\\\( -name \"*.rs\" -o -name \"*.toml\" \\\\) | sort', 'grep -r \"create_ui\\\\|TerminalUI\\\\|NonInteractiveUI\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-p9u8j7se/src/cli --include=\"*.rs\"', 'cargo test --all-features 2>&1', 'tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt', 'grep \"filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-p9u8j7se/d8cf8c04-32d4-47d9-b22d-bd3a62964100/tool-results/b5ogiv2xw.txt | head -5', 'cargo doc --no-deps --all-features 2>&1 | tail -20', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tail -20', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

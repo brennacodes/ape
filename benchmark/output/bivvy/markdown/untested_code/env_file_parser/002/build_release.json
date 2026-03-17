@@ -1,0 +1,775 @@
+{
+  "check_id": "build_release",
+  "phase": "build",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "got 0, expected >= 1",
+  "category": "untested_code",
+  "metric_value": 0,
+  "target_value": 1,
+  "operator": "gte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2564567.195422,
+      "check_id": "build_release",
+      "phase": "build",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "transform": "count",
+        "operator": "gte",
+        "target": 1,
+        "metric_args": "cargo build --release"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2564567.195428458,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01A2SFfqqTjYQn2Sz7geAZjT",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01C4hrHEKZg7mW9XWF92NcfQ",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 221,
+                "cache_read_input_tokens": 49667,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 221
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "c1f6a968-3453-40f3-9144-f64efc465b23"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01C4hrHEKZg7mW9XWF92NcfQ",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: bkvs91d9u. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ivvoypj8/tasks/bkvs91d9u.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "cf894514-4181-493f-acfa-81cb42e59878",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "bkvs91d9u"
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01SbLYbKskj3WjkvzTnKvwAe",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01LdEuRfqTircCNoUQJ3TGVH",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo doc --no-deps --all-features 2>&1",
+                    "description": "Build docs to check for errors",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 246,
+                "cache_read_input_tokens": 76244,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 246
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "e1a9c557-fc7d-458c-b657-effd45d0c93e"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01LdEuRfqTircCNoUQJ3TGVH",
+                  "type": "tool_result",
+                  "content": "    Checking stable_deref_trait v1.2.1\n    Checking once_cell v1.21.3\n    Checking libc v0.2.181\n    Checking pin-project-lite v0.2.16\n    Checking memchr v2.8.0\n    Checking bytes v1.11.1\n    Checking itoa v1.0.17\n    Checking futures-core v0.3.31\n    Checking zerofrom v0.1.6\n    Checking cfg-if v1.0.4\n    Checking zeroize v1.8.2\n    Checking yoke v0.8.1\n    Checking smallvec v1.15.1\n    Checking writeable v0.6.2\n    Checking bitflags v2.10.0\n    Checking litemap v0.8.1\n    Checking futures-sink v0.3.31\n    Checking zerovec v0.11.5\n    Checking zerotrie v0.2.3\n    Checking core-foundation-sys v0.8.7\n   Compiling serde_core v1.0.228\n    Checking pin-utils v0.1.0\n    Checking tracing-core v0.1.36\n    Checking rustls-pki-types v1.14.0\n    Checking futures-task v0.3.31\n    Checking untrusted v0.9.0\n    Checking futures-io v0.3.31\n    Checking slab v0.4.12\n    Checking typenum v1.19.0\n    Checking http v1.4.0\n   Compiling jobserver v0.1.34\n    Checking icu_properties_data v2.1.2\n    Checking icu_normalizer_data v2.1.1\n    Checking try-lock v0.2.5\n   Compiling serde v1.0.228\n    Checking socket2 v0.6.2\n    Checking mio v1.1.1\n    Checking futures-util v0.3.31\n    Checking tinystr v0.8.2\n    Checking potential_utf v0.1.4\n    Checking icu_collections v2.1.1\n    Checking utf8parse v0.2.2\n   Compiling cc v1.2.55\n    Checking tokio v1.49.0\n    Checking icu_locale_core v2.1.1\n    Checking subtle v2.6.1\n    Checking percent-encoding v2.3.2\n    Checking tower-service v0.3.3\n    Checking anstyle-parse v0.2.7\n    Checking want v0.3.1\n    Checking errno v0.3.14\n    Checking tracing v0.1.44\n    Checking generic-array v0.14.7\n    Checking httparse v1.10.1\n    Checking http-body v1.0.1\n    Checking aho-corasick v1.1.4\n    Checking futures-channel v0.3.31\n    Checking colorchoice v1.0.4\n    Checking anstyle-query v1.1.5\n    Checking anstyle v1.0.13\n    Checking atomic-waker v1.1.2\n    Checking is_terminal_polyfill v1.70.2\n    Checking icu_provider v2.1.1\n    Checking foldhash v0.1.5\n    Checking regex-syntax v0.8.9\n    Checking log v0.4.29\n    Checking hashbrown v0.15.5\n    Checking anstream v0.6.21\n    Checking icu_normalizer v2.1.1\n    Checking icu_properties v2.1.2\n    Checking rustix v1.1.3\n    Checking security-framework-sys v2.15.0\n    Checking core-foundation v0.10.1\n   Compiling cmake v0.1.57\n    Checking sync_wrapper v1.0.2\n    Checking utf8_iter v1.0.4\n    Checking clap_lex v0.7.7\n    Checking base64 v0.22.1\n    Checking tower-layer v0.3.3\n    Checking unicode-width v0.2.2\n    Checking ipnet v2.11.0\n    Checking strsim v0.11.1\n    Checking clap_builder v4.5.57\n    Checking console v0.16.2\n    Checking security-framework v3.5.1\n    Checking hashlink v0.10.0\n   Compiling aws-lc-sys v0.37.0\n    Checking idna_adapter v1.2.1\n    Checking idna v1.1.0\n    Checking zmij v1.0.20\n    Checking getrandom v0.4.1\n    Checking crypto-common v0.1.7\n    Checking block-buffer v0.10.4\n    Checking form_urlencoded v1.2.2\n    Checking encoding_rs v0.8.35\n    Checking option-ext v0.2.0\n    Checking hashbrown v0.16.1\n    Checking regex-automata v0.4.14\n    Checking iri-string v0.7.10\n    Checking arraydeque v0.5.1\n    Checking lazy_static v1.5.0\n    Checking fastrand v2.3.0\n    Checking equivalent v1.0.2\n    Checking sharded-slab v0.1.7\n    Checking serde_json v1.0.149\n    Checking tempfile v3.25.0\n    Checking indexmap v2.13.0\n    Checking dirs-sys v0.5.0\n    Checking url v2.5.8\n    Checking digest v0.10.7\n    Checking num-traits v0.2.19\n    Checking doc-comment v0.3.4\n    Checking portable-atomic v1.13.1\n    Checking yaml-rust2 v0.10.4\n    Checking tracing-log v0.2.0\n    Checking http-body-util v0.1.3\n    Checking cpufeatures v0.2.17\n    Checking iana-time-zone v0.1.65\n    Checking clap v4.5.57\n    Checking thread_local v1.1.9\n    Checking env_home v0.1.0\n    Checking pathdiff v0.2.3\n    Checking hyper v1.8.1\n    Checking tower v0.5.3\n    Checking same-file v1.0.6\n    Checking unit-prefix v0.5.2\n    Checking unsafe-libyaml v0.2.11\n    Checking ryu v1.0.23\n    Checking nu-ansi-term v0.50.3\n    Checking shell-words v1.1.1\n    Checking indicatif v0.18.3\n    Checking marked-yaml v0.8.0\n    Checking dialoguer v0.12.0\n    Checking walkdir v2.5.0\n    Checking chrono v0.4.43\n    Checking open v5.3.3\n    Checking which v8.0.0\n    Checking include_dir v0.7.4\n    Checking thiserror v2.0.18\n    Checking tower-http v0.6.8\n    Checking clap_complete v4.5.65\n    Checking sha2 v0.10.9\n    Checking dirs v6.0.0\n    Checking anyhow v1.0.101\n    Checking getrandom v0.2.17\n    Checking glob v0.3.3\n    Checking urlencoding v2.1.3\n    Checking hex v0.4.3\n    Checking hyper-util v0.1.20\n    Checking serde_yaml v0.9.34+deprecated\n    Checking matchers v0.2.0\n    Checking tracing-subscriber v0.3.22\n    Checking regex v1.12.3\n   Compiling aws-lc-rs v1.15.4\n   Compiling rustls v0.23.36\n    Checking rustls-webpki v0.103.9\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.6.2\n    Checking hyper-rustls v0.27.7\n    Checking reqwest v0.13.2\n Documenting bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\nwarning: this URL is not a hyperlink\n  --> src/cache/entry.rs:10:32\n   |\n10 |     /// Source ID (e.g., \"http:https://example.com\").\n   |                                ^^^^^^^^^^^^^^^^^^^\n   |\n   = note: bare URLs are not automatically turned into clickable links\n   = note: `#[warn(rustdoc::bare_urls)]` on by default\nhelp: use an automatic link instead\n   |\n10 |     /// Source ID (e.g., \"http:<https://example.com>\").\n   |                                +                   +\n\nwarning: `bivvy` (lib doc) generated 1 warning (run `cargo fix --lib -p bivvy` to apply 1 suggestion)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 59.26s\n   Generated /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8/target/doc/bivvy/index.html",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "c35be60f-021b-4179-af55-f78af67d5af9",
+            "tool_use_result": {
+              "stdout": "    Checking stable_deref_trait v1.2.1\n    Checking once_cell v1.21.3\n    Checking libc v0.2.181\n    Checking pin-project-lite v0.2.16\n    Checking memchr v2.8.0\n    Checking bytes v1.11.1\n    Checking itoa v1.0.17\n    Checking futures-core v0.3.31\n    Checking zerofrom v0.1.6\n    Checking cfg-if v1.0.4\n    Checking zeroize v1.8.2\n    Checking yoke v0.8.1\n    Checking smallvec v1.15.1\n    Checking writeable v0.6.2\n    Checking bitflags v2.10.0\n    Checking litemap v0.8.1\n    Checking futures-sink v0.3.31\n    Checking zerovec v0.11.5\n    Checking zerotrie v0.2.3\n    Checking core-foundation-sys v0.8.7\n   Compiling serde_core v1.0.228\n    Checking pin-utils v0.1.0\n    Checking tracing-core v0.1.36\n    Checking rustls-pki-types v1.14.0\n    Checking futures-task v0.3.31\n    Checking untrusted v0.9.0\n    Checking futures-io v0.3.31\n    Checking slab v0.4.12\n    Checking typenum v1.19.0\n    Checking http v1.4.0\n   Compiling jobserver v0.1.34\n    Checking icu_properties_data v2.1.2\n    Checking icu_normalizer_data v2.1.1\n    Checking try-lock v0.2.5\n   Compiling serde v1.0.228\n    Checking socket2 v0.6.2\n    Checking mio v1.1.1\n    Checking futures-util v0.3.31\n    Checking tinystr v0.8.2\n    Checking potential_utf v0.1.4\n    Checking icu_collections v2.1.1\n    Checking utf8parse v0.2.2\n   Compiling cc v1.2.55\n    Checking tokio v1.49.0\n    Checking icu_locale_core v2.1.1\n    Checking subtle v2.6.1\n    Checking percent-encoding v2.3.2\n    Checking tower-service v0.3.3\n    Checking anstyle-parse v0.2.7\n    Checking want v0.3.1\n    Checking errno v0.3.14\n    Checking tracing v0.1.44\n    Checking generic-array v0.14.7\n    Checking httparse v1.10.1\n    Checking http-body v1.0.1\n    Checking aho-corasick v1.1.4\n    Checking futures-channel v0.3.31\n    Checking colorchoice v1.0.4\n    Checking anstyle-query v1.1.5\n    Checking anstyle v1.0.13\n    Checking atomic-waker v1.1.2\n    Checking is_terminal_polyfill v1.70.2\n    Checking icu_provider v2.1.1\n    Checking foldhash v0.1.5\n    Checking regex-syntax v0.8.9\n    Checking log v0.4.29\n    Checking hashbrown v0.15.5\n    Checking anstream v0.6.21\n    Checking icu_normalizer v2.1.1\n    Checking icu_properties v2.1.2\n    Checking rustix v1.1.3\n    Checking security-framework-sys v2.15.0\n    Checking core-foundation v0.10.1\n   Compiling cmake v0.1.57\n    Checking sync_wrapper v1.0.2\n    Checking utf8_iter v1.0.4\n    Checking clap_lex v0.7.7\n    Checking base64 v0.22.1\n    Checking tower-layer v0.3.3\n    Checking unicode-width v0.2.2\n    Checking ipnet v2.11.0\n    Checking strsim v0.11.1\n    Checking clap_builder v4.5.57\n    Checking console v0.16.2\n    Checking security-framework v3.5.1\n    Checking hashlink v0.10.0\n   Compiling aws-lc-sys v0.37.0\n    Checking idna_adapter v1.2.1\n    Checking idna v1.1.0\n    Checking zmij v1.0.20\n    Checking getrandom v0.4.1\n    Checking crypto-common v0.1.7\n    Checking block-buffer v0.10.4\n    Checking form_urlencoded v1.2.2\n    Checking encoding_rs v0.8.35\n    Checking option-ext v0.2.0\n    Checking hashbrown v0.16.1\n    Checking regex-automata v0.4.14\n    Checking iri-string v0.7.10\n    Checking arraydeque v0.5.1\n    Checking lazy_static v1.5.0\n    Checking fastrand v2.3.0\n    Checking equivalent v1.0.2\n    Checking sharded-slab v0.1.7\n    Checking serde_json v1.0.149\n    Checking tempfile v3.25.0\n    Checking indexmap v2.13.0\n    Checking dirs-sys v0.5.0\n    Checking url v2.5.8\n    Checking digest v0.10.7\n    Checking num-traits v0.2.19\n    Checking doc-comment v0.3.4\n    Checking portable-atomic v1.13.1\n    Checking yaml-rust2 v0.10.4\n    Checking tracing-log v0.2.0\n    Checking http-body-util v0.1.3\n    Checking cpufeatures v0.2.17\n    Checking iana-time-zone v0.1.65\n    Checking clap v4.5.57\n    Checking thread_local v1.1.9\n    Checking env_home v0.1.0\n    Checking pathdiff v0.2.3\n    Checking hyper v1.8.1\n    Checking tower v0.5.3\n    Checking same-file v1.0.6\n    Checking unit-prefix v0.5.2\n    Checking unsafe-libyaml v0.2.11\n    Checking ryu v1.0.23\n    Checking nu-ansi-term v0.50.3\n    Checking shell-words v1.1.1\n    Checking indicatif v0.18.3\n    Checking marked-yaml v0.8.0\n    Checking dialoguer v0.12.0\n    Checking walkdir v2.5.0\n    Checking chrono v0.4.43\n    Checking open v5.3.3\n    Checking which v8.0.0\n    Checking include_dir v0.7.4\n    Checking thiserror v2.0.18\n    Checking tower-http v0.6.8\n    Checking clap_complete v4.5.65\n    Checking sha2 v0.10.9\n    Checking dirs v6.0.0\n    Checking anyhow v1.0.101\n    Checking getrandom v0.2.17\n    Checking glob v0.3.3\n    Checking urlencoding v2.1.3\n    Checking hex v0.4.3\n    Checking hyper-util v0.1.20\n    Checking serde_yaml v0.9.34+deprecated\n    Checking matchers v0.2.0\n    Checking tracing-subscriber v0.3.22\n    Checking regex v1.12.3\n   Compiling aws-lc-rs v1.15.4\n   Compiling rustls v0.23.36\n    Checking rustls-webpki v0.103.9\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.6.2\n    Checking hyper-rustls v0.27.7\n    Checking reqwest v0.13.2\n Documenting bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\nwarning: this URL is not a hyperlink\n  --> src/cache/entry.rs:10:32\n   |\n10 |     /// Source ID (e.g., \"http:https://example.com\").\n   |                                ^^^^^^^^^^^^^^^^^^^\n   |\n   = note: bare URLs are not automatically turned into clickable links\n   = note: `#[warn(rustdoc::bare_urls)]` on by default\nhelp: use an automatic link instead\n   |\n10 |     /// Source ID (e.g., \"http:<https://example.com>\").\n   |                                +                   +\n\nwarning: `bivvy` (lib doc) generated 1 warning (run `cargo fix --lib -p bivvy` to apply 1 suggestion)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 59.26s\n   Generated /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8/target/doc/bivvy/index.html",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01SbLYbKskj3WjkvzTnKvwAe",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_011qUuFiYYqvZ5Jcb3DmCFrY",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo fmt -- --check 2>&1",
+                    "description": "Check formatting",
+                    "timeout": 30000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 246,
+                "cache_read_input_tokens": 76244,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 246
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "025691ad-ad16-42db-b24f-088ac321cc2f"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_011qUuFiYYqvZ5Jcb3DmCFrY",
+                  "type": "tool_result",
+                  "content": "",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "a0c470e6-ae85-4d8d-aa9a-c43ff4191213",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_018vcHWVYL2KJeG9yTnSUQJM",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_011eDNMKt1xLxypYFER6cFML",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+                    "description": "Run clippy linter",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 2678,
+                "cache_read_input_tokens": 76490,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 2678
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "37714e51-a2b5-423e-bb68-aeb618a145ed"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_011eDNMKt1xLxypYFER6cFML",
+                  "type": "tool_result",
+                  "content": "    Checking errno v0.3.14\n    Checking serde_core v1.0.228\n    Checking futures-sink v0.3.31\n    Checking tracing v0.1.44\n    Checking httpdate v1.0.3\n    Checking fnv v1.0.7\n    Checking crossbeam-utils v0.8.21\n    Checking form_urlencoded v1.2.2\n    Checking parking v2.2.1\n    Checking predicates-core v1.0.9\n    Checking futures-util v0.3.31\n    Checking futures-channel v0.3.31\n    Checking sha1 v0.10.6\n    Checking float-cmp v0.10.0\n    Checking url v2.5.8\n    Checking tracing-subscriber v0.3.22\n    Checking mime v0.3.17\n    Checking normalize-line-endings v0.3.0\n    Checking termtree v0.5.1\n    Checking signal-hook-registry v1.4.8\n    Checking rustix v1.1.3\n    Checking difflib v0.4.0\n    Checking tabwriter v1.4.1\n    Checking bstr v1.12.1\n    Checking predicates-tree v1.0.12\n    Checking path-tree v0.8.3\n    Checking concurrent-queue v2.5.0\n    Checking wait-timeout v0.2.1\n    Checking similar v2.7.0\n    Checking predicates v3.1.3\n    Checking event-listener v5.4.1\n    Checking futures-timer v3.0.3\n    Checking stringmetrics v2.2.2\n    Checking event-listener-strategy v0.5.4\n    Checking async-lock v3.4.2\n    Checking assert_cmd v2.1.2\n    Checking async-object-pool v0.2.0\n    Checking tempfile v3.25.0\n    Checking which v8.0.0\n    Checking dialoguer v0.12.0\n    Checking serde v1.0.228\n    Checking serde_json v1.0.149\n    Checking bytes v1.11.1\n    Checking chrono v0.4.43\n    Checking serde_yaml v0.9.34+deprecated\n    Checking serde_regex v1.1.0\n    Checking assert-json-diff v2.0.2\n    Checking http v1.4.0\n    Checking tokio v1.49.0\n    Checking http-body v1.0.1\n    Checking headers-core v0.3.0\n    Checking headers v0.4.1\n    Checking http-body-util v0.1.3\n    Checking tokio-util v0.7.18\n    Checking tokio-rustls v0.26.4\n    Checking tower v0.5.3\n    Checking tower-http v0.6.8\n    Checking h2 v0.4.13\n    Checking hyper v1.8.1\n    Checking hyper-util v0.1.20\n    Checking hyper-rustls v0.27.7\n    Checking httpmock v0.8.3\n    Checking reqwest v0.13.2\n    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 19s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "a1f8cca5-f86f-43cc-b725-8520531c23f0",
+            "tool_use_result": {
+              "stdout": "    Checking errno v0.3.14\n    Checking serde_core v1.0.228\n    Checking futures-sink v0.3.31\n    Checking tracing v0.1.44\n    Checking httpdate v1.0.3\n    Checking fnv v1.0.7\n    Checking crossbeam-utils v0.8.21\n    Checking form_urlencoded v1.2.2\n    Checking parking v2.2.1\n    Checking predicates-core v1.0.9\n    Checking futures-util v0.3.31\n    Checking futures-channel v0.3.31\n    Checking sha1 v0.10.6\n    Checking float-cmp v0.10.0\n    Checking url v2.5.8\n    Checking tracing-subscriber v0.3.22\n    Checking mime v0.3.17\n    Checking normalize-line-endings v0.3.0\n    Checking termtree v0.5.1\n    Checking signal-hook-registry v1.4.8\n    Checking rustix v1.1.3\n    Checking difflib v0.4.0\n    Checking tabwriter v1.4.1\n    Checking bstr v1.12.1\n    Checking predicates-tree v1.0.12\n    Checking path-tree v0.8.3\n    Checking concurrent-queue v2.5.0\n    Checking wait-timeout v0.2.1\n    Checking similar v2.7.0\n    Checking predicates v3.1.3\n    Checking event-listener v5.4.1\n    Checking futures-timer v3.0.3\n    Checking stringmetrics v2.2.2\n    Checking event-listener-strategy v0.5.4\n    Checking async-lock v3.4.2\n    Checking assert_cmd v2.1.2\n    Checking async-object-pool v0.2.0\n    Checking tempfile v3.25.0\n    Checking which v8.0.0\n    Checking dialoguer v0.12.0\n    Checking serde v1.0.228\n    Checking serde_json v1.0.149\n    Checking bytes v1.11.1\n    Checking chrono v0.4.43\n    Checking serde_yaml v0.9.34+deprecated\n    Checking serde_regex v1.1.0\n    Checking assert-json-diff v2.0.2\n    Checking http v1.4.0\n    Checking tokio v1.49.0\n    Checking http-body v1.0.1\n    Checking headers-core v0.3.0\n    Checking headers v0.4.1\n    Checking http-body-util v0.1.3\n    Checking tokio-util v0.7.18\n    Checking tokio-rustls v0.26.4\n    Checking tower v0.5.3\n    Checking tower-http v0.6.8\n    Checking h2 v0.4.13\n    Checking hyper v1.8.1\n    Checking hyper-util v0.1.20\n    Checking hyper-rustls v0.27.7\n    Checking httpmock v0.8.3\n    Checking reqwest v0.13.2\n    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 19s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01RXeWJc2wyRKkPV2nyz4iK2",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01MfTczbdMmJdyLrm38s7ste",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo check --all-targets --all-features 2>&1",
+                    "description": "Check all targets compile",
+                    "timeout": 60000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1053,
+                "cache_read_input_tokens": 79168,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 1053
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "48daadd4-aad1-494e-bb21-fddb086f2e4b"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01MfTczbdMmJdyLrm38s7ste",
+                  "type": "tool_result",
+                  "content": "    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.46s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+            "uuid": "0c1e834d-b850-465f-846d-8782ea8fc554",
+            "tool_use_result": {
+              "stdout": "    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.46s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        6,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2564567.195434083,
+      "tool_name": "Bash",
+      "substring": "cargo build --release",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01A2SFfqqTjYQn2Sz7geAZjT",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01C4hrHEKZg7mW9XWF92NcfQ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 221,
+                  "cache_read_input_tokens": 49667,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 221
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "c1f6a968-3453-40f3-9144-f64efc465b23"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01C4hrHEKZg7mW9XWF92NcfQ",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: bkvs91d9u. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-ivvoypj8/tasks/bkvs91d9u.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "cf894514-4181-493f-acfa-81cb42e59878",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "bkvs91d9u"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01SbLYbKskj3WjkvzTnKvwAe",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01LdEuRfqTircCNoUQJ3TGVH",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo doc --no-deps --all-features 2>&1",
+                      "description": "Build docs to check for errors",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 246,
+                  "cache_read_input_tokens": 76244,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 246
+                  },
+                  "output_tokens": 26,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "e1a9c557-fc7d-458c-b657-effd45d0c93e"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01LdEuRfqTircCNoUQJ3TGVH",
+                    "type": "tool_result",
+                    "content": "    Checking stable_deref_trait v1.2.1\n    Checking once_cell v1.21.3\n    Checking libc v0.2.181\n    Checking pin-project-lite v0.2.16\n    Checking memchr v2.8.0\n    Checking bytes v1.11.1\n    Checking itoa v1.0.17\n    Checking futures-core v0.3.31\n    Checking zerofrom v0.1.6\n    Checking cfg-if v1.0.4\n    Checking zeroize v1.8.2\n    Checking yoke v0.8.1\n    Checking smallvec v1.15.1\n    Checking writeable v0.6.2\n    Checking bitflags v2.10.0\n    Checking litemap v0.8.1\n    Checking futures-sink v0.3.31\n    Checking zerovec v0.11.5\n    Checking zerotrie v0.2.3\n    Checking core-foundation-sys v0.8.7\n   Compiling serde_core v1.0.228\n    Checking pin-utils v0.1.0\n    Checking tracing-core v0.1.36\n    Checking rustls-pki-types v1.14.0\n    Checking futures-task v0.3.31\n    Checking untrusted v0.9.0\n    Checking futures-io v0.3.31\n    Checking slab v0.4.12\n    Checking typenum v1.19.0\n    Checking http v1.4.0\n   Compiling jobserver v0.1.34\n    Checking icu_properties_data v2.1.2\n    Checking icu_normalizer_data v2.1.1\n    Checking try-lock v0.2.5\n   Compiling serde v1.0.228\n    Checking socket2 v0.6.2\n    Checking mio v1.1.1\n    Checking futures-util v0.3.31\n    Checking tinystr v0.8.2\n    Checking potential_utf v0.1.4\n    Checking icu_collections v2.1.1\n    Checking utf8parse v0.2.2\n   Compiling cc v1.2.55\n    Checking tokio v1.49.0\n    Checking icu_locale_core v2.1.1\n    Checking subtle v2.6.1\n    Checking percent-encoding v2.3.2\n    Checking tower-service v0.3.3\n    Checking anstyle-parse v0.2.7\n    Checking want v0.3.1\n    Checking errno v0.3.14\n    Checking tracing v0.1.44\n    Checking generic-array v0.14.7\n    Checking httparse v1.10.1\n    Checking http-body v1.0.1\n    Checking aho-corasick v1.1.4\n    Checking futures-channel v0.3.31\n    Checking colorchoice v1.0.4\n    Checking anstyle-query v1.1.5\n    Checking anstyle v1.0.13\n    Checking atomic-waker v1.1.2\n    Checking is_terminal_polyfill v1.70.2\n    Checking icu_provider v2.1.1\n    Checking foldhash v0.1.5\n    Checking regex-syntax v0.8.9\n    Checking log v0.4.29\n    Checking hashbrown v0.15.5\n    Checking anstream v0.6.21\n    Checking icu_normalizer v2.1.1\n    Checking icu_properties v2.1.2\n    Checking rustix v1.1.3\n    Checking security-framework-sys v2.15.0\n    Checking core-foundation v0.10.1\n   Compiling cmake v0.1.57\n    Checking sync_wrapper v1.0.2\n    Checking utf8_iter v1.0.4\n    Checking clap_lex v0.7.7\n    Checking base64 v0.22.1\n    Checking tower-layer v0.3.3\n    Checking unicode-width v0.2.2\n    Checking ipnet v2.11.0\n    Checking strsim v0.11.1\n    Checking clap_builder v4.5.57\n    Checking console v0.16.2\n    Checking security-framework v3.5.1\n    Checking hashlink v0.10.0\n   Compiling aws-lc-sys v0.37.0\n    Checking idna_adapter v1.2.1\n    Checking idna v1.1.0\n    Checking zmij v1.0.20\n    Checking getrandom v0.4.1\n    Checking crypto-common v0.1.7\n    Checking block-buffer v0.10.4\n    Checking form_urlencoded v1.2.2\n    Checking encoding_rs v0.8.35\n    Checking option-ext v0.2.0\n    Checking hashbrown v0.16.1\n    Checking regex-automata v0.4.14\n    Checking iri-string v0.7.10\n    Checking arraydeque v0.5.1\n    Checking lazy_static v1.5.0\n    Checking fastrand v2.3.0\n    Checking equivalent v1.0.2\n    Checking sharded-slab v0.1.7\n    Checking serde_json v1.0.149\n    Checking tempfile v3.25.0\n    Checking indexmap v2.13.0\n    Checking dirs-sys v0.5.0\n    Checking url v2.5.8\n    Checking digest v0.10.7\n    Checking num-traits v0.2.19\n    Checking doc-comment v0.3.4\n    Checking portable-atomic v1.13.1\n    Checking yaml-rust2 v0.10.4\n    Checking tracing-log v0.2.0\n    Checking http-body-util v0.1.3\n    Checking cpufeatures v0.2.17\n    Checking iana-time-zone v0.1.65\n    Checking clap v4.5.57\n    Checking thread_local v1.1.9\n    Checking env_home v0.1.0\n    Checking pathdiff v0.2.3\n    Checking hyper v1.8.1\n    Checking tower v0.5.3\n    Checking same-file v1.0.6\n    Checking unit-prefix v0.5.2\n    Checking unsafe-libyaml v0.2.11\n    Checking ryu v1.0.23\n    Checking nu-ansi-term v0.50.3\n    Checking shell-words v1.1.1\n    Checking indicatif v0.18.3\n    Checking marked-yaml v0.8.0\n    Checking dialoguer v0.12.0\n    Checking walkdir v2.5.0\n    Checking chrono v0.4.43\n    Checking open v5.3.3\n    Checking which v8.0.0\n    Checking include_dir v0.7.4\n    Checking thiserror v2.0.18\n    Checking tower-http v0.6.8\n    Checking clap_complete v4.5.65\n    Checking sha2 v0.10.9\n    Checking dirs v6.0.0\n    Checking anyhow v1.0.101\n    Checking getrandom v0.2.17\n    Checking glob v0.3.3\n    Checking urlencoding v2.1.3\n    Checking hex v0.4.3\n    Checking hyper-util v0.1.20\n    Checking serde_yaml v0.9.34+deprecated\n    Checking matchers v0.2.0\n    Checking tracing-subscriber v0.3.22\n    Checking regex v1.12.3\n   Compiling aws-lc-rs v1.15.4\n   Compiling rustls v0.23.36\n    Checking rustls-webpki v0.103.9\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.6.2\n    Checking hyper-rustls v0.27.7\n    Checking reqwest v0.13.2\n Documenting bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\nwarning: this URL is not a hyperlink\n  --> src/cache/entry.rs:10:32\n   |\n10 |     /// Source ID (e.g., \"http:https://example.com\").\n   |                                ^^^^^^^^^^^^^^^^^^^\n   |\n   = note: bare URLs are not automatically turned into clickable links\n   = note: `#[warn(rustdoc::bare_urls)]` on by default\nhelp: use an automatic link instead\n   |\n10 |     /// Source ID (e.g., \"http:<https://example.com>\").\n   |                                +                   +\n\nwarning: `bivvy` (lib doc) generated 1 warning (run `cargo fix --lib -p bivvy` to apply 1 suggestion)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 59.26s\n   Generated /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8/target/doc/bivvy/index.html",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "c35be60f-021b-4179-af55-f78af67d5af9",
+              "tool_use_result": {
+                "stdout": "    Checking stable_deref_trait v1.2.1\n    Checking once_cell v1.21.3\n    Checking libc v0.2.181\n    Checking pin-project-lite v0.2.16\n    Checking memchr v2.8.0\n    Checking bytes v1.11.1\n    Checking itoa v1.0.17\n    Checking futures-core v0.3.31\n    Checking zerofrom v0.1.6\n    Checking cfg-if v1.0.4\n    Checking zeroize v1.8.2\n    Checking yoke v0.8.1\n    Checking smallvec v1.15.1\n    Checking writeable v0.6.2\n    Checking bitflags v2.10.0\n    Checking litemap v0.8.1\n    Checking futures-sink v0.3.31\n    Checking zerovec v0.11.5\n    Checking zerotrie v0.2.3\n    Checking core-foundation-sys v0.8.7\n   Compiling serde_core v1.0.228\n    Checking pin-utils v0.1.0\n    Checking tracing-core v0.1.36\n    Checking rustls-pki-types v1.14.0\n    Checking futures-task v0.3.31\n    Checking untrusted v0.9.0\n    Checking futures-io v0.3.31\n    Checking slab v0.4.12\n    Checking typenum v1.19.0\n    Checking http v1.4.0\n   Compiling jobserver v0.1.34\n    Checking icu_properties_data v2.1.2\n    Checking icu_normalizer_data v2.1.1\n    Checking try-lock v0.2.5\n   Compiling serde v1.0.228\n    Checking socket2 v0.6.2\n    Checking mio v1.1.1\n    Checking futures-util v0.3.31\n    Checking tinystr v0.8.2\n    Checking potential_utf v0.1.4\n    Checking icu_collections v2.1.1\n    Checking utf8parse v0.2.2\n   Compiling cc v1.2.55\n    Checking tokio v1.49.0\n    Checking icu_locale_core v2.1.1\n    Checking subtle v2.6.1\n    Checking percent-encoding v2.3.2\n    Checking tower-service v0.3.3\n    Checking anstyle-parse v0.2.7\n    Checking want v0.3.1\n    Checking errno v0.3.14\n    Checking tracing v0.1.44\n    Checking generic-array v0.14.7\n    Checking httparse v1.10.1\n    Checking http-body v1.0.1\n    Checking aho-corasick v1.1.4\n    Checking futures-channel v0.3.31\n    Checking colorchoice v1.0.4\n    Checking anstyle-query v1.1.5\n    Checking anstyle v1.0.13\n    Checking atomic-waker v1.1.2\n    Checking is_terminal_polyfill v1.70.2\n    Checking icu_provider v2.1.1\n    Checking foldhash v0.1.5\n    Checking regex-syntax v0.8.9\n    Checking log v0.4.29\n    Checking hashbrown v0.15.5\n    Checking anstream v0.6.21\n    Checking icu_normalizer v2.1.1\n    Checking icu_properties v2.1.2\n    Checking rustix v1.1.3\n    Checking security-framework-sys v2.15.0\n    Checking core-foundation v0.10.1\n   Compiling cmake v0.1.57\n    Checking sync_wrapper v1.0.2\n    Checking utf8_iter v1.0.4\n    Checking clap_lex v0.7.7\n    Checking base64 v0.22.1\n    Checking tower-layer v0.3.3\n    Checking unicode-width v0.2.2\n    Checking ipnet v2.11.0\n    Checking strsim v0.11.1\n    Checking clap_builder v4.5.57\n    Checking console v0.16.2\n    Checking security-framework v3.5.1\n    Checking hashlink v0.10.0\n   Compiling aws-lc-sys v0.37.0\n    Checking idna_adapter v1.2.1\n    Checking idna v1.1.0\n    Checking zmij v1.0.20\n    Checking getrandom v0.4.1\n    Checking crypto-common v0.1.7\n    Checking block-buffer v0.10.4\n    Checking form_urlencoded v1.2.2\n    Checking encoding_rs v0.8.35\n    Checking option-ext v0.2.0\n    Checking hashbrown v0.16.1\n    Checking regex-automata v0.4.14\n    Checking iri-string v0.7.10\n    Checking arraydeque v0.5.1\n    Checking lazy_static v1.5.0\n    Checking fastrand v2.3.0\n    Checking equivalent v1.0.2\n    Checking sharded-slab v0.1.7\n    Checking serde_json v1.0.149\n    Checking tempfile v3.25.0\n    Checking indexmap v2.13.0\n    Checking dirs-sys v0.5.0\n    Checking url v2.5.8\n    Checking digest v0.10.7\n    Checking num-traits v0.2.19\n    Checking doc-comment v0.3.4\n    Checking portable-atomic v1.13.1\n    Checking yaml-rust2 v0.10.4\n    Checking tracing-log v0.2.0\n    Checking http-body-util v0.1.3\n    Checking cpufeatures v0.2.17\n    Checking iana-time-zone v0.1.65\n    Checking clap v4.5.57\n    Checking thread_local v1.1.9\n    Checking env_home v0.1.0\n    Checking pathdiff v0.2.3\n    Checking hyper v1.8.1\n    Checking tower v0.5.3\n    Checking same-file v1.0.6\n    Checking unit-prefix v0.5.2\n    Checking unsafe-libyaml v0.2.11\n    Checking ryu v1.0.23\n    Checking nu-ansi-term v0.50.3\n    Checking shell-words v1.1.1\n    Checking indicatif v0.18.3\n    Checking marked-yaml v0.8.0\n    Checking dialoguer v0.12.0\n    Checking walkdir v2.5.0\n    Checking chrono v0.4.43\n    Checking open v5.3.3\n    Checking which v8.0.0\n    Checking include_dir v0.7.4\n    Checking thiserror v2.0.18\n    Checking tower-http v0.6.8\n    Checking clap_complete v4.5.65\n    Checking sha2 v0.10.9\n    Checking dirs v6.0.0\n    Checking anyhow v1.0.101\n    Checking getrandom v0.2.17\n    Checking glob v0.3.3\n    Checking urlencoding v2.1.3\n    Checking hex v0.4.3\n    Checking hyper-util v0.1.20\n    Checking serde_yaml v0.9.34+deprecated\n    Checking matchers v0.2.0\n    Checking tracing-subscriber v0.3.22\n    Checking regex v1.12.3\n   Compiling aws-lc-rs v1.15.4\n   Compiling rustls v0.23.36\n    Checking rustls-webpki v0.103.9\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.6.2\n    Checking hyper-rustls v0.27.7\n    Checking reqwest v0.13.2\n Documenting bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\nwarning: this URL is not a hyperlink\n  --> src/cache/entry.rs:10:32\n   |\n10 |     /// Source ID (e.g., \"http:https://example.com\").\n   |                                ^^^^^^^^^^^^^^^^^^^\n   |\n   = note: bare URLs are not automatically turned into clickable links\n   = note: `#[warn(rustdoc::bare_urls)]` on by default\nhelp: use an automatic link instead\n   |\n10 |     /// Source ID (e.g., \"http:<https://example.com>\").\n   |                                +                   +\n\nwarning: `bivvy` (lib doc) generated 1 warning (run `cargo fix --lib -p bivvy` to apply 1 suggestion)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 59.26s\n   Generated /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8/target/doc/bivvy/index.html",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo doc --no-deps --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01SbLYbKskj3WjkvzTnKvwAe",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_011qUuFiYYqvZ5Jcb3DmCFrY",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo fmt -- --check 2>&1",
+                      "description": "Check formatting",
+                      "timeout": 30000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 246,
+                  "cache_read_input_tokens": 76244,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 246
+                  },
+                  "output_tokens": 26,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "025691ad-ad16-42db-b24f-088ac321cc2f"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_011qUuFiYYqvZ5Jcb3DmCFrY",
+                    "type": "tool_result",
+                    "content": "",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "a0c470e6-ae85-4d8d-aa9a-c43ff4191213",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo fmt -- --check 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_018vcHWVYL2KJeG9yTnSUQJM",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_011eDNMKt1xLxypYFER6cFML",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+                      "description": "Run clippy linter",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 2678,
+                  "cache_read_input_tokens": 76490,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 2678
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "37714e51-a2b5-423e-bb68-aeb618a145ed"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_011eDNMKt1xLxypYFER6cFML",
+                    "type": "tool_result",
+                    "content": "    Checking errno v0.3.14\n    Checking serde_core v1.0.228\n    Checking futures-sink v0.3.31\n    Checking tracing v0.1.44\n    Checking httpdate v1.0.3\n    Checking fnv v1.0.7\n    Checking crossbeam-utils v0.8.21\n    Checking form_urlencoded v1.2.2\n    Checking parking v2.2.1\n    Checking predicates-core v1.0.9\n    Checking futures-util v0.3.31\n    Checking futures-channel v0.3.31\n    Checking sha1 v0.10.6\n    Checking float-cmp v0.10.0\n    Checking url v2.5.8\n    Checking tracing-subscriber v0.3.22\n    Checking mime v0.3.17\n    Checking normalize-line-endings v0.3.0\n    Checking termtree v0.5.1\n    Checking signal-hook-registry v1.4.8\n    Checking rustix v1.1.3\n    Checking difflib v0.4.0\n    Checking tabwriter v1.4.1\n    Checking bstr v1.12.1\n    Checking predicates-tree v1.0.12\n    Checking path-tree v0.8.3\n    Checking concurrent-queue v2.5.0\n    Checking wait-timeout v0.2.1\n    Checking similar v2.7.0\n    Checking predicates v3.1.3\n    Checking event-listener v5.4.1\n    Checking futures-timer v3.0.3\n    Checking stringmetrics v2.2.2\n    Checking event-listener-strategy v0.5.4\n    Checking async-lock v3.4.2\n    Checking assert_cmd v2.1.2\n    Checking async-object-pool v0.2.0\n    Checking tempfile v3.25.0\n    Checking which v8.0.0\n    Checking dialoguer v0.12.0\n    Checking serde v1.0.228\n    Checking serde_json v1.0.149\n    Checking bytes v1.11.1\n    Checking chrono v0.4.43\n    Checking serde_yaml v0.9.34+deprecated\n    Checking serde_regex v1.1.0\n    Checking assert-json-diff v2.0.2\n    Checking http v1.4.0\n    Checking tokio v1.49.0\n    Checking http-body v1.0.1\n    Checking headers-core v0.3.0\n    Checking headers v0.4.1\n    Checking http-body-util v0.1.3\n    Checking tokio-util v0.7.18\n    Checking tokio-rustls v0.26.4\n    Checking tower v0.5.3\n    Checking tower-http v0.6.8\n    Checking h2 v0.4.13\n    Checking hyper v1.8.1\n    Checking hyper-util v0.1.20\n    Checking hyper-rustls v0.27.7\n    Checking httpmock v0.8.3\n    Checking reqwest v0.13.2\n    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 19s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "a1f8cca5-f86f-43cc-b725-8520531c23f0",
+              "tool_use_result": {
+                "stdout": "    Checking errno v0.3.14\n    Checking serde_core v1.0.228\n    Checking futures-sink v0.3.31\n    Checking tracing v0.1.44\n    Checking httpdate v1.0.3\n    Checking fnv v1.0.7\n    Checking crossbeam-utils v0.8.21\n    Checking form_urlencoded v1.2.2\n    Checking parking v2.2.1\n    Checking predicates-core v1.0.9\n    Checking futures-util v0.3.31\n    Checking futures-channel v0.3.31\n    Checking sha1 v0.10.6\n    Checking float-cmp v0.10.0\n    Checking url v2.5.8\n    Checking tracing-subscriber v0.3.22\n    Checking mime v0.3.17\n    Checking normalize-line-endings v0.3.0\n    Checking termtree v0.5.1\n    Checking signal-hook-registry v1.4.8\n    Checking rustix v1.1.3\n    Checking difflib v0.4.0\n    Checking tabwriter v1.4.1\n    Checking bstr v1.12.1\n    Checking predicates-tree v1.0.12\n    Checking path-tree v0.8.3\n    Checking concurrent-queue v2.5.0\n    Checking wait-timeout v0.2.1\n    Checking similar v2.7.0\n    Checking predicates v3.1.3\n    Checking event-listener v5.4.1\n    Checking futures-timer v3.0.3\n    Checking stringmetrics v2.2.2\n    Checking event-listener-strategy v0.5.4\n    Checking async-lock v3.4.2\n    Checking assert_cmd v2.1.2\n    Checking async-object-pool v0.2.0\n    Checking tempfile v3.25.0\n    Checking which v8.0.0\n    Checking dialoguer v0.12.0\n    Checking serde v1.0.228\n    Checking serde_json v1.0.149\n    Checking bytes v1.11.1\n    Checking chrono v0.4.43\n    Checking serde_yaml v0.9.34+deprecated\n    Checking serde_regex v1.1.0\n    Checking assert-json-diff v2.0.2\n    Checking http v1.4.0\n    Checking tokio v1.49.0\n    Checking http-body v1.0.1\n    Checking headers-core v0.3.0\n    Checking headers v0.4.1\n    Checking http-body-util v0.1.3\n    Checking tokio-util v0.7.18\n    Checking tokio-rustls v0.26.4\n    Checking tower v0.5.3\n    Checking tower-http v0.6.8\n    Checking h2 v0.4.13\n    Checking hyper v1.8.1\n    Checking hyper-util v0.1.20\n    Checking hyper-rustls v0.27.7\n    Checking httpmock v0.8.3\n    Checking reqwest v0.13.2\n    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 19s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo clippy --all-targets --all-features -- -D warnings 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01RXeWJc2wyRKkPV2nyz4iK2",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01MfTczbdMmJdyLrm38s7ste",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo check --all-targets --all-features 2>&1",
+                      "description": "Check all targets compile",
+                      "timeout": 60000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1053,
+                  "cache_read_input_tokens": 79168,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1053
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "48daadd4-aad1-494e-bb21-fddb086f2e4b"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01MfTczbdMmJdyLrm38s7ste",
+                    "type": "tool_result",
+                    "content": "    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.46s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "54eda110-86a8-4e14-9fe3-23e2d4ee034b",
+              "uuid": "0c1e834d-b850-465f-846d-8782ea8fc554",
+              "tool_use_result": {
+                "stdout": "    Checking bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ivvoypj8)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.46s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "cargo check --all-targets --all-features 2>&1"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_transform",
+      "timestamp": 2564567.19543475,
+      "transform": "count",
+      "result": 0
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2564567.195435916,
+      "operator": "gte",
+      "metric_value": 0,
+      "target_value": 1,
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2564567.195437541,
+      "passed": false,
+      "detail": "got 0, expected >= 1"
+    }
+  ]
+}

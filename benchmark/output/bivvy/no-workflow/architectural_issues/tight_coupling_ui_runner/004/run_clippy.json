@@ -1,0 +1,487 @@
+{
+  "check_id": "run_clippy",
+  "phase": "linting",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "got 0, expected >= 1",
+  "category": "architectural_issues",
+  "metric_value": 0,
+  "target_value": 1,
+  "operator": "gte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2574321.038414708,
+      "check_id": "run_clippy",
+      "phase": "linting",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "transform": "count",
+        "operator": "gte",
+        "target": 1,
+        "metric_args": "cargo clippy"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2574321.038422833,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01LULYeQs4JKz8cPH8xNzwya",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01RDenQH6Zm3dsHXnkxawL9h",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw -type f | head -50",
+                    "description": "List all files in the project"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 36686,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 36686
+                },
+                "output_tokens": 11,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "0c995a94-c309-4664-abb5-e92d8a7a0d17"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01RDenQH6Zm3dsHXnkxawL9h",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.DS_Store\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/LICENSE\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/bin/release\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/CHANGELOG.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/install.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/homebrew/bivvy.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1.tar.gz\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1-py3-none-any.whl\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/PKG-INFO\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/SOURCES.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/entry_points.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/top_level.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/dependency_links.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/pyproject.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy/__init__.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/ext/extconf.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/VERSION\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/exe/bivvy\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/bivvy.gemspec\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-basic/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/full-story/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-bad-url/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/run-acceptance-tests.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/template-sources/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/settings.local.json\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/scripts/guard.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/skills/bivvy-feedback/SKILL.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.lock\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/LICENSE.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/environments.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/requirements.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/workflows.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/settings.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/secrets.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/state.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/index.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/steps.md",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "5bd8e8a1-4405-4ee0-94c3-43bb23d69dd4",
+            "tool_use_result": {
+              "stdout": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.DS_Store\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/LICENSE\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/bin/release\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/CHANGELOG.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/install.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/homebrew/bivvy.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1.tar.gz\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1-py3-none-any.whl\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/PKG-INFO\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/SOURCES.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/entry_points.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/top_level.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/dependency_links.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/pyproject.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy/__init__.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/ext/extconf.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/VERSION\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/exe/bivvy\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/bivvy.gemspec\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-basic/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/full-story/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-bad-url/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/run-acceptance-tests.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/template-sources/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/settings.local.json\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/scripts/guard.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/skills/bivvy-feedback/SKILL.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.lock\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/LICENSE.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/environments.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/requirements.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/workflows.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/settings.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/secrets.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/state.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/index.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/steps.md",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01LULYeQs4JKz8cPH8xNzwya",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_016ej7hYVvBytxxDQ6J9wt4g",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/",
+                    "description": "List top-level directory contents"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 36686,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 36686
+                },
+                "output_tokens": 11,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "38aac092-4606-4733-8129-67a98d687ee8"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_016ej7hYVvBytxxDQ6J9wt4g",
+                  "type": "tool_result",
+                  "content": "bin\nCargo.lock\nCargo.toml\nCHANGELOG.md\ndist\ndocs\nLICENSE\nREADME.md\nscripts\nsrc\ntemplates\ntests",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "f0626c1a-d614-4607-9522-83a15f54b257",
+            "tool_use_result": {
+              "stdout": "bin\nCargo.lock\nCargo.toml\nCHANGELOG.md\ndist\ndocs\nLICENSE\nREADME.md\nscripts\nsrc\ntemplates\ntests",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01L2cK8fsD67x8TP4p1BBMPa",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_013F2gw3moqrRZg19A32QcZ6",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src -type f -name '*.rs' | sort",
+                    "description": "List all Rust source files"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 66,
+                "cache_creation_input_tokens": 3079,
+                "cache_read_input_tokens": 36686,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 3079
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "1082986f-d374-4498-a71c-73783d598738"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_013F2gw3moqrRZg19A32QcZ6",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/version.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+            "uuid": "129576e2-74d8-43ba-ae1e-12db984235fb",
+            "tool_use_result": {
+              "stdout": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/version.rs",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2574321.038432916,
+      "tool_name": "Bash",
+      "substring": "cargo clippy",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01LULYeQs4JKz8cPH8xNzwya",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01RDenQH6Zm3dsHXnkxawL9h",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw -type f | head -50",
+                      "description": "List all files in the project"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 36686,
+                  "cache_read_input_tokens": 0,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 36686
+                  },
+                  "output_tokens": 11,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "0c995a94-c309-4664-abb5-e92d8a7a0d17"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01RDenQH6Zm3dsHXnkxawL9h",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.DS_Store\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/LICENSE\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/bin/release\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/CHANGELOG.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/install.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/homebrew/bivvy.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1.tar.gz\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1-py3-none-any.whl\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/PKG-INFO\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/SOURCES.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/entry_points.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/top_level.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/dependency_links.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/pyproject.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy/__init__.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/ext/extconf.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/VERSION\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/exe/bivvy\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/bivvy.gemspec\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-basic/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/full-story/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-bad-url/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/run-acceptance-tests.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/template-sources/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/settings.local.json\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/scripts/guard.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/skills/bivvy-feedback/SKILL.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.lock\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/LICENSE.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/environments.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/requirements.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/workflows.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/settings.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/secrets.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/state.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/index.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/steps.md",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "5bd8e8a1-4405-4ee0-94c3-43bb23d69dd4",
+              "tool_use_result": {
+                "stdout": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.DS_Store\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/LICENSE\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/bin/release\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/CHANGELOG.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/install.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/homebrew/bivvy.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1.tar.gz\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/dist/bivvy-1.0.1-py3-none-any.whl\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/PKG-INFO\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/SOURCES.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/entry_points.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/top_level.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy.egg-info/dependency_links.txt\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/pyproject.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/bivvy/__init__.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/pip/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/ext/extconf.rb\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/VERSION\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/exe/bivvy\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/dist/gem/bivvy.gemspec\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-local-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-basic/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/README.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/full-story/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/extends-bad-url/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/run-acceptance-tests.sh\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/fixtures/remote/template-sources/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/settings.local.json\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/scripts/guard.py\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/.claude/skills/bivvy-feedback/SKILL.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/Cargo.lock\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/LICENSE.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/environments.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/requirements.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/workflows.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/settings.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/secrets.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/state.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/index.md\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/docs/configuration/steps.md",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw -type f | head -50"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01LULYeQs4JKz8cPH8xNzwya",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016ej7hYVvBytxxDQ6J9wt4g",
+                    "name": "Bash",
+                    "input": {
+                      "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/",
+                      "description": "List top-level directory contents"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 36686,
+                  "cache_read_input_tokens": 0,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 36686
+                  },
+                  "output_tokens": 11,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "38aac092-4606-4733-8129-67a98d687ee8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_016ej7hYVvBytxxDQ6J9wt4g",
+                    "type": "tool_result",
+                    "content": "bin\nCargo.lock\nCargo.toml\nCHANGELOG.md\ndist\ndocs\nLICENSE\nREADME.md\nscripts\nsrc\ntemplates\ntests",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "f0626c1a-d614-4607-9522-83a15f54b257",
+              "tool_use_result": {
+                "stdout": "bin\nCargo.lock\nCargo.toml\nCHANGELOG.md\ndist\ndocs\nLICENSE\nREADME.md\nscripts\nsrc\ntemplates\ntests",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01L2cK8fsD67x8TP4p1BBMPa",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_013F2gw3moqrRZg19A32QcZ6",
+                    "name": "Bash",
+                    "input": {
+                      "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src -type f -name '*.rs' | sort",
+                      "description": "List all Rust source files"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 66,
+                  "cache_creation_input_tokens": 3079,
+                  "cache_read_input_tokens": 36686,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 3079
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "1082986f-d374-4498-a71c-73783d598738"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_013F2gw3moqrRZg19A32QcZ6",
+                    "type": "tool_result",
+                    "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/version.rs",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "d4f74a88-e0ef-4be8-955e-089aa53bb42d",
+              "uuid": "129576e2-74d8-43ba-ae1e-12db984235fb",
+              "tool_use_result": {
+                "stdout": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src/updates/version.rs",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-kv0wwzmw/src -type f -name '*.rs' | sort"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_transform",
+      "timestamp": 2574321.0384345,
+      "transform": "count",
+      "result": 0
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2574321.038436333,
+      "operator": "gte",
+      "metric_value": 0,
+      "target_value": 1,
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2574321.038438458,
+      "passed": false,
+      "detail": "got 0, expected >= 1"
+    }
+  ]
+}

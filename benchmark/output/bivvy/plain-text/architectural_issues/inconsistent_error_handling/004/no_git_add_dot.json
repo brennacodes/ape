@@ -1,0 +1,90 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.toml\" | head -50', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src -type f -name \"*.rs\" | sort', 'grep -r \"\\\\.map_err\\\\|\\\\.context\\\\|\\\\.with_context\\\\|bail!\\\\|ensure!\\\\|anyhow!\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src --include=\"*.rs\" | head -50', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f \\\\( -name \"*.rs\" -o -name \"Cargo.toml\" \\\\) | wc -l', 'cargo test --all-features 2>&1 | head -60', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | tail -30', 'cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error)\" ', 'cargo test --all-features shell::command::tests::command_result_tracks_duration 2>&1', 'cargo check --all-targets --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error\\\\[)\" ', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -E \"(error|warning)\" | grep -v \"Compiling\\\\|Checking\\\\|Finished\\\\|Downloading\\\\|Downloaded\"', 'cargo fmt -- --check 2>&1', 'cargo build --release 2>&1 | grep -E \"(error|warning|Finished)\" | grep -v \"Compiling\\\\|Checking\\\\|Downloading\\\\|Downloaded\"', 'git status', 'git diff --stat', 'git log --oneline -5', 'git log -1 --oneline', 'git add src/cache/revalidation.rs src/cache/store.rs src/cache/validation.rs src/cli/commands/cache.rs src/cli/session_wrapper.rs src/error.rs src/registry/fetch/git.rs src/registry/fetch/http.rs src/registry/remote.rs src/requirements/checker.rs src/session/store.rs src/shell/command.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nUnify error handling to use crate::error::Result across all modules\\n\\nReplace inconsistent mix of anyhow::Result, Result<T, String>, and\\nad-hoc error types with the project\\'s BivvyError enum throughout all\\nmodule boundaries.\\n\\n- Add CacheError, SessionError, and FetchError variants to BivvyError\\n- Convert cache module (store, validation, revalidation) from anyhow\\n- Convert session/store from anyhow::Context to BivvyError::SessionError\\n- Convert registry/fetch (http, git) from anyhow::bail to BivvyError::FetchError\\n- Convert registry/remote from anyhow::bail/Context to BivvyError\\n- Convert requirements/checker from Result<T, String> to crate::error::Result\\n- Convert CLI callers (session_wrapper, cache command) from anyhow\\n- Fix flaky command_result_tracks_duration test timing threshold\\nEOF\\n)\"'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.toml\" | head -50",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src -type f -name \"*.rs\" | sort",
+    "grep -r \"\\.map_err\\|\\.context\\|\\.with_context\\|bail!\\|ensure!\\|anyhow!\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src --include=\"*.rs\" | head -50",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f \\( -name \"*.rs\" -o -name \"Cargo.toml\" \\) | wc -l",
+    "cargo test --all-features 2>&1 | head -60",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | tail -30",
+    "cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error)\" ",
+    "cargo test --all-features shell::command::tests::command_result_tracks_duration 2>&1",
+    "cargo check --all-targets --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error\\[)\" ",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -E \"(error|warning)\" | grep -v \"Compiling\\|Checking\\|Finished\\|Downloading\\|Downloaded\"",
+    "cargo fmt -- --check 2>&1",
+    "cargo build --release 2>&1 | grep -E \"(error|warning|Finished)\" | grep -v \"Compiling\\|Checking\\|Downloading\\|Downloaded\"",
+    "git status",
+    "git diff --stat",
+    "git log --oneline -5",
+    "git log -1 --oneline",
+    "git add src/cache/revalidation.rs src/cache/store.rs src/cache/validation.rs src/cli/commands/cache.rs src/cli/session_wrapper.rs src/error.rs src/registry/fetch/git.rs src/registry/fetch/http.rs src/registry/remote.rs src/requirements/checker.rs src/session/store.rs src/shell/command.rs",
+    "git commit -m \"$(cat <<'EOF'\nUnify error handling to use crate::error::Result across all modules\n\nReplace inconsistent mix of anyhow::Result, Result<T, String>, and\nad-hoc error types with the project's BivvyError enum throughout all\nmodule boundaries.\n\n- Add CacheError, SessionError, and FetchError variants to BivvyError\n- Convert cache module (store, validation, revalidation) from anyhow\n- Convert session/store from anyhow::Context to BivvyError::SessionError\n- Convert registry/fetch (http, git) from anyhow::bail to BivvyError::FetchError\n- Convert registry/remote from anyhow::bail/Context to BivvyError\n- Convert requirements/checker from Result<T, String> to crate::error::Result\n- Convert CLI callers (session_wrapper, cache command) from anyhow\n- Fix flaky command_result_tracks_duration test timing threshold\nEOF\n)\""
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2575303.834291666,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2575303.834352791,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.toml\" | head -50",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src -type f -name \"*.rs\" | sort",
+        "grep -r \"\\.map_err\\|\\.context\\|\\.with_context\\|bail!\\|ensure!\\|anyhow!\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src --include=\"*.rs\" | head -50",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f \\( -name \"*.rs\" -o -name \"Cargo.toml\" \\) | wc -l",
+        "cargo test --all-features 2>&1 | head -60",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | tail -30",
+        "cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error)\" ",
+        "cargo test --all-features shell::command::tests::command_result_tracks_duration 2>&1",
+        "cargo check --all-targets --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error\\[)\" ",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -E \"(error|warning)\" | grep -v \"Compiling\\|Checking\\|Finished\\|Downloading\\|Downloaded\"",
+        "cargo fmt -- --check 2>&1",
+        "cargo build --release 2>&1 | grep -E \"(error|warning|Finished)\" | grep -v \"Compiling\\|Checking\\|Downloading\\|Downloaded\"",
+        "git status",
+        "git diff --stat",
+        "git log --oneline -5",
+        "git log -1 --oneline",
+        "git add src/cache/revalidation.rs src/cache/store.rs src/cache/validation.rs src/cli/commands/cache.rs src/cli/session_wrapper.rs src/error.rs src/registry/fetch/git.rs src/registry/fetch/http.rs src/registry/remote.rs src/requirements/checker.rs src/session/store.rs src/shell/command.rs",
+        "git commit -m \"$(cat <<'EOF'\nUnify error handling to use crate::error::Result across all modules\n\nReplace inconsistent mix of anyhow::Result, Result<T, String>, and\nad-hoc error types with the project's BivvyError enum throughout all\nmodule boundaries.\n\n- Add CacheError, SessionError, and FetchError variants to BivvyError\n- Convert cache module (store, validation, revalidation) from anyhow\n- Convert session/store from anyhow::Context to BivvyError::SessionError\n- Convert registry/fetch (http, git) from anyhow::bail to BivvyError::FetchError\n- Convert registry/remote from anyhow::bail/Context to BivvyError\n- Convert requirements/checker from Result<T, String> to crate::error::Result\n- Convert CLI callers (session_wrapper, cache command) from anyhow\n- Fix flaky command_result_tracks_duration test timing threshold\nEOF\n)\""
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2575303.834379333,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.toml\" | head -50', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src -type f -name \"*.rs\" | sort', 'grep -r \"\\\\.map_err\\\\|\\\\.context\\\\|\\\\.with_context\\\\|bail!\\\\|ensure!\\\\|anyhow!\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp/src --include=\"*.rs\" | head -50', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-imt2ezpp -type f \\\\( -name \"*.rs\" -o -name \"Cargo.toml\" \\\\) | wc -l', 'cargo test --all-features 2>&1 | head -60', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | tail -30', 'cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error)\" ', 'cargo test --all-features shell::command::tests::command_result_tracks_duration 2>&1', 'cargo check --all-targets --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"(test result|FAILED|error\\\\[)\" ', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -E \"(error|warning)\" | grep -v \"Compiling\\\\|Checking\\\\|Finished\\\\|Downloading\\\\|Downloaded\"', 'cargo fmt -- --check 2>&1', 'cargo build --release 2>&1 | grep -E \"(error|warning|Finished)\" | grep -v \"Compiling\\\\|Checking\\\\|Downloading\\\\|Downloaded\"', 'git status', 'git diff --stat', 'git log --oneline -5', 'git log -1 --oneline', 'git add src/cache/revalidation.rs src/cache/store.rs src/cache/validation.rs src/cli/commands/cache.rs src/cli/session_wrapper.rs src/error.rs src/registry/fetch/git.rs src/registry/fetch/http.rs src/registry/remote.rs src/requirements/checker.rs src/session/store.rs src/shell/command.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nUnify error handling to use crate::error::Result across all modules\\n\\nReplace inconsistent mix of anyhow::Result, Result<T, String>, and\\nad-hoc error types with the project\\'s BivvyError enum throughout all\\nmodule boundaries.\\n\\n- Add CacheError, SessionError, and FetchError variants to BivvyError\\n- Convert cache module (store, validation, revalidation) from anyhow\\n- Convert session/store from anyhow::Context to BivvyError::SessionError\\n- Convert registry/fetch (http, git) from anyhow::bail to BivvyError::FetchError\\n- Convert registry/remote from anyhow::bail/Context to BivvyError\\n- Convert requirements/checker from Result<T, String> to crate::error::Result\\n- Convert CLI callers (session_wrapper, cache command) from anyhow\\n- Fix flaky command_result_tracks_duration test timing threshold\\nEOF\\n)\"'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

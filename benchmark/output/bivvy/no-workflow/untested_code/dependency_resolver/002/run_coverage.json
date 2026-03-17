@@ -1,0 +1,215 @@
+{
+  "check_id": "run_coverage",
+  "phase": "testing",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "got 0, expected >= 1",
+  "category": "untested_code",
+  "metric_value": 0,
+  "target_value": 1,
+  "operator": "gte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2563725.817947833,
+      "check_id": "run_coverage",
+      "phase": "testing",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "transform": "count",
+        "operator": "gte",
+        "target": 1,
+        "metric_args": "cargo llvm-cov"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2563725.817951708,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01SH3C3QfMZkCtYv1GxZtK4P",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01PffGYM4sur5KbnpvuBbdFq",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --lib runner::dependency::tests 2>&1",
+                    "description": "Run dependency module tests",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 4695,
+                "cache_read_input_tokens": 50877,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 4695
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "06c6cbd1-c22b-4a41-8a66-72f46b07ffbe",
+            "uuid": "c7e264c4-3c38-4b3e-8773-41ff24bf384e"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01PffGYM4sur5KbnpvuBbdFq",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: b6bk7sndz. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n8ygt9kt/tasks/b6bk7sndz.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "06c6cbd1-c22b-4a41-8a66-72f46b07ffbe",
+            "uuid": "cb7a101f-adee-4628-89fb-22ad65f1cc4a",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "b6bk7sndz"
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        4
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2563725.817955333,
+      "tool_name": "Bash",
+      "substring": "cargo llvm-cov",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01SH3C3QfMZkCtYv1GxZtK4P",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01PffGYM4sur5KbnpvuBbdFq",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --lib runner::dependency::tests 2>&1",
+                      "description": "Run dependency module tests",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 4695,
+                  "cache_read_input_tokens": 50877,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 4695
+                  },
+                  "output_tokens": 3,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "06c6cbd1-c22b-4a41-8a66-72f46b07ffbe",
+              "uuid": "c7e264c4-3c38-4b3e-8773-41ff24bf384e"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01PffGYM4sur5KbnpvuBbdFq",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: b6bk7sndz. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n8ygt9kt/tasks/b6bk7sndz.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "06c6cbd1-c22b-4a41-8a66-72f46b07ffbe",
+              "uuid": "cb7a101f-adee-4628-89fb-22ad65f1cc4a",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "b6bk7sndz"
+              }
+            }
+          },
+          "primary_arg": "cargo test --lib runner::dependency::tests 2>&1"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_transform",
+      "timestamp": 2563725.81795625,
+      "transform": "count",
+      "result": 0
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2563725.817957666,
+      "operator": "gte",
+      "metric_value": 0,
+      "target_value": 1,
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2563725.81796,
+      "passed": false,
+      "detail": "got 0, expected >= 1"
+    }
+  ]
+}

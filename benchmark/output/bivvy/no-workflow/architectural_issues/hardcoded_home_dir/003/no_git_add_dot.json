@@ -1,0 +1,50 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-qwc7scm0/', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-qwc7scm0/",
+    "cargo build 2>&1",
+    "cargo test 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2565825.80246175,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2565825.802473458,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-qwc7scm0/",
+        "cargo build 2>&1",
+        "cargo test 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2565825.802479541,
+      "passed": true,
+      "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-qwc7scm0/', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

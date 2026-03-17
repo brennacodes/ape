@@ -1,0 +1,60 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ari2w0h8 -type f | head -30', 'python3 -c \"\\nimport re\\nimport os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        path = os.path.join(root, f)\\n        with open(path) as fh:\\n            content = fh.read()\\n        \\n        # Remove test modules (everything from #[cfg(test)] to end of file or matching brace)\\n        # Simple approach: just find lines with .unwrap() outside of #[cfg(test)] blocks\\n        in_test = False\\n        brace_depth = 0\\n        for i, line in enumerate(content.split(\\'\\\\n\\'), 1):\\n            if \\'#[cfg(test)]\\' in line:\\n                in_test = True\\n                continue\\n            if in_test:\\n                brace_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n                if brace_depth < 0:\\n                    in_test = False\\n                    brace_depth = 0\\n                continue\\n            if \\'.unwrap()\\' in line and not line.strip().startswith(\\'//\\'):\\n                print(f\\'{path}:{i}: {line.strip()}\\')\\n\"\\n', 'cat Cargo.lock 2>/dev/null | head -100 || echo \"No Cargo.lock found\"', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"*.rs\" 2>/dev/null | head -20', 'find ~/.cargo/registry/src -path \"*/console-0.16*\" -name \"*.rs\" 2>/dev/null | head -20', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"select.rs\" -not -path \"*/multi_select.rs\" -not -path \"*/fuzzy_select.rs\" 2>/dev/null', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ari2w0h8 -type f | head -30",
+    "python3 -c \"\nimport re\nimport os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        path = os.path.join(root, f)\n        with open(path) as fh:\n            content = fh.read()\n        \n        # Remove test modules (everything from #[cfg(test)] to end of file or matching brace)\n        # Simple approach: just find lines with .unwrap() outside of #[cfg(test)] blocks\n        in_test = False\n        brace_depth = 0\n        for i, line in enumerate(content.split('\\n'), 1):\n            if '#[cfg(test)]' in line:\n                in_test = True\n                continue\n            if in_test:\n                brace_depth += line.count('{') - line.count('}')\n                if brace_depth < 0:\n                    in_test = False\n                    brace_depth = 0\n                continue\n            if '.unwrap()' in line and not line.strip().startswith('//'):\n                print(f'{path}:{i}: {line.strip()}')\n\"\n",
+    "cat Cargo.lock 2>/dev/null | head -100 || echo \"No Cargo.lock found\"",
+    "find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"*.rs\" 2>/dev/null | head -20",
+    "find ~/.cargo/registry/src -path \"*/console-0.16*\" -name \"*.rs\" 2>/dev/null | head -20",
+    "find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"select.rs\" -not -path \"*/multi_select.rs\" -not -path \"*/fuzzy_select.rs\" 2>/dev/null",
+    "cargo build 2>&1",
+    "cargo test 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2575836.090528625,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2575836.090550583,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ari2w0h8 -type f | head -30",
+        "python3 -c \"\nimport re\nimport os\n\nfor root, dirs, files in os.walk('src'):\n    for f in files:\n        if not f.endswith('.rs'):\n            continue\n        path = os.path.join(root, f)\n        with open(path) as fh:\n            content = fh.read()\n        \n        # Remove test modules (everything from #[cfg(test)] to end of file or matching brace)\n        # Simple approach: just find lines with .unwrap() outside of #[cfg(test)] blocks\n        in_test = False\n        brace_depth = 0\n        for i, line in enumerate(content.split('\\n'), 1):\n            if '#[cfg(test)]' in line:\n                in_test = True\n                continue\n            if in_test:\n                brace_depth += line.count('{') - line.count('}')\n                if brace_depth < 0:\n                    in_test = False\n                    brace_depth = 0\n                continue\n            if '.unwrap()' in line and not line.strip().startswith('//'):\n                print(f'{path}:{i}: {line.strip()}')\n\"\n",
+        "cat Cargo.lock 2>/dev/null | head -100 || echo \"No Cargo.lock found\"",
+        "find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"*.rs\" 2>/dev/null | head -20",
+        "find ~/.cargo/registry/src -path \"*/console-0.16*\" -name \"*.rs\" 2>/dev/null | head -20",
+        "find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"select.rs\" -not -path \"*/multi_select.rs\" -not -path \"*/fuzzy_select.rs\" 2>/dev/null",
+        "cargo build 2>&1",
+        "cargo test 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2575836.090565958,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-ari2w0h8 -type f | head -30', 'python3 -c \"\\nimport re\\nimport os\\n\\nfor root, dirs, files in os.walk(\\'src\\'):\\n    for f in files:\\n        if not f.endswith(\\'.rs\\'):\\n            continue\\n        path = os.path.join(root, f)\\n        with open(path) as fh:\\n            content = fh.read()\\n        \\n        # Remove test modules (everything from #[cfg(test)] to end of file or matching brace)\\n        # Simple approach: just find lines with .unwrap() outside of #[cfg(test)] blocks\\n        in_test = False\\n        brace_depth = 0\\n        for i, line in enumerate(content.split(\\'\\\\n\\'), 1):\\n            if \\'#[cfg(test)]\\' in line:\\n                in_test = True\\n                continue\\n            if in_test:\\n                brace_depth += line.count(\\'{\\') - line.count(\\'}\\')\\n                if brace_depth < 0:\\n                    in_test = False\\n                    brace_depth = 0\\n                continue\\n            if \\'.unwrap()\\' in line and not line.strip().startswith(\\'//\\'):\\n                print(f\\'{path}:{i}: {line.strip()}\\')\\n\"\\n', 'cat Cargo.lock 2>/dev/null | head -100 || echo \"No Cargo.lock found\"', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"*.rs\" 2>/dev/null | head -20', 'find ~/.cargo/registry/src -path \"*/console-0.16*\" -name \"*.rs\" 2>/dev/null | head -20', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12*\" -name \"select.rs\" -not -path \"*/multi_select.rs\" -not -path \"*/fuzzy_select.rs\" 2>/dev/null', 'cargo build 2>&1', 'cargo test 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

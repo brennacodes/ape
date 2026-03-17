@@ -1,0 +1,567 @@
+{
+  "check_id": "rerun_after_fix",
+  "phase": "failure_recovery",
+  "passed": false,
+  "skip_reason": null,
+  "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [
+    2,
+    3,
+    41,
+    42,
+    60,
+    62,
+    65,
+    69
+  ],
+  "operator": "followed_by",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2573482.488333625,
+      "check_id": "rerun_after_fix",
+      "phase": "failure_recovery",
+      "condition": {
+        "metric": "tool_call.file_edit",
+        "operator": "followed_by",
+        "target": "tool_call.execute_command"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2573482.488347041,
+      "metric": "tool_call.file_edit",
+      "tool_name": "Edit",
+      "tool_calls": [],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2573482.488363416,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01UXKpHZ2G28LRChYx6jhJHp",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_0129jeMHPXfKHVKHW98nTn4M",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.yml\" | head -50"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 5276,
+                "cache_read_input_tokens": 21315,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 5276,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FjEgKLXecfdN3VYeXxGi7d",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "c2df8cc5-43ae-4cae-9335-2401457f2d5d"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_0129jeMHPXfKHVKHW98nTn4M",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/Cargo.toml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/release_config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/registry_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/config_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/lib_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/cli_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/extends-local-override/.bivvy/config.local.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/extends-local-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/extends-basic/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/extends-override/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/full-story/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/extends-bad-url/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/fixtures/remote/template-sources/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/steps_api_test.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/docs/reference/template-reference.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/docs/reference/config-reference.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/docs-changed.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/release.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/test.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/publish-packages.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/create-release.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.github/workflows/build.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/.bivvy/config.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/registry.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/mise-node.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/redis-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/postgres-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/mise-python.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/rust-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/mise-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/docker-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/brew-install.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/install/mise-ruby.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/go/go.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/python/pip.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/python/poetry.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/python/uv.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/rust/cargo.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/system/pacman.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/system/apt.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/system/yum.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/common/mise.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/common/brew.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/common/asdf.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/swift/swift.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/node/yarn.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/node/npm.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/node/volta.yml\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/templates/steps/node/pnpm.yml",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FjEgKLXecfdN3VYeXxGi7d",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "c7cbab8a-6d44-4a1c-a081-f6b7cbe19b68"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-haiku-4-5-20251001",
+              "id": "msg_01Kaasb6NVyTBLFQf22nDVhb",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_014gMXBN9uTr8PiXj2LgKWy1",
+                  "name": "Bash",
+                  "input": {
+                    "command": "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src -type f -name \"*.rs\" | sort"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 5,
+                "cache_creation_input_tokens": 3277,
+                "cache_read_input_tokens": 26591,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3277,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FjEgKLXecfdN3VYeXxGi7d",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "52d562ad-eb9f-4661-9937-e5961505c239"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_014gMXBN9uTr8PiXj2LgKWy1",
+                  "type": "tool_result",
+                  "content": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cache/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cache/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cache/revalidation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cache/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cache/validation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/args.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/cache.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/completions.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/config.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/dispatcher.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/display.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/feedback.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/last.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/lint.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/list.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/run.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/commands/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/cli/session_wrapper.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/env_file.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/env_layer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/extends.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/interpolation.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/loader.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/merger.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/validator.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/vars.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/command_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/conflicts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/environment.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/file_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/package_manager.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/runner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/detection/types.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/environment/detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/environment/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/environment/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/error.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/feedback/delivery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/feedback/entry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/feedback/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/feedback/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lib.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/diagnostic.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/fix.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/output/human.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/output/json.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/output/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/output/sarif.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rule.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/app_name.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/circular_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/required_fields.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/self_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/template_inputs.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/undefined_dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/undefined_template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/valid_environments.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/rules/valid_requires.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/schema.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/lint/span.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/main.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/builtin.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/fetch/git.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/fetch/http.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/fetch/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/local.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/manifest.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/remote.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/resolver.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/source.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/registry/template.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/checker.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/installer.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/probe.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/registry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/requirements/status.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/dependency.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/patterns.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/recovery.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/telemetry.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/runner/workflow.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/secrets/mask.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/secrets/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/secrets/pattern.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/session/id.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/session/metadata.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/session/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/session/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/command.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/debug.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/platform.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/refresh.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/shell/resume.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/change_detection.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/history.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/index.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/preferences.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/project.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/state/store.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/steps/completed_check.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/steps/executor.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/steps/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/steps/resolved.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/steps/sensitive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/hints.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/icons.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/mock.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/non_interactive.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/output.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/preflight.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/progress.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/prompts.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/spinner.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/table.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/terminal.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/theme.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/ui/tui/screens/init.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/updates/install.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/updates/mod.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/updates/prompt.rs\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/updates/version.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FjEgKLXecfdN3VYeXxGi7d",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "eb273c42-6779-4b18-a3ec-13c81d437242"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JVMMYJhyTahfGQAnez8gLY",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_012xv3ATrg8K4MheBfBAnHdU",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/",
+                    "description": "List root directory"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 27652,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 27652,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "d238852d-c236-468a-9673-198bbbb0be90"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_012xv3ATrg8K4MheBfBAnHdU",
+                  "type": "tool_result",
+                  "content": "bin\nCargo.lock\nCargo.toml\nCHANGELOG.md\nCLAUDE.md\ndist\ndocs\nLICENSE\nREADME.md\nscripts\nsrc\ntemplates\ntests",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "41e62cdf-3b53-4b70-bf72-bbc8c4cd785f"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JVMMYJhyTahfGQAnez8gLY",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01HKJk3AnHiJGAcHdRN4QYYe",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/",
+                    "description": "List src directory"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 27652,
+                "cache_read_input_tokens": 0,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 27652,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "fda78785-18cf-4309-99db-ed541736ef96"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01HKJk3AnHiJGAcHdRN4QYYe",
+                  "type": "tool_result",
+                  "content": "cache\ncli\nconfig\ndetection\nenvironment\nerror.rs\nfeedback\nlib.rs\nlint\nmain.rs\nregistry\nrequirements\nrunner\nsecrets\nsession\nshell\nstate\nsteps\nui\nupdates",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "047f51ee-283a-4b90-8c98-f579dc258863"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_019g1HL8AZn6t6s8WZSnQ7f1",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_012dcryCVSXUnyh6WwmRTEEX",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/src/config/",
+                    "description": "List config module files"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 3571,
+                "cache_read_input_tokens": 76562,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3571,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "ac0a7195-acb1-49e1-82b0-ea97107ec42e"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_012dcryCVSXUnyh6WwmRTEEX",
+                  "type": "tool_result",
+                  "content": "env_file.rs\nenv_layer.rs\nenvironment.rs\nextends.rs\ninterpolation.rs\nloader.rs\nmerger.rs\nmod.rs\nremote.rs\nschema.rs\nvalidator.rs\nvars.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "80bc11d7-d37d-40ea-a354-9bbe30e46ac9"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01HNCHb1UTnJioPgvFyVZ7Ba",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01MsaLYPx8NUcVN424Fz4nxg",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -r 'dirs' Cargo.lock | head -20",
+                    "description": "Check dirs crate version in Cargo.lock"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 3268,
+                "cache_read_input_tokens": 80133,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 3268,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 3,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "ce7aea68-5ac7-462a-989c-d97e0c424861"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01MsaLYPx8NUcVN424Fz4nxg",
+                  "type": "tool_result",
+                  "content": "Cargo.lock: \"dirs\",\nCargo.lock:name = \"dirs\"\nCargo.lock: \"dirs-sys\",\nCargo.lock:name = \"dirs-sys\"",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "67ff4d32-e4b1-48fa-bfcd-622bfdf53395"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01ANNtQMuWFVypi1vZHvwwjz",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_012gSvWLdUfkdYfccRFpYfc7",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/tests/",
+                    "description": "List integration tests"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 2716,
+                "cache_read_input_tokens": 83401,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 2716,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "0d2eab90-7f57-4b95-ad0a-e6ffa583e3a5"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_012gSvWLdUfkdYfccRFpYfc7",
+                  "type": "tool_result",
+                  "content": "cli_test.rs\nconfig_api_test.rs\nfixtures\nlib_test.rs\nregistry_api_test.rs\nrelease_config.rs\nsteps_api_test.rs",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "8e3f3562-265d-433c-8af8-1beb58c72a90"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01UT4h1GnJmLsTcYKtzRj3E8",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_012A58NQewM4qDS7uePV7oPc",
+                  "name": "Bash",
+                  "input": {
+                    "command": "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/plans/",
+                    "description": "List plans directory"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 1898,
+                "cache_read_input_tokens": 88841,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 1898,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "ab507b74-8db0-40c0-ab8e-a7844bd1d392"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "Exit code 1\nls: /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/plans/: No such file or directory\n\nls: /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/plans/: No such file or directory",
+                  "is_error": true,
+                  "tool_use_id": "toolu_012A58NQewM4qDS7uePV7oPc"
+                }
+              ]
+            },
+            "parent_tool_use_id": "toolu_01FPxJVWPbSjqEs2PeRktBFN",
+            "session_id": "b0e170b6-dde3-4b9a-b9b9-868eda2ccd16",
+            "uuid": "0f103b01-1f8e-4aef-ba69-9917c72ed726",
+            "tool_use_result": "Error: Exit code 1\nls: /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/plans/: No such file or directory\n\nls: /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-aq5jkgjx/plans/: No such file or directory"
+          }
+        }
+      ],
+      "result_indices": [
+        2,
+        3,
+        41,
+        42,
+        60,
+        62,
+        65,
+        69
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2573482.488365291,
+      "operator": "followed_by",
+      "metric_value": [],
+      "target_value": [
+        2,
+        3,
+        41,
+        42,
+        60,
+        62,
+        65,
+        69
+      ],
+      "passed": false,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2573482.488367541,
+      "passed": false,
+      "detail": "expected a file edit (Edit) before a shell command (Bash), but none were found"
+    }
+  ]
+}

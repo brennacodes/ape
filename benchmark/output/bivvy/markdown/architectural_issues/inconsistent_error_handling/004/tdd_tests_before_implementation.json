@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2574215.766728625,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2574215.7667705,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01N6gLcAcYcenZ54oaZGSSU3",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                    "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 6807,
+                "cache_read_input_tokens": 129769,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 6807,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+            "uuid": "22dc50b3-f542-4ac7-8ad5-72a16b98a345"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/stateful-skipping-cook.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+            "uuid": "3172041d-96f1-4688-b5fe-fc5808798c37",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+              "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        89
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2574215.766802458,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01N6gLcAcYcenZ54oaZGSSU3",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                      "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 6807,
+                  "cache_read_input_tokens": 129769,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 6807,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+              "uuid": "22dc50b3-f542-4ac7-8ad5-72a16b98a345"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/stateful-skipping-cook.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+              "uuid": "3172041d-96f1-4688-b5fe-fc5808798c37",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2574215.766840208,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01N6gLcAcYcenZ54oaZGSSU3",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                    "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 6807,
+                "cache_read_input_tokens": 129769,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 6807,
+                  "ephemeral_1h_input_tokens": 0
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+            "uuid": "22dc50b3-f542-4ac7-8ad5-72a16b98a345"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/stateful-skipping-cook.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+            "uuid": "3172041d-96f1-4688-b5fe-fc5808798c37",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+              "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        89
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2574215.766861625,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01N6gLcAcYcenZ54oaZGSSU3",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                      "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 6807,
+                  "cache_read_input_tokens": 129769,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 6807,
+                    "ephemeral_1h_input_tokens": 0
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+              "uuid": "22dc50b3-f542-4ac7-8ad5-72a16b98a345"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01G6mnwTunAuoVLe3gZEorsL",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/stateful-skipping-cook.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "a190bd12-cdf0-48bd-9d7a-feb9b41c9696",
+              "uuid": "3172041d-96f1-4688-b5fe-fc5808798c37",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+                "content": "# Unify Error Handling Across Module Boundaries\n\n## Context\n\nThe codebase mixes `anyhow::Result`, `Box<dyn Error>`, and `crate::error::Result<T>` (BivvyError) across module boundaries. The `Other(#[from] anyhow::Error)` catch-all in `BivvyError` silently converts anyhow errors, losing structured type information at key boundaries \u2014 most critically when `config/loader.rs:241` calls `ExtendsResolver::resolve()`, where circular-dependency and depth-exceeded errors become opaque `BivvyError::Other(...)`.\n\nThe goal is to make all domain-facing modules return `crate::error::Result` with specific variants, while leaving infrastructure modules (cache, registry/fetch, updates) on `anyhow` where errors are caught/logged internally.\n\n## New BivvyError Variants\n\nAdd to `src/error.rs`:\n\n| Variant | Replaces | Used by |\n|---------|----------|---------|\n| `RemoteFetchError { url, message }` | `anyhow!(\"HTTP {} fetching {}\", ...)` | `config/remote.rs` |\n| `ConfigExtendsError { message }` | `anyhow!(\"Circular extends...\")`, `anyhow!(\"depth exceeds...\")` | `config/extends.rs` |\n| `SerializationError { message }` | `.context(\"Failed to parse session\")` on serde errors | `session/store.rs`, `feedback/store.rs` |\n| `StorageError { path, message }` | `.with_context(|| \"Failed to create store...\")` | `session/store.rs`, `feedback/store.rs` |\n\n## Conversion Order (7 commits)\n\nEach commit follows the CLAUDE.md pipeline: tests \u2192 implementation \u2192 docs \u2192 lint \u2192 coverage \u2192 build.\n\n### Commit 1: Add new BivvyError variants\n- **File**: `src/error.rs`\n- Add 4 new variants with `#[error(...)]` formatting\n- Add display-format tests for each\n- Purely additive \u2014 no existing code changes\n\n### Commit 2: Convert `config/remote.rs`\n- **File**: `src/config/remote.rs`\n- `anyhow!(\"HTTP {} fetching {}\", ...)` \u2192 `BivvyError::RemoteFetchError { url, message }`\n- `.with_context(...)` on IO \u2192 `.map_err(...)` or let `#[from] io::Error` auto-convert\n- Plain `fs::read_to_string()?` keeps working via `#[from] io::Error`\n\n### Commit 3: Convert `config/extends.rs`\n- **File**: `src/config/extends.rs`\n- `anyhow!(\"Circular extends...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- `anyhow!(\"depth exceeds...\")` \u2192 `BivvyError::ConfigExtendsError { message }`\n- All `validate_extends` errors \u2192 `BivvyError::ConfigExtendsError { message }`\n- `serde_yaml` errors \u2192 `.map_err(|e| BivvyError::ConfigParseError { ... })` or `ConfigExtendsError`\n- **This is the critical fix**: `config/loader.rs:241` (`resolver.resolve(&config)?`) now preserves structured errors without any changes to loader.rs itself\n\n### Commit 4: Convert `config/env_file.rs`\n- **File**: `src/config/env_file.rs`\n- Trivial: change import and return types. `parse()` always returns `Ok`, `load()` only fails on IO which auto-converts\n\n### Commit 5: Convert `session/store.rs`\n- **File**: `src/session/store.rs`\n- `.with_context(...)` \u2192 `.map_err(|e| BivvyError::StorageError { path, message })`\n- `serde_json` errors \u2192 `.map_err(|e| BivvyError::SerializationError { message })`\n\n### Commit 6: Convert `feedback/store.rs`\n- **File**: `src/feedback/store.rs`\n- Same pattern as commit 5\n\n### Commit 7: Convert CLI helpers\n- **Files**: `src/cli/commands/cache.rs`, `src/cli/commands/feedback.rs`, `src/cli/session_wrapper.rs`\n- Change internal helper return types from `anyhow::Result` to `crate::error::Result`\n- Cache store calls still return `anyhow::Result` \u2192 auto-converts via `#[from] anyhow::Error`\n\n## Left on anyhow (by design)\n\nThese modules have internal error handling where failures are caught, logged, or swallowed:\n\n- `cache/store.rs`, `cache/validation.rs`, `cache/revalidation.rs` \u2014 infrastructure, never crosses to user-facing boundary\n- `registry/remote.rs`, `registry/fetch/http.rs`, `registry/fetch/git.rs` \u2014 errors logged via `tracing::warn!`\n- `updates/version.rs`, `updates/prompt.rs` \u2014 best-effort with silent fallback\n- `shell/resume.rs` \u2014 self-contained, operational\n\n## Left as `Box<dyn Error>` (by design)\n\n- `tests/cli_test.rs` \u2014 `Box<dyn std::error::Error>` is idiomatic for integration tests using `assert_cmd`. The `?` operator on `assert_cmd` calls wouldn't work with `BivvyError`.\n\n## Verification\n\nAfter each commit:\n```sh\ncargo test --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo doc --no-deps --all-features\ncargo check --all-targets --all-features\n```\n\nAfter all commits:\n```sh\ncargo llvm-cov --all-features   # must be \u226590%\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/stateful-skipping-cook.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2574215.766864541,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2574215.766871541,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}

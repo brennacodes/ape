@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "architectural_issues",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2565224.677400083,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2565224.677426625,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JCbf4xFvwkzTzcE1ChGiuk",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                    "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 2434,
+                "cache_read_input_tokens": 78607,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 2434
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+            "uuid": "42906115-e174-42c1-9606-4f4b76e6ae0d"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/vivid-hatching-truffle.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+            "uuid": "43f19157-43af-4a9b-9c83-9f02a701d994",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+              "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        41
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2565224.677449833,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01JCbf4xFvwkzTzcE1ChGiuk",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                      "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 2434,
+                  "cache_read_input_tokens": 78607,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 2434
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+              "uuid": "42906115-e174-42c1-9606-4f4b76e6ae0d"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/vivid-hatching-truffle.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+              "uuid": "43f19157-43af-4a9b-9c83-9f02a701d994",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2565224.677469416,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01JCbf4xFvwkzTzcE1ChGiuk",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                    "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 2434,
+                "cache_read_input_tokens": 78607,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 2434
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+            "uuid": "42906115-e174-42c1-9606-4f4b76e6ae0d"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/vivid-hatching-truffle.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+            "uuid": "43f19157-43af-4a9b-9c83-9f02a701d994",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+              "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        41
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2565224.677479541,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01JCbf4xFvwkzTzcE1ChGiuk",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                      "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 2434,
+                  "cache_read_input_tokens": 78607,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 2434
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+              "uuid": "42906115-e174-42c1-9606-4f4b76e6ae0d"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_019BZHa6wnAW4x8ZUZqwcBiT",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/vivid-hatching-truffle.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "fe639cb4-655a-4ed9-b96d-3b3273c2e412",
+              "uuid": "43f19157-43af-4a9b-9c83-9f02a701d994",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+                "content": "# Replace hardcoded ~/.bivvy paths with platform-standard directories\n\n## Context\n\nThree modules hardcode `~/.bivvy` paths via `dirs::home_dir().join(\".bivvy\")`, while three other modules already use proper platform-standard directories (`dirs::config_dir()`, `dirs::data_local_dir()`, `dirs::cache_dir()`). This inconsistency means config, state, and user templates don't follow XDG/platform conventions. The `dirs` crate (v6.0.0) is already a dependency.\n\n## Mapping\n\n| Data type | Current path | New path | `dirs` function |\n|-----------|-------------|----------|-----------------|\n| User config | `~/.bivvy/config.yml` | `~/.config/bivvy/config.yml` | `dirs::config_dir()` |\n| Project state | `~/.bivvy/projects/{hash}/` | `~/.local/share/bivvy/projects/{hash}/` | `dirs::data_local_dir()` |\n| User templates | `~/.bivvy/templates/` | `~/.local/share/bivvy/templates/` | `dirs::data_local_dir()` |\n\nProject-relative paths (`.bivvy/config.yml`, `.bivvy/templates/`) remain unchanged \u2014 those are project-scoped, not user-scoped.\n\n## Changes\n\n### 1. `src/config/loader.rs` \u2014 User global config path\n\nChange `find_user_global()` (line 47-48) from:\n```rust\ndirs::home_dir()?.join(\".bivvy\").join(\"config.yml\")\n```\nto:\n```rust\ndirs::config_dir()?.join(\"bivvy\").join(\"config.yml\")\n```\n\nUpdate doc comments on `ConfigPaths` (lines 17, 25) and `load_merged_config` (line 195) to reflect `~/.config/bivvy/config.yml` instead of `~/.bivvy/config.yml`.\n\n### 2. `src/state/store.rs` \u2014 State directory\n\nChange `state_dir()` (lines 118-124) from:\n```rust\ndirs::home_dir()\n    .unwrap_or_else(|| PathBuf::from(\"~\"))\n    .join(\".bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\nto:\n```rust\ndirs::data_local_dir()\n    .unwrap_or_else(|| PathBuf::from(\".\"))\n    .join(\"bivvy\")\n    .join(\"projects\")\n    .join(project_id.hash())\n```\n\nUpdate the doc comment on `state_dir`.\n\n### 3. `src/registry/local.rs` \u2014 User templates directory\n\nChange `user_templates_dir()` (lines 35-37) from:\n```rust\ndirs::home_dir().map(|h| h.join(\".bivvy\").join(\"templates\"))\n```\nto:\n```rust\ndirs::data_local_dir().map(|d| d.join(\"bivvy\").join(\"templates\"))\n```\n\nUpdate doc comments (lines 20, 34).\n\n### 4. Documentation-only updates\n\nUpdate doc comments that reference `~/.bivvy/templates/` or `~/.bivvy/config.yml`:\n- `src/registry/mod.rs` lines 5-6\n- `src/registry/resolver.rs` lines 4-5\n- `src/registry/template.rs` line 228\n\n### 5. Tests\n\nAdd focused tests for each changed path function:\n- `src/config/loader.rs`: test that `find_user_global` returns a path under `dirs::config_dir()`\n- `src/state/store.rs`: test that `state_dir` returns a path under `dirs::data_local_dir()`\n- `src/registry/local.rs`: test that `user_templates_dir` returns a path under `dirs::data_local_dir()`\n\nExisting tests use `TempDir` for project-relative paths and won't break since those paths aren't changing.\n\n## Verification\n\n```sh\ncargo test --all-features\ncargo doc --no-deps --all-features\ncargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings\ncargo llvm-cov --all-features\ncargo check --all-targets --all-features\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/vivid-hatching-truffle.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2565224.677482208,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2565224.677489333,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}

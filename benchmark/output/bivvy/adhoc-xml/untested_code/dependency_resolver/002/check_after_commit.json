@@ -1,0 +1,1192 @@
+{
+  "check_id": "check_after_commit",
+  "phase": "post-commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: no B indices to follow. 'cargo check' (Bash) occurred after 'git commit' (Bash)",
+  "category": "untested_code",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "exists_after",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2563754.535369708,
+      "check_id": "check_after_commit",
+      "phase": "post-commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "exists_after",
+        "target": "tool_call.execute_command",
+        "metric_args": "cargo check",
+        "target_args": "git commit"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2563754.535374625,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01FaZPcbuNLMS42GsaN3fFoB",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 4400,
+                "cache_read_input_tokens": 50259,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 4400
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "e1c07f4d-4ab5-4327-ad4b-e4ced9e63615"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: buaj1m4a9. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/tasks/buaj1m4a9.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "ab5ede7c-2f4d-4498-9eb0-c1c02c2cc10e",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "buaj1m4a9"
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01XyYEkFVvB3VjR3mBu34Hy6",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1 | tail -30",
+                    "description": "Run full test suite, show tail",
+                    "timeout": 300000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 531,
+                "cache_read_input_tokens": 74506,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 531
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "5b90e889-25fa-43b1-a98e-1a484f05ab57"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                  "is_error": true,
+                  "tool_use_id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "586d81c6-4c8f-44c8-ad1b-72a7f125694d",
+            "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01WNKB4bRzx7RSHrd35Cfg5w",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 300000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 202,
+                "cache_read_input_tokens": 75037,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 202
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "8afebf15-c660-44db-ac78-14d3c6f8cc9b"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                  "type": "tool_result",
+                  "content": "<persisted-output>\nOutput too large (105.5KB). Full output saved to: /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt\n\nPreview (first 2KB):\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\n...\n</persisted-output>",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "dfb9554b-596c-43a2-b636-5a72d46d2e52",
+            "tool_use_result": {
+              "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cli::commands::cache::tests::list_empty_cache ... ok\ntest cli::commands::cache::tests::show_stats_empty ... ok\ntest cli::commands::cache::tests::show_stats_with_entries ... ok\ntest cli::commands::cache::tests::list_with_entries ... ok\ntest cli::commands::completions::tests::generates_bash_completions ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest cli::commands::completions::tests::generates_fish_completions ... ok\ntest cli::commands::config::tests::config_command_creation ... ok\ntest cli::commands::dispatcher::tests::dispatcher_creation ... ok\ntest cli::commands::completions::tests::generates_zsh_completions ... ok\ntest cli::commands::dispatcher::tests::command_result_failure ... ok\ntest cli::commands::dispatcher::tests::command_result_success ... ok\ntest cli::commands::display::tests::status_kind_conversion ... ok\ntest cli::commands::config::tests::config_no_config ... ok\ntest cli::commands::display::tests::show_step_status_includes_icons ... ok\ntest cli::commands::display::tests::show_step_status_uses_correct_ui_method ... ok\ntest cli::commands::display::tests::status_icon_values ... ok\ntest cli::commands::display::tests::status_symbol_values ... ok\ntest cli::commands::config::tests::config_json_output ... ok\ntest cli::commands::config::tests::config_applies_config_default_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_with_tags ... ok\ntest cli::commands::config::tests::config_yaml_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_basic ... ok\ntest cli::commands::feedback::tests::category_from_tags_defaults_to_other ... ok\ntest cli::commands::feedback::tests::capture_interactive_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_when_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_with_no_deliver_flag ... ok\ntest cli::commands::config::tests::config_shows_config_path ... ok\ntest cli::commands::feedback::tests::category_from_tags_finds_known_category ... ok\ntest cli::commands::feedback::tests::feedback_category_options_exist ... ok\ntest cli::commands::feedback::tests::feedback_prompt_uses_neutral_framing ... ok\ntest cli::commands::feedback::tests::list_by_different_statuses ... ok\ntest cli::commands::feedback::tests::list_empty_feedback ... ok\ntest cli::commands::feedback::tests::list_by_status ... ok\ntest cli::commands::feedback::tests::feedback_args_parsing ... ok\ntest cli::commands::feedback::tests::list_feedback_by_tag ... ok\ntest cli::commands::feedback::tests::list_invalid_status ... ok\ntest cli::commands::feedback::tests::list_all_feedback ... ok\ntest cli::commands::feedback::tests::no_deliver_flag_parsing ... ok\ntest cli::commands::feedback::tests::resolve_nonexistent_feedback ... ok\ntest cli::commands::feedback::tests::list_feedback_with_entries ... ok\ntest cli::commands::feedback::tests::session_feedback_no_sessions ... ok\ntest cli::commands::feedback::tests::resolve_with_default_note ... ok\ntest cli::commands::feedback::tests::resolve_feedback_entry ... ok\ntest cli::commands::history::tests::history_args_accessor ... ok\ntest cli::commands::history::tests::history_command_creation ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::init::tests::create_config_with_file_exists_check ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::feedback::tests::delivery_declined_saves_locally_only ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::history_with_limit ... ok\ntest cli::commands::history::tests::history_no_runs ... ok\ntest cli::commands::history::tests::history_since_filters_runs ... ok\ntest cli::commands::history::tests::history_detail_shows_steps ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::init::tests::init_interactive_shows_hints ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::last_no_runs ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::last::tests::last_shows_header ... ok\ntest cli::commands::last::tests::last_shows_error_for_failed_run ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::last::tests::last_shows_workflow_and_status ... ok\ntest cli::commands::last::tests::last_shows_steps_for_recorded_run ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_strict_mode_fails_on_warnings ... ok\ntest cli::commands::lint::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::list::tests::list_command_creation ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::commands::list::tests::list_no_config ... ok\ntest cli::commands::list::tests::list_no_skipped_when_environment_matches ... ok\ntest cli::commands::last::tests::last_shows_when_and_duration ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest cli::commands::last::tests::last_shows_skipped_steps ... ok\ntest cli::commands::list::tests::list_shows_step_command ... ok\ntest cli::commands::list::tests::list_shows_environment_info ... ok\ntest cli::commands::list::tests::list_shows_skipped_steps_for_environment ... ok\ntest cli::commands::list::tests::list_shows_environment_from_env_flag ... ok\ntest cli::commands::list::tests::list_shows_workflow_description ... ok\ntest cli::commands::list::tests::list_shows_step_title_when_no_description ... ok\ntest cli::commands::list::tests::list_shows_template_instead_of_command ... ok\ntest cli::commands::list::tests::list_shows_step_description ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::list::tests::list_shows_workflow_with_arrows ... ok\ntest cli::commands::list::tests::list_steps_only ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::list::tests::list_with_config ... ok\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::last::tests::last_untracked_step_shows_pending_icon ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::status::tests::status_shows_requirements_section_when_requires_present ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_multiple_calls ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_output ... ok\ntest cli::commands::status::tests::status_with_config ... ok\ntest cli::commands::status::tests::status_shows_skipped_steps_for_environment ... ok\ntest cli::session_wrapper::tests::session_wrapper_creation ... ok\ntest cli::session_wrapper::tests::session_wrapper_finalize_exit_code ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_store ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_latest_session_id ... ok\ntest cli::session_wrapper::tests::session_wrapper_metadata_modification ... ok\ntest cli::session_wrapper::tests::session_wrapper_session_id_accessor ... ok\ntest config::env_file::tests::complex_env_file ... ok\ntest config::env_file::tests::handles_empty_values ... ok\ntest cli::session_wrapper::tests::session_wrapper_with_args ... ok\ntest config::env_file::tests::handles_lines_without_equals ... ok\ntest config::env_file::tests::handles_quoted_values ... ok\ntest config::env_file::tests::handles_values_with_equals ... ok\ntest config::env_file::tests::load_optional_returns_empty_for_missing_file ... ok\ntest config::env_file::tests::parses_simple_env_file ... ok\ntest config::env_file::tests::handles_whitespace_around_equals ... ok\ntest config::env_file::tests::skips_comments ... ok\ntest config::env_file::tests::skips_empty_lines ... ok\ntest config::env_layer::tests::default_stack_is_empty ... ok\ntest config::env_layer::tests::higher_layers_override_lower ... ok\ntest config::env_layer::tests::layer_contains_check ... ok\ntest cli::commands::status::tests::status_shows_steps_label ... ok\ntest config::env_layer::tests::layer_len_and_is_empty ... ok\ntest config::env_layer::tests::missing_key_returns_none ... ok\ntest config::env_layer::tests::multiple_overrides ... ok\ntest config::env_layer::tests::resolve_merges_all_layers ... ok\ntest config::env_layer::tests::tracks_variable_source ... ok\ntest config::env_layer::tests::stack_layer_count ... ok\ntest config::environment::tests::is_secret_matches_builtin_patterns ... ok\ntest config::environment::tests::is_secret_matches_custom_patterns ... ok\ntest config::environment::tests::is_secret_matches_suffix_patterns ... ok\ntest config::environment::tests::load_env_file_not_found ... ok\ntest config::environment::tests::load_env_file_optional_returns_empty ... ok\ntest config::environment::tests::load_system_env_returns_current_env ... ok\ntest config::environment::tests::load_env_file_works ... ok\ntest config::environment::tests::merge_env_overlays_correctly ... ok\ntest config::environment::tests::parse_dotenv_basic ... ok\ntest config::environment::tests::parse_dotenv_handles_equals_in_value ... ok\ntest config::environment::tests::parse_dotenv_rejects_invalid_lines ... ok\ntest config::environment::tests::parse_dotenv_skips_comments_and_empty ... ok\ntest config::environment::tests::parse_dotenv_strips_quotes ... ok\ntest config::extends::tests::config_without_extends_unchanged ... ok\ntest config::extends::tests::circular_extends_detected ... ok\ntest config::extends::tests::empty_extends_unchanged ... ok\ntest config::extends::tests::chained_extends ... ok\ntest config::extends::tests::extends_child_yaml_replaces_parent_ci_environment_block ... ok\ntest config::extends::tests::extends_cleared_from_result ... ok\ntest config::extends::tests::depth_limit_enforced ... ok\ntest config::extends::tests::extends_env_override_adds_new_environment ... ok\ntest config::extends::tests::extends_env_override_replaces_ci_block ... ok\ntest config::extends::tests::extends_env_override_preserves_unmentioned_environments ... ok\ntest config::extends::tests::extends_inherits_only_environments_when_unset ... ok\ntest config::extends::tests::extends_only_environments_replaces_list ... ok\ntest config::extends::tests::invalid_yaml_response ... ok\ntest config::extends::tests::local_overrides_base ... ok\ntest config::extends::tests::resolver_custom_max_depth ... ok\ntest config::extends::tests::resolver_has_default_max_depth ... ok\ntest config::extends::tests::multiple_extends_merge_in_order ... ok\ntest config::extends::tests::validate_extends_accepts_valid_urls ... ok\ntest config::extends::tests::validate_extends_allows_public_ip ... ok\ntest config::extends::tests::validate_extends_blocks_127_0_0_1 ... ok\ntest config::extends::tests::validate_extends_blocks_localhost ... ok\ntest config::extends::tests::single_extends_merges_base ... ok\ntest config::extends::tests::validate_extends_blocks_metadata_ip ... ok\ntest config::extends::tests::validate_extends_blocks_private_10_range ... ok\ntest config::extends::tests::validate_extends_blocks_private_192_168_range ... ok\ntest config::extends::tests::validate_extends_rejects_non_http_url ... ok\ntest config::extends::tests::validate_extends_rejects_empty_url ... ok\ntest config::extends::tests::validate_extends_rejects_relative_path ... ok\ntest config::interpolation::tests::context_includes_builtin_bivvy_version ... ok\ntest config::interpolation::tests::context_with_env_sets_env ... ok\ntest config::interpolation::tests::context_with_project_adds_project_vars ... ok\ntest config::interpolation::tests::extract_variables_returns_unique_names ... ok\ntest config::interpolation::tests::extract_variables_empty_for_literal ... ok\ntest config::interpolation::tests::has_interpolation_returns_true_for_variables ... ok\ntest config::extends::tests::unreachable_url_reports_which_url ... ok\ntest config::interpolation::tests::parse_adjacent_variables ... ok\ntest config::interpolation::tests::parse_dollar_without_brace ... ok\ntest config::interpolation::tests::parse_empty_string ... ok\ntest config::interpolation::tests::parse_escaped_dollar_brace ... ok\ntest config::interpolation::tests::parse_mixed_escaped_and_real ... ok\ntest config::interpolation::tests::parse_literal_only ... ok\ntest config::interpolation::tests::parse_multiple_variables ... ok\ntest config::interpolation::tests::parse_single_variable ... ok\ntest config::interpolation::tests::parse_variable_with_numbers ... ok\ntest config::interpolation::tests::parse_variable_with_surrounding_text ... ok\ntest config::interpolation::tests::parse_variable_with_underscore ... ok\ntest config::interpolation::tests::resolve_multiple_variables ... ok\ntest config::interpolation::tests::resolve_string_fails_on_missing_variable ... ok\ntest config::interpolation::tests::resolve_preserves_escaped ... ok\ntest config::interpolation::tests::resolve_string_uses_priority_order ... ok\ntest config::interpolation::tests::resolve_string_replaces_variables ... ok\ntest config::interpolation::tests::resolve_string_with_default_prefers_context ... ok\ntest config::interpolation::tests::resolve_string_with_default_uses_default ... ok\ntest config::interpolation::tests::vars_resolve_between_preferences_and_env ... ok\ntest config::interpolation::tests::with_vars_builder ... ok\ntest config::loader::tests::all_existing_returns_in_merge_order ... ok\ntest config::loader::tests::discover_finds_local_overrides ... ok\ntest config::loader::tests::discover_returns_none_for_missing_configs ... ok\ntest config::loader::tests::discover_finds_project_config ... ok\ntest config::loader::tests::config_without_extends_still_works ... ok\ntest config::loader::tests::find_project_root_finds_bivvy_dir ... ok\ntest config::loader::tests::find_project_root_finds_git_dir ... ok\ntest config::loader::tests::find_project_root_prefers_bivvy_over_git ... ok\ntest config::loader::tests::extends_merges_before_local_override ... ok\ntest config::loader::tests::load_config_file_handles_empty_file ... ok\ntest config::loader::tests::extends_with_local_override_file ... ok\ntest config::loader::tests::load_config_file_parses_full_config ... ok\ntest config::loader::tests::load_config_file_returns_not_found_error ... ok\ntest config::loader::tests::load_config_value_returns_raw_value ... ok\ntest config::loader::tests::load_config_file_parses_valid_yaml ... ok\ntest config::loader::tests::load_config_with_override_skips_merge ... ok\ntest config::loader::tests::load_config_without_override_uses_merge ... ok\ntest config::loader::tests::load_merged_config_fails_without_project_config ... ok\ntest config::loader::tests::load_merged_config_merges_project_and_local ... ok\ntest config::loader::tests::load_merged_config_preserves_step_definitions ... ok\ntest config::loader::tests::parse_config_returns_parse_error_for_invalid_yaml ... ok\ntest config::merger::tests::arrays_are_replaced_not_merged ... ok\ntest config::merger::tests::deep_merge_replaces_at_conflict_point ... ok\ntest config::merger::tests::deep_merge_without_leaves_behaves_as_before ... ok\ntest config::merger::tests::deeply_nested_merge ... ok\ntest config::merger::tests::empty_overlay_returns_base_unchanged ... ok\ntest config::merger::tests::leaf_key_adds_new_entries ... ok\ntest config::merger::tests::leaf_key_null_removes_entry ... ok\ntest config::merger::tests::leaf_key_preserves_unmentioned_entries ... ok\ntest config::merger::tests::leaf_key_replaces_entry_values ... ok\ntest config::merger::tests::merge_configs_merges_multiple_in_order ... ok\ntest config::merger::tests::merge_empty_configs_returns_empty ... ok\ntest config::merger::tests::nested_objects_merge_recursively ... ok\ntest config::merger::tests::null_removes_inherited_value ... ok\ntest config::merger::tests::scalar_overlay_replaces_mapping_base ... ok\ntest config::remote::tests::bearer_auth_header_format ... ok\ntest config::loader::tests::load_merged_config_resolves_extends ... ok\ntest config::remote::tests::cache_path_is_deterministic ... ok\ntest cli::commands::status::tests::status_shows_pending_for_never_run_steps ... ok\ntest config::remote::tests::clear_all_cache_removes_directory ... ok\ntest config::remote::tests::clear_cache_removes_cached_file ... ok\ntest config::remote::tests::clear_all_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_cache_dir ... ok\ntest config::remote::tests::clear_cache_triggers_refetch ... ok\ntest config::remote::tests::corrupted_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_timeout ... ok\ntest config::remote::tests::concurrent_cache_access_no_corruption ... ok\ntest config::remote::tests::creates_fetcher_with_default_timeout ... ok\ntest config::remote::tests::custom_auth_header_format ... ok\ntest config::remote::tests::different_urls_have_different_cache_paths ... ok\ntest config::remote::tests::fetch_returns_error_on_500 ... ok\ntest config::remote::tests::fetch_returns_error_on_404 ... ok\ntest config::remote::tests::fetch_fresh_bypasses_cache ... ok\ntest config::remote::tests::resolve_auth_bearer ... ok\ntest config::remote::tests::fetch_returns_yaml_content ... ok\ntest config::remote::tests::resolve_auth_custom_header ... ok\ntest config::remote::tests::resolve_auth_missing_env_var ... ok\ntest config::remote::tests::fetch_uses_cache_on_second_call ... ok\ntest config::schema::tests::custom_requirement_file_exists_check ... ok\ntest config::schema::tests::custom_requirement_parses ... ok\ntest config::schema::tests::custom_requirement_service_check_parses ... ok\ntest config::remote::tests::fetch_sends_auth_header ... ok\ntest config::schema::tests::custom_requirement_with_install_template ... ok\ntest config::schema::tests::empty_config_has_defaults ... ok\ntest config::schema::tests::empty_requirements_defaults ... ok\ntest config::schema::tests::empty_vars_defaults ... ok\ntest config::schema::tests::environment_config_defaults ... ok\ntest config::schema::tests::environment_override_bare_null_parses_as_none ... ok\ntest config::schema::tests::environment_override_depends_on_parses ... ok\ntest config::schema::tests::environment_override_empty_string_is_not_null ... ok\ntest config::schema::tests::environment_override_title_parses ... ok\ntest config::schema::tests::environment_override_watches_parses ... ok\ntest config::schema::tests::parses_all_check ... ok\ntest config::schema::tests::parses_any_check ... ok\ntest config::schema::tests::parses_command_succeeds_check ... ok\ntest config::schema::tests::parses_computed_var ... ok\ntest config::schema::tests::parses_default_environment ... ok\ntest config::schema::tests::parses_environment_config ... ok\ntest config::schema::tests::parses_extends_config ... ok\ntest config::schema::tests::parses_file_exists_check ... ok\ntest config::schema::tests::parses_minimal_config ... ok\ntest config::schema::tests::parses_marker_check ... ok\ntest config::schema::tests::parses_mixed_vars ... ok\ntest config::schema::tests::parses_multiple_workflows ... ok\ntest config::schema::tests::parses_precondition_all ... ok\ntest config::schema::tests::parses_nested_composite_checks ... ok\ntest config::schema::tests::parses_precondition_command_succeeds ... ok\ntest config::schema::tests::parses_secrets_config ... ok\ntest config::schema::tests::parses_static_var ... ok\ntest config::schema::tests::parses_settings_with_env ... ok\ntest config::schema::tests::parses_step_environments_override ... ok\ntest config::schema::tests::parses_step_only_environments ... ok\ntest config::schema::tests::parses_step_with_inline_config ... ok\ntest config::schema::tests::parses_step_with_hooks ... ok\ntest config::schema::tests::parses_step_with_prompts ... ok\ntest config::schema::tests::parses_step_with_template ... ok\ntest config::schema::tests::parses_step_with_watches ... ok\ntest config::schema::tests::parses_template_sources ... ok\ntest config::schema::tests::parses_workflow_definition ... ok\ntest config::schema::tests::parses_workflow_with_env ... ok\ntest config::schema::tests::parses_workflow_with_overrides ... ok\ntest config::schema::tests::precondition_defaults_none ... ok\ntest config::schema::tests::serialize_omits_empty_vars ... ok\ntest config::schema::tests::serialize_omits_default_values ... ok\ntest config::schema::tests::serialize_omits_none_precondition ... ok\ntest config::schema::tests::serialize_includes_non_default_values ... ok\ntest config::schema::tests::settings_default_environment_defaults_none ... ok\ntest config::schema::tests::step_config_defaults_to_empty_hooks ... ok\ntest config::schema::tests::step_config_parses_before_hooks ... ok\ntest config::schema::tests::step_config_parses_after_hooks ... ok\ntest config::schema::tests::step_config_parses_both_hooks ... ok\ntest config::schema::tests::step_config_requires_defaults_empty ... ok\ntest config::schema::tests::step_config_requires_parses ... ok\ntest config::schema::tests::step_only_environments_defaults_empty ... ok\ntest config::schema::tests::step_defaults_are_correct ... ok\ntest config::tests::serde_yaml_handles_nested_structures ... ok\ntest config::schema::tests::step_environments_defaults_empty ... ok\ntest config::tests::serde_yaml_parses_basic_yaml ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest config::validator::tests::valid_config_returns_no_errors ... ok\ntest config::validator::tests::validate_returns_result ... ok\ntest config::validator::tests::validates_workflow_override_in_workflow ... ok\ntest config::validator::tests::validates_workflow_step_exists ... ok\ntest config::validator::tests::validates_step_has_command_or_template ... ok\ntest config::validator::tests::validates_depends_on_exists ... ok\ntest config::vars::tests::evaluate_empty_vars ... ok\ntest cli::session_wrapper::tests::session_wrapper_cleanup_old_sessions ... ok\ntest config::vars::tests::evaluate_static_var ... ok\ntest detection::command_detection::tests::command_detector_from_string ... ok\ntest detection::command_detection::tests::command_detector_not_found ... ok\ntest detection::command_detection::tests::command_succeeds_helper_false ... ok\ntest detection::command_detection::tests::extract_version_no_match ... ok\ntest detection::command_detection:",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "persistedOutputPath": "/Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+              "persistedOutputSize": 108066
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01Fj6CTFYP7Vej98xD6igMWF",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                    "description": "Check test results"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 857,
+                "cache_read_input_tokens": 75239,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 857
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "476ffadb-3efd-4421-b7b2-25211f8eeada"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                  "type": "tool_result",
+                  "content": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "97c1bf0e-e676-457e-afb7-e418199e79b1",
+            "tool_use_result": {
+              "stdout": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        4,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2563754.535379541,
+      "tool_name": "Bash",
+      "substring": "cargo check",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01FaZPcbuNLMS42GsaN3fFoB",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 4400,
+                  "cache_read_input_tokens": 50259,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 4400
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "e1c07f4d-4ab5-4327-ad4b-e4ced9e63615"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: buaj1m4a9. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/tasks/buaj1m4a9.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "ab5ede7c-2f4d-4498-9eb0-c1c02c2cc10e",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "buaj1m4a9"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01XyYEkFVvB3VjR3mBu34Hy6",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | tail -30",
+                      "description": "Run full test suite, show tail",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 531,
+                  "cache_read_input_tokens": 74506,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 531
+                  },
+                  "output_tokens": 26,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "5b90e889-25fa-43b1-a98e-1a484f05ab57"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "586d81c6-4c8f-44c8-ad1b-72a7f125694d",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1 | tail -30"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01WNKB4bRzx7RSHrd35Cfg5w",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 202,
+                  "cache_read_input_tokens": 75037,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 202
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "8afebf15-c660-44db-ac78-14d3c6f8cc9b"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                    "type": "tool_result",
+                    "content": "<persisted-output>\nOutput too large (105.5KB). Full output saved to: /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt\n\nPreview (first 2KB):\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\n...\n</persisted-output>",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "dfb9554b-596c-43a2-b636-5a72d46d2e52",
+              "tool_use_result": {
+                "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cli::commands::cache::tests::list_empty_cache ... ok\ntest cli::commands::cache::tests::show_stats_empty ... ok\ntest cli::commands::cache::tests::show_stats_with_entries ... ok\ntest cli::commands::cache::tests::list_with_entries ... ok\ntest cli::commands::completions::tests::generates_bash_completions ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest cli::commands::completions::tests::generates_fish_completions ... ok\ntest cli::commands::config::tests::config_command_creation ... ok\ntest cli::commands::dispatcher::tests::dispatcher_creation ... ok\ntest cli::commands::completions::tests::generates_zsh_completions ... ok\ntest cli::commands::dispatcher::tests::command_result_failure ... ok\ntest cli::commands::dispatcher::tests::command_result_success ... ok\ntest cli::commands::display::tests::status_kind_conversion ... ok\ntest cli::commands::config::tests::config_no_config ... ok\ntest cli::commands::display::tests::show_step_status_includes_icons ... ok\ntest cli::commands::display::tests::show_step_status_uses_correct_ui_method ... ok\ntest cli::commands::display::tests::status_icon_values ... ok\ntest cli::commands::display::tests::status_symbol_values ... ok\ntest cli::commands::config::tests::config_json_output ... ok\ntest cli::commands::config::tests::config_applies_config_default_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_with_tags ... ok\ntest cli::commands::config::tests::config_yaml_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_basic ... ok\ntest cli::commands::feedback::tests::category_from_tags_defaults_to_other ... ok\ntest cli::commands::feedback::tests::capture_interactive_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_when_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_with_no_deliver_flag ... ok\ntest cli::commands::config::tests::config_shows_config_path ... ok\ntest cli::commands::feedback::tests::category_from_tags_finds_known_category ... ok\ntest cli::commands::feedback::tests::feedback_category_options_exist ... ok\ntest cli::commands::feedback::tests::feedback_prompt_uses_neutral_framing ... ok\ntest cli::commands::feedback::tests::list_by_different_statuses ... ok\ntest cli::commands::feedback::tests::list_empty_feedback ... ok\ntest cli::commands::feedback::tests::list_by_status ... ok\ntest cli::commands::feedback::tests::feedback_args_parsing ... ok\ntest cli::commands::feedback::tests::list_feedback_by_tag ... ok\ntest cli::commands::feedback::tests::list_invalid_status ... ok\ntest cli::commands::feedback::tests::list_all_feedback ... ok\ntest cli::commands::feedback::tests::no_deliver_flag_parsing ... ok\ntest cli::commands::feedback::tests::resolve_nonexistent_feedback ... ok\ntest cli::commands::feedback::tests::list_feedback_with_entries ... ok\ntest cli::commands::feedback::tests::session_feedback_no_sessions ... ok\ntest cli::commands::feedback::tests::resolve_with_default_note ... ok\ntest cli::commands::feedback::tests::resolve_feedback_entry ... ok\ntest cli::commands::history::tests::history_args_accessor ... ok\ntest cli::commands::history::tests::history_command_creation ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::init::tests::create_config_with_file_exists_check ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::feedback::tests::delivery_declined_saves_locally_only ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::history_with_limit ... ok\ntest cli::commands::history::tests::history_no_runs ... ok\ntest cli::commands::history::tests::history_since_filters_runs ... ok\ntest cli::commands::history::tests::history_detail_shows_steps ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::init::tests::init_interactive_shows_hints ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::last_no_runs ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::last::tests::last_shows_header ... ok\ntest cli::commands::last::tests::last_shows_error_for_failed_run ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::last::tests::last_shows_workflow_and_status ... ok\ntest cli::commands::last::tests::last_shows_steps_for_recorded_run ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_strict_mode_fails_on_warnings ... ok\ntest cli::commands::lint::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::list::tests::list_command_creation ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::commands::list::tests::list_no_config ... ok\ntest cli::commands::list::tests::list_no_skipped_when_environment_matches ... ok\ntest cli::commands::last::tests::last_shows_when_and_duration ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest cli::commands::last::tests::last_shows_skipped_steps ... ok\ntest cli::commands::list::tests::list_shows_step_command ... ok\ntest cli::commands::list::tests::list_shows_environment_info ... ok\ntest cli::commands::list::tests::list_shows_skipped_steps_for_environment ... ok\ntest cli::commands::list::tests::list_shows_environment_from_env_flag ... ok\ntest cli::commands::list::tests::list_shows_workflow_description ... ok\ntest cli::commands::list::tests::list_shows_step_title_when_no_description ... ok\ntest cli::commands::list::tests::list_shows_template_instead_of_command ... ok\ntest cli::commands::list::tests::list_shows_step_description ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::list::tests::list_shows_workflow_with_arrows ... ok\ntest cli::commands::list::tests::list_steps_only ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::list::tests::list_with_config ... ok\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::last::tests::last_untracked_step_shows_pending_icon ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::status::tests::status_shows_requirements_section_when_requires_present ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_multiple_calls ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_output ... ok\ntest cli::commands::status::tests::status_with_config ... ok\ntest cli::commands::status::tests::status_shows_skipped_steps_for_environment ... ok\ntest cli::session_wrapper::tests::session_wrapper_creation ... ok\ntest cli::session_wrapper::tests::session_wrapper_finalize_exit_code ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_store ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_latest_session_id ... ok\ntest cli::session_wrapper::tests::session_wrapper_metadata_modification ... ok\ntest cli::session_wrapper::tests::session_wrapper_session_id_accessor ... ok\ntest config::env_file::tests::complex_env_file ... ok\ntest config::env_file::tests::handles_empty_values ... ok\ntest cli::session_wrapper::tests::session_wrapper_with_args ... ok\ntest config::env_file::tests::handles_lines_without_equals ... ok\ntest config::env_file::tests::handles_quoted_values ... ok\ntest config::env_file::tests::handles_values_with_equals ... ok\ntest config::env_file::tests::load_optional_returns_empty_for_missing_file ... ok\ntest config::env_file::tests::parses_simple_env_file ... ok\ntest config::env_file::tests::handles_whitespace_around_equals ... ok\ntest config::env_file::tests::skips_comments ... ok\ntest config::env_file::tests::skips_empty_lines ... ok\ntest config::env_layer::tests::default_stack_is_empty ... ok\ntest config::env_layer::tests::higher_layers_override_lower ... ok\ntest config::env_layer::tests::layer_contains_check ... ok\ntest cli::commands::status::tests::status_shows_steps_label ... ok\ntest config::env_layer::tests::layer_len_and_is_empty ... ok\ntest config::env_layer::tests::missing_key_returns_none ... ok\ntest config::env_layer::tests::multiple_overrides ... ok\ntest config::env_layer::tests::resolve_merges_all_layers ... ok\ntest config::env_layer::tests::tracks_variable_source ... ok\ntest config::env_layer::tests::stack_layer_count ... ok\ntest config::environment::tests::is_secret_matches_builtin_patterns ... ok\ntest config::environment::tests::is_secret_matches_custom_patterns ... ok\ntest config::environment::tests::is_secret_matches_suffix_patterns ... ok\ntest config::environment::tests::load_env_file_not_found ... ok\ntest config::environment::tests::load_env_file_optional_returns_empty ... ok\ntest config::environment::tests::load_system_env_returns_current_env ... ok\ntest config::environment::tests::load_env_file_works ... ok\ntest config::environment::tests::merge_env_overlays_correctly ... ok\ntest config::environment::tests::parse_dotenv_basic ... ok\ntest config::environment::tests::parse_dotenv_handles_equals_in_value ... ok\ntest config::environment::tests::parse_dotenv_rejects_invalid_lines ... ok\ntest config::environment::tests::parse_dotenv_skips_comments_and_empty ... ok\ntest config::environment::tests::parse_dotenv_strips_quotes ... ok\ntest config::extends::tests::config_without_extends_unchanged ... ok\ntest config::extends::tests::circular_extends_detected ... ok\ntest config::extends::tests::empty_extends_unchanged ... ok\ntest config::extends::tests::chained_extends ... ok\ntest config::extends::tests::extends_child_yaml_replaces_parent_ci_environment_block ... ok\ntest config::extends::tests::extends_cleared_from_result ... ok\ntest config::extends::tests::depth_limit_enforced ... ok\ntest config::extends::tests::extends_env_override_adds_new_environment ... ok\ntest config::extends::tests::extends_env_override_replaces_ci_block ... ok\ntest config::extends::tests::extends_env_override_preserves_unmentioned_environments ... ok\ntest config::extends::tests::extends_inherits_only_environments_when_unset ... ok\ntest config::extends::tests::extends_only_environments_replaces_list ... ok\ntest config::extends::tests::invalid_yaml_response ... ok\ntest config::extends::tests::local_overrides_base ... ok\ntest config::extends::tests::resolver_custom_max_depth ... ok\ntest config::extends::tests::resolver_has_default_max_depth ... ok\ntest config::extends::tests::multiple_extends_merge_in_order ... ok\ntest config::extends::tests::validate_extends_accepts_valid_urls ... ok\ntest config::extends::tests::validate_extends_allows_public_ip ... ok\ntest config::extends::tests::validate_extends_blocks_127_0_0_1 ... ok\ntest config::extends::tests::validate_extends_blocks_localhost ... ok\ntest config::extends::tests::single_extends_merges_base ... ok\ntest config::extends::tests::validate_extends_blocks_metadata_ip ... ok\ntest config::extends::tests::validate_extends_blocks_private_10_range ... ok\ntest config::extends::tests::validate_extends_blocks_private_192_168_range ... ok\ntest config::extends::tests::validate_extends_rejects_non_http_url ... ok\ntest config::extends::tests::validate_extends_rejects_empty_url ... ok\ntest config::extends::tests::validate_extends_rejects_relative_path ... ok\ntest config::interpolation::tests::context_includes_builtin_bivvy_version ... ok\ntest config::interpolation::tests::context_with_env_sets_env ... ok\ntest config::interpolation::tests::context_with_project_adds_project_vars ... ok\ntest config::interpolation::tests::extract_variables_returns_unique_names ... ok\ntest config::interpolation::tests::extract_variables_empty_for_literal ... ok\ntest config::interpolation::tests::has_interpolation_returns_true_for_variables ... ok\ntest config::extends::tests::unreachable_url_reports_which_url ... ok\ntest config::interpolation::tests::parse_adjacent_variables ... ok\ntest config::interpolation::tests::parse_dollar_without_brace ... ok\ntest config::interpolation::tests::parse_empty_string ... ok\ntest config::interpolation::tests::parse_escaped_dollar_brace ... ok\ntest config::interpolation::tests::parse_mixed_escaped_and_real ... ok\ntest config::interpolation::tests::parse_literal_only ... ok\ntest config::interpolation::tests::parse_multiple_variables ... ok\ntest config::interpolation::tests::parse_single_variable ... ok\ntest config::interpolation::tests::parse_variable_with_numbers ... ok\ntest config::interpolation::tests::parse_variable_with_surrounding_text ... ok\ntest config::interpolation::tests::parse_variable_with_underscore ... ok\ntest config::interpolation::tests::resolve_multiple_variables ... ok\ntest config::interpolation::tests::resolve_string_fails_on_missing_variable ... ok\ntest config::interpolation::tests::resolve_preserves_escaped ... ok\ntest config::interpolation::tests::resolve_string_uses_priority_order ... ok\ntest config::interpolation::tests::resolve_string_replaces_variables ... ok\ntest config::interpolation::tests::resolve_string_with_default_prefers_context ... ok\ntest config::interpolation::tests::resolve_string_with_default_uses_default ... ok\ntest config::interpolation::tests::vars_resolve_between_preferences_and_env ... ok\ntest config::interpolation::tests::with_vars_builder ... ok\ntest config::loader::tests::all_existing_returns_in_merge_order ... ok\ntest config::loader::tests::discover_finds_local_overrides ... ok\ntest config::loader::tests::discover_returns_none_for_missing_configs ... ok\ntest config::loader::tests::discover_finds_project_config ... ok\ntest config::loader::tests::config_without_extends_still_works ... ok\ntest config::loader::tests::find_project_root_finds_bivvy_dir ... ok\ntest config::loader::tests::find_project_root_finds_git_dir ... ok\ntest config::loader::tests::find_project_root_prefers_bivvy_over_git ... ok\ntest config::loader::tests::extends_merges_before_local_override ... ok\ntest config::loader::tests::load_config_file_handles_empty_file ... ok\ntest config::loader::tests::extends_with_local_override_file ... ok\ntest config::loader::tests::load_config_file_parses_full_config ... ok\ntest config::loader::tests::load_config_file_returns_not_found_error ... ok\ntest config::loader::tests::load_config_value_returns_raw_value ... ok\ntest config::loader::tests::load_config_file_parses_valid_yaml ... ok\ntest config::loader::tests::load_config_with_override_skips_merge ... ok\ntest config::loader::tests::load_config_without_override_uses_merge ... ok\ntest config::loader::tests::load_merged_config_fails_without_project_config ... ok\ntest config::loader::tests::load_merged_config_merges_project_and_local ... ok\ntest config::loader::tests::load_merged_config_preserves_step_definitions ... ok\ntest config::loader::tests::parse_config_returns_parse_error_for_invalid_yaml ... ok\ntest config::merger::tests::arrays_are_replaced_not_merged ... ok\ntest config::merger::tests::deep_merge_replaces_at_conflict_point ... ok\ntest config::merger::tests::deep_merge_without_leaves_behaves_as_before ... ok\ntest config::merger::tests::deeply_nested_merge ... ok\ntest config::merger::tests::empty_overlay_returns_base_unchanged ... ok\ntest config::merger::tests::leaf_key_adds_new_entries ... ok\ntest config::merger::tests::leaf_key_null_removes_entry ... ok\ntest config::merger::tests::leaf_key_preserves_unmentioned_entries ... ok\ntest config::merger::tests::leaf_key_replaces_entry_values ... ok\ntest config::merger::tests::merge_configs_merges_multiple_in_order ... ok\ntest config::merger::tests::merge_empty_configs_returns_empty ... ok\ntest config::merger::tests::nested_objects_merge_recursively ... ok\ntest config::merger::tests::null_removes_inherited_value ... ok\ntest config::merger::tests::scalar_overlay_replaces_mapping_base ... ok\ntest config::remote::tests::bearer_auth_header_format ... ok\ntest config::loader::tests::load_merged_config_resolves_extends ... ok\ntest config::remote::tests::cache_path_is_deterministic ... ok\ntest cli::commands::status::tests::status_shows_pending_for_never_run_steps ... ok\ntest config::remote::tests::clear_all_cache_removes_directory ... ok\ntest config::remote::tests::clear_cache_removes_cached_file ... ok\ntest config::remote::tests::clear_all_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_cache_dir ... ok\ntest config::remote::tests::clear_cache_triggers_refetch ... ok\ntest config::remote::tests::corrupted_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_timeout ... ok\ntest config::remote::tests::concurrent_cache_access_no_corruption ... ok\ntest config::remote::tests::creates_fetcher_with_default_timeout ... ok\ntest config::remote::tests::custom_auth_header_format ... ok\ntest config::remote::tests::different_urls_have_different_cache_paths ... ok\ntest config::remote::tests::fetch_returns_error_on_500 ... ok\ntest config::remote::tests::fetch_returns_error_on_404 ... ok\ntest config::remote::tests::fetch_fresh_bypasses_cache ... ok\ntest config::remote::tests::resolve_auth_bearer ... ok\ntest config::remote::tests::fetch_returns_yaml_content ... ok\ntest config::remote::tests::resolve_auth_custom_header ... ok\ntest config::remote::tests::resolve_auth_missing_env_var ... ok\ntest config::remote::tests::fetch_uses_cache_on_second_call ... ok\ntest config::schema::tests::custom_requirement_file_exists_check ... ok\ntest config::schema::tests::custom_requirement_parses ... ok\ntest config::schema::tests::custom_requirement_service_check_parses ... ok\ntest config::remote::tests::fetch_sends_auth_header ... ok\ntest config::schema::tests::custom_requirement_with_install_template ... ok\ntest config::schema::tests::empty_config_has_defaults ... ok\ntest config::schema::tests::empty_requirements_defaults ... ok\ntest config::schema::tests::empty_vars_defaults ... ok\ntest config::schema::tests::environment_config_defaults ... ok\ntest config::schema::tests::environment_override_bare_null_parses_as_none ... ok\ntest config::schema::tests::environment_override_depends_on_parses ... ok\ntest config::schema::tests::environment_override_empty_string_is_not_null ... ok\ntest config::schema::tests::environment_override_title_parses ... ok\ntest config::schema::tests::environment_override_watches_parses ... ok\ntest config::schema::tests::parses_all_check ... ok\ntest config::schema::tests::parses_any_check ... ok\ntest config::schema::tests::parses_command_succeeds_check ... ok\ntest config::schema::tests::parses_computed_var ... ok\ntest config::schema::tests::parses_default_environment ... ok\ntest config::schema::tests::parses_environment_config ... ok\ntest config::schema::tests::parses_extends_config ... ok\ntest config::schema::tests::parses_file_exists_check ... ok\ntest config::schema::tests::parses_minimal_config ... ok\ntest config::schema::tests::parses_marker_check ... ok\ntest config::schema::tests::parses_mixed_vars ... ok\ntest config::schema::tests::parses_multiple_workflows ... ok\ntest config::schema::tests::parses_precondition_all ... ok\ntest config::schema::tests::parses_nested_composite_checks ... ok\ntest config::schema::tests::parses_precondition_command_succeeds ... ok\ntest config::schema::tests::parses_secrets_config ... ok\ntest config::schema::tests::parses_static_var ... ok\ntest config::schema::tests::parses_settings_with_env ... ok\ntest config::schema::tests::parses_step_environments_override ... ok\ntest config::schema::tests::parses_step_only_environments ... ok\ntest config::schema::tests::parses_step_with_inline_config ... ok\ntest config::schema::tests::parses_step_with_hooks ... ok\ntest config::schema::tests::parses_step_with_prompts ... ok\ntest config::schema::tests::parses_step_with_template ... ok\ntest config::schema::tests::parses_step_with_watches ... ok\ntest config::schema::tests::parses_template_sources ... ok\ntest config::schema::tests::parses_workflow_definition ... ok\ntest config::schema::tests::parses_workflow_with_env ... ok\ntest config::schema::tests::parses_workflow_with_overrides ... ok\ntest config::schema::tests::precondition_defaults_none ... ok\ntest config::schema::tests::serialize_omits_empty_vars ... ok\ntest config::schema::tests::serialize_omits_default_values ... ok\ntest config::schema::tests::serialize_omits_none_precondition ... ok\ntest config::schema::tests::serialize_includes_non_default_values ... ok\ntest config::schema::tests::settings_default_environment_defaults_none ... ok\ntest config::schema::tests::step_config_defaults_to_empty_hooks ... ok\ntest config::schema::tests::step_config_parses_before_hooks ... ok\ntest config::schema::tests::step_config_parses_after_hooks ... ok\ntest config::schema::tests::step_config_parses_both_hooks ... ok\ntest config::schema::tests::step_config_requires_defaults_empty ... ok\ntest config::schema::tests::step_config_requires_parses ... ok\ntest config::schema::tests::step_only_environments_defaults_empty ... ok\ntest config::schema::tests::step_defaults_are_correct ... ok\ntest config::tests::serde_yaml_handles_nested_structures ... ok\ntest config::schema::tests::step_environments_defaults_empty ... ok\ntest config::tests::serde_yaml_parses_basic_yaml ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest config::validator::tests::valid_config_returns_no_errors ... ok\ntest config::validator::tests::validate_returns_result ... ok\ntest config::validator::tests::validates_workflow_override_in_workflow ... ok\ntest config::validator::tests::validates_workflow_step_exists ... ok\ntest config::validator::tests::validates_step_has_command_or_template ... ok\ntest config::validator::tests::validates_depends_on_exists ... ok\ntest config::vars::tests::evaluate_empty_vars ... ok\ntest cli::session_wrapper::tests::session_wrapper_cleanup_old_sessions ... ok\ntest config::vars::tests::evaluate_static_var ... ok\ntest detection::command_detection::tests::command_detector_from_string ... ok\ntest detection::command_detection::tests::command_detector_not_found ... ok\ntest detection::command_detection::tests::command_succeeds_helper_false ... ok\ntest detection::command_detection::tests::extract_version_no_match ... ok\ntest detection::command_detection:",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "persistedOutputPath": "/Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                "persistedOutputSize": 108066
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01Fj6CTFYP7Vej98xD6igMWF",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                    "name": "Bash",
+                    "input": {
+                      "command": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                      "description": "Check test results"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 857,
+                  "cache_read_input_tokens": 75239,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 857
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "476ffadb-3efd-4421-b7b2-25211f8eeada"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                    "type": "tool_result",
+                    "content": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "97c1bf0e-e676-457e-afb7-e418199e79b1",
+              "tool_use_result": {
+                "stdout": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_tool_call_metric",
+      "timestamp": 2563754.53538625,
+      "metric": "tool_call.execute_command",
+      "tool_name": "Bash",
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01FaZPcbuNLMS42GsaN3fFoB",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 120000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 4400,
+                "cache_read_input_tokens": 50259,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 4400
+                },
+                "output_tokens": 1,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "e1c07f4d-4ab5-4327-ad4b-e4ced9e63615"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                  "type": "tool_result",
+                  "content": "Command running in background with ID: buaj1m4a9. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/tasks/buaj1m4a9.output",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "ab5ede7c-2f4d-4498-9eb0-c1c02c2cc10e",
+            "tool_use_result": {
+              "stdout": "",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "backgroundTaskId": "buaj1m4a9"
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01XyYEkFVvB3VjR3mBu34Hy6",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1 | tail -30",
+                    "description": "Run full test suite, show tail",
+                    "timeout": 300000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 531,
+                "cache_read_input_tokens": 74506,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 531
+                },
+                "output_tokens": 26,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "5b90e889-25fa-43b1-a98e-1a484f05ab57"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "tool_result",
+                  "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                  "is_error": true,
+                  "tool_use_id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "586d81c6-4c8f-44c8-ad1b-72a7f125694d",
+            "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01WNKB4bRzx7RSHrd35Cfg5w",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                  "name": "Bash",
+                  "input": {
+                    "command": "cargo test --all-features 2>&1",
+                    "description": "Run full test suite",
+                    "timeout": 300000
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 202,
+                "cache_read_input_tokens": 75037,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 202
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "8afebf15-c660-44db-ac78-14d3c6f8cc9b"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                  "type": "tool_result",
+                  "content": "<persisted-output>\nOutput too large (105.5KB). Full output saved to: /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt\n\nPreview (first 2KB):\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\n...\n</persisted-output>",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "dfb9554b-596c-43a2-b636-5a72d46d2e52",
+            "tool_use_result": {
+              "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cli::commands::cache::tests::list_empty_cache ... ok\ntest cli::commands::cache::tests::show_stats_empty ... ok\ntest cli::commands::cache::tests::show_stats_with_entries ... ok\ntest cli::commands::cache::tests::list_with_entries ... ok\ntest cli::commands::completions::tests::generates_bash_completions ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest cli::commands::completions::tests::generates_fish_completions ... ok\ntest cli::commands::config::tests::config_command_creation ... ok\ntest cli::commands::dispatcher::tests::dispatcher_creation ... ok\ntest cli::commands::completions::tests::generates_zsh_completions ... ok\ntest cli::commands::dispatcher::tests::command_result_failure ... ok\ntest cli::commands::dispatcher::tests::command_result_success ... ok\ntest cli::commands::display::tests::status_kind_conversion ... ok\ntest cli::commands::config::tests::config_no_config ... ok\ntest cli::commands::display::tests::show_step_status_includes_icons ... ok\ntest cli::commands::display::tests::show_step_status_uses_correct_ui_method ... ok\ntest cli::commands::display::tests::status_icon_values ... ok\ntest cli::commands::display::tests::status_symbol_values ... ok\ntest cli::commands::config::tests::config_json_output ... ok\ntest cli::commands::config::tests::config_applies_config_default_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_with_tags ... ok\ntest cli::commands::config::tests::config_yaml_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_basic ... ok\ntest cli::commands::feedback::tests::category_from_tags_defaults_to_other ... ok\ntest cli::commands::feedback::tests::capture_interactive_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_when_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_with_no_deliver_flag ... ok\ntest cli::commands::config::tests::config_shows_config_path ... ok\ntest cli::commands::feedback::tests::category_from_tags_finds_known_category ... ok\ntest cli::commands::feedback::tests::feedback_category_options_exist ... ok\ntest cli::commands::feedback::tests::feedback_prompt_uses_neutral_framing ... ok\ntest cli::commands::feedback::tests::list_by_different_statuses ... ok\ntest cli::commands::feedback::tests::list_empty_feedback ... ok\ntest cli::commands::feedback::tests::list_by_status ... ok\ntest cli::commands::feedback::tests::feedback_args_parsing ... ok\ntest cli::commands::feedback::tests::list_feedback_by_tag ... ok\ntest cli::commands::feedback::tests::list_invalid_status ... ok\ntest cli::commands::feedback::tests::list_all_feedback ... ok\ntest cli::commands::feedback::tests::no_deliver_flag_parsing ... ok\ntest cli::commands::feedback::tests::resolve_nonexistent_feedback ... ok\ntest cli::commands::feedback::tests::list_feedback_with_entries ... ok\ntest cli::commands::feedback::tests::session_feedback_no_sessions ... ok\ntest cli::commands::feedback::tests::resolve_with_default_note ... ok\ntest cli::commands::feedback::tests::resolve_feedback_entry ... ok\ntest cli::commands::history::tests::history_args_accessor ... ok\ntest cli::commands::history::tests::history_command_creation ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::init::tests::create_config_with_file_exists_check ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::feedback::tests::delivery_declined_saves_locally_only ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::history_with_limit ... ok\ntest cli::commands::history::tests::history_no_runs ... ok\ntest cli::commands::history::tests::history_since_filters_runs ... ok\ntest cli::commands::history::tests::history_detail_shows_steps ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::init::tests::init_interactive_shows_hints ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::last_no_runs ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::last::tests::last_shows_header ... ok\ntest cli::commands::last::tests::last_shows_error_for_failed_run ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::last::tests::last_shows_workflow_and_status ... ok\ntest cli::commands::last::tests::last_shows_steps_for_recorded_run ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_strict_mode_fails_on_warnings ... ok\ntest cli::commands::lint::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::list::tests::list_command_creation ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::commands::list::tests::list_no_config ... ok\ntest cli::commands::list::tests::list_no_skipped_when_environment_matches ... ok\ntest cli::commands::last::tests::last_shows_when_and_duration ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest cli::commands::last::tests::last_shows_skipped_steps ... ok\ntest cli::commands::list::tests::list_shows_step_command ... ok\ntest cli::commands::list::tests::list_shows_environment_info ... ok\ntest cli::commands::list::tests::list_shows_skipped_steps_for_environment ... ok\ntest cli::commands::list::tests::list_shows_environment_from_env_flag ... ok\ntest cli::commands::list::tests::list_shows_workflow_description ... ok\ntest cli::commands::list::tests::list_shows_step_title_when_no_description ... ok\ntest cli::commands::list::tests::list_shows_template_instead_of_command ... ok\ntest cli::commands::list::tests::list_shows_step_description ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::list::tests::list_shows_workflow_with_arrows ... ok\ntest cli::commands::list::tests::list_steps_only ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::list::tests::list_with_config ... ok\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::last::tests::last_untracked_step_shows_pending_icon ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::status::tests::status_shows_requirements_section_when_requires_present ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_multiple_calls ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_output ... ok\ntest cli::commands::status::tests::status_with_config ... ok\ntest cli::commands::status::tests::status_shows_skipped_steps_for_environment ... ok\ntest cli::session_wrapper::tests::session_wrapper_creation ... ok\ntest cli::session_wrapper::tests::session_wrapper_finalize_exit_code ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_store ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_latest_session_id ... ok\ntest cli::session_wrapper::tests::session_wrapper_metadata_modification ... ok\ntest cli::session_wrapper::tests::session_wrapper_session_id_accessor ... ok\ntest config::env_file::tests::complex_env_file ... ok\ntest config::env_file::tests::handles_empty_values ... ok\ntest cli::session_wrapper::tests::session_wrapper_with_args ... ok\ntest config::env_file::tests::handles_lines_without_equals ... ok\ntest config::env_file::tests::handles_quoted_values ... ok\ntest config::env_file::tests::handles_values_with_equals ... ok\ntest config::env_file::tests::load_optional_returns_empty_for_missing_file ... ok\ntest config::env_file::tests::parses_simple_env_file ... ok\ntest config::env_file::tests::handles_whitespace_around_equals ... ok\ntest config::env_file::tests::skips_comments ... ok\ntest config::env_file::tests::skips_empty_lines ... ok\ntest config::env_layer::tests::default_stack_is_empty ... ok\ntest config::env_layer::tests::higher_layers_override_lower ... ok\ntest config::env_layer::tests::layer_contains_check ... ok\ntest cli::commands::status::tests::status_shows_steps_label ... ok\ntest config::env_layer::tests::layer_len_and_is_empty ... ok\ntest config::env_layer::tests::missing_key_returns_none ... ok\ntest config::env_layer::tests::multiple_overrides ... ok\ntest config::env_layer::tests::resolve_merges_all_layers ... ok\ntest config::env_layer::tests::tracks_variable_source ... ok\ntest config::env_layer::tests::stack_layer_count ... ok\ntest config::environment::tests::is_secret_matches_builtin_patterns ... ok\ntest config::environment::tests::is_secret_matches_custom_patterns ... ok\ntest config::environment::tests::is_secret_matches_suffix_patterns ... ok\ntest config::environment::tests::load_env_file_not_found ... ok\ntest config::environment::tests::load_env_file_optional_returns_empty ... ok\ntest config::environment::tests::load_system_env_returns_current_env ... ok\ntest config::environment::tests::load_env_file_works ... ok\ntest config::environment::tests::merge_env_overlays_correctly ... ok\ntest config::environment::tests::parse_dotenv_basic ... ok\ntest config::environment::tests::parse_dotenv_handles_equals_in_value ... ok\ntest config::environment::tests::parse_dotenv_rejects_invalid_lines ... ok\ntest config::environment::tests::parse_dotenv_skips_comments_and_empty ... ok\ntest config::environment::tests::parse_dotenv_strips_quotes ... ok\ntest config::extends::tests::config_without_extends_unchanged ... ok\ntest config::extends::tests::circular_extends_detected ... ok\ntest config::extends::tests::empty_extends_unchanged ... ok\ntest config::extends::tests::chained_extends ... ok\ntest config::extends::tests::extends_child_yaml_replaces_parent_ci_environment_block ... ok\ntest config::extends::tests::extends_cleared_from_result ... ok\ntest config::extends::tests::depth_limit_enforced ... ok\ntest config::extends::tests::extends_env_override_adds_new_environment ... ok\ntest config::extends::tests::extends_env_override_replaces_ci_block ... ok\ntest config::extends::tests::extends_env_override_preserves_unmentioned_environments ... ok\ntest config::extends::tests::extends_inherits_only_environments_when_unset ... ok\ntest config::extends::tests::extends_only_environments_replaces_list ... ok\ntest config::extends::tests::invalid_yaml_response ... ok\ntest config::extends::tests::local_overrides_base ... ok\ntest config::extends::tests::resolver_custom_max_depth ... ok\ntest config::extends::tests::resolver_has_default_max_depth ... ok\ntest config::extends::tests::multiple_extends_merge_in_order ... ok\ntest config::extends::tests::validate_extends_accepts_valid_urls ... ok\ntest config::extends::tests::validate_extends_allows_public_ip ... ok\ntest config::extends::tests::validate_extends_blocks_127_0_0_1 ... ok\ntest config::extends::tests::validate_extends_blocks_localhost ... ok\ntest config::extends::tests::single_extends_merges_base ... ok\ntest config::extends::tests::validate_extends_blocks_metadata_ip ... ok\ntest config::extends::tests::validate_extends_blocks_private_10_range ... ok\ntest config::extends::tests::validate_extends_blocks_private_192_168_range ... ok\ntest config::extends::tests::validate_extends_rejects_non_http_url ... ok\ntest config::extends::tests::validate_extends_rejects_empty_url ... ok\ntest config::extends::tests::validate_extends_rejects_relative_path ... ok\ntest config::interpolation::tests::context_includes_builtin_bivvy_version ... ok\ntest config::interpolation::tests::context_with_env_sets_env ... ok\ntest config::interpolation::tests::context_with_project_adds_project_vars ... ok\ntest config::interpolation::tests::extract_variables_returns_unique_names ... ok\ntest config::interpolation::tests::extract_variables_empty_for_literal ... ok\ntest config::interpolation::tests::has_interpolation_returns_true_for_variables ... ok\ntest config::extends::tests::unreachable_url_reports_which_url ... ok\ntest config::interpolation::tests::parse_adjacent_variables ... ok\ntest config::interpolation::tests::parse_dollar_without_brace ... ok\ntest config::interpolation::tests::parse_empty_string ... ok\ntest config::interpolation::tests::parse_escaped_dollar_brace ... ok\ntest config::interpolation::tests::parse_mixed_escaped_and_real ... ok\ntest config::interpolation::tests::parse_literal_only ... ok\ntest config::interpolation::tests::parse_multiple_variables ... ok\ntest config::interpolation::tests::parse_single_variable ... ok\ntest config::interpolation::tests::parse_variable_with_numbers ... ok\ntest config::interpolation::tests::parse_variable_with_surrounding_text ... ok\ntest config::interpolation::tests::parse_variable_with_underscore ... ok\ntest config::interpolation::tests::resolve_multiple_variables ... ok\ntest config::interpolation::tests::resolve_string_fails_on_missing_variable ... ok\ntest config::interpolation::tests::resolve_preserves_escaped ... ok\ntest config::interpolation::tests::resolve_string_uses_priority_order ... ok\ntest config::interpolation::tests::resolve_string_replaces_variables ... ok\ntest config::interpolation::tests::resolve_string_with_default_prefers_context ... ok\ntest config::interpolation::tests::resolve_string_with_default_uses_default ... ok\ntest config::interpolation::tests::vars_resolve_between_preferences_and_env ... ok\ntest config::interpolation::tests::with_vars_builder ... ok\ntest config::loader::tests::all_existing_returns_in_merge_order ... ok\ntest config::loader::tests::discover_finds_local_overrides ... ok\ntest config::loader::tests::discover_returns_none_for_missing_configs ... ok\ntest config::loader::tests::discover_finds_project_config ... ok\ntest config::loader::tests::config_without_extends_still_works ... ok\ntest config::loader::tests::find_project_root_finds_bivvy_dir ... ok\ntest config::loader::tests::find_project_root_finds_git_dir ... ok\ntest config::loader::tests::find_project_root_prefers_bivvy_over_git ... ok\ntest config::loader::tests::extends_merges_before_local_override ... ok\ntest config::loader::tests::load_config_file_handles_empty_file ... ok\ntest config::loader::tests::extends_with_local_override_file ... ok\ntest config::loader::tests::load_config_file_parses_full_config ... ok\ntest config::loader::tests::load_config_file_returns_not_found_error ... ok\ntest config::loader::tests::load_config_value_returns_raw_value ... ok\ntest config::loader::tests::load_config_file_parses_valid_yaml ... ok\ntest config::loader::tests::load_config_with_override_skips_merge ... ok\ntest config::loader::tests::load_config_without_override_uses_merge ... ok\ntest config::loader::tests::load_merged_config_fails_without_project_config ... ok\ntest config::loader::tests::load_merged_config_merges_project_and_local ... ok\ntest config::loader::tests::load_merged_config_preserves_step_definitions ... ok\ntest config::loader::tests::parse_config_returns_parse_error_for_invalid_yaml ... ok\ntest config::merger::tests::arrays_are_replaced_not_merged ... ok\ntest config::merger::tests::deep_merge_replaces_at_conflict_point ... ok\ntest config::merger::tests::deep_merge_without_leaves_behaves_as_before ... ok\ntest config::merger::tests::deeply_nested_merge ... ok\ntest config::merger::tests::empty_overlay_returns_base_unchanged ... ok\ntest config::merger::tests::leaf_key_adds_new_entries ... ok\ntest config::merger::tests::leaf_key_null_removes_entry ... ok\ntest config::merger::tests::leaf_key_preserves_unmentioned_entries ... ok\ntest config::merger::tests::leaf_key_replaces_entry_values ... ok\ntest config::merger::tests::merge_configs_merges_multiple_in_order ... ok\ntest config::merger::tests::merge_empty_configs_returns_empty ... ok\ntest config::merger::tests::nested_objects_merge_recursively ... ok\ntest config::merger::tests::null_removes_inherited_value ... ok\ntest config::merger::tests::scalar_overlay_replaces_mapping_base ... ok\ntest config::remote::tests::bearer_auth_header_format ... ok\ntest config::loader::tests::load_merged_config_resolves_extends ... ok\ntest config::remote::tests::cache_path_is_deterministic ... ok\ntest cli::commands::status::tests::status_shows_pending_for_never_run_steps ... ok\ntest config::remote::tests::clear_all_cache_removes_directory ... ok\ntest config::remote::tests::clear_cache_removes_cached_file ... ok\ntest config::remote::tests::clear_all_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_cache_dir ... ok\ntest config::remote::tests::clear_cache_triggers_refetch ... ok\ntest config::remote::tests::corrupted_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_timeout ... ok\ntest config::remote::tests::concurrent_cache_access_no_corruption ... ok\ntest config::remote::tests::creates_fetcher_with_default_timeout ... ok\ntest config::remote::tests::custom_auth_header_format ... ok\ntest config::remote::tests::different_urls_have_different_cache_paths ... ok\ntest config::remote::tests::fetch_returns_error_on_500 ... ok\ntest config::remote::tests::fetch_returns_error_on_404 ... ok\ntest config::remote::tests::fetch_fresh_bypasses_cache ... ok\ntest config::remote::tests::resolve_auth_bearer ... ok\ntest config::remote::tests::fetch_returns_yaml_content ... ok\ntest config::remote::tests::resolve_auth_custom_header ... ok\ntest config::remote::tests::resolve_auth_missing_env_var ... ok\ntest config::remote::tests::fetch_uses_cache_on_second_call ... ok\ntest config::schema::tests::custom_requirement_file_exists_check ... ok\ntest config::schema::tests::custom_requirement_parses ... ok\ntest config::schema::tests::custom_requirement_service_check_parses ... ok\ntest config::remote::tests::fetch_sends_auth_header ... ok\ntest config::schema::tests::custom_requirement_with_install_template ... ok\ntest config::schema::tests::empty_config_has_defaults ... ok\ntest config::schema::tests::empty_requirements_defaults ... ok\ntest config::schema::tests::empty_vars_defaults ... ok\ntest config::schema::tests::environment_config_defaults ... ok\ntest config::schema::tests::environment_override_bare_null_parses_as_none ... ok\ntest config::schema::tests::environment_override_depends_on_parses ... ok\ntest config::schema::tests::environment_override_empty_string_is_not_null ... ok\ntest config::schema::tests::environment_override_title_parses ... ok\ntest config::schema::tests::environment_override_watches_parses ... ok\ntest config::schema::tests::parses_all_check ... ok\ntest config::schema::tests::parses_any_check ... ok\ntest config::schema::tests::parses_command_succeeds_check ... ok\ntest config::schema::tests::parses_computed_var ... ok\ntest config::schema::tests::parses_default_environment ... ok\ntest config::schema::tests::parses_environment_config ... ok\ntest config::schema::tests::parses_extends_config ... ok\ntest config::schema::tests::parses_file_exists_check ... ok\ntest config::schema::tests::parses_minimal_config ... ok\ntest config::schema::tests::parses_marker_check ... ok\ntest config::schema::tests::parses_mixed_vars ... ok\ntest config::schema::tests::parses_multiple_workflows ... ok\ntest config::schema::tests::parses_precondition_all ... ok\ntest config::schema::tests::parses_nested_composite_checks ... ok\ntest config::schema::tests::parses_precondition_command_succeeds ... ok\ntest config::schema::tests::parses_secrets_config ... ok\ntest config::schema::tests::parses_static_var ... ok\ntest config::schema::tests::parses_settings_with_env ... ok\ntest config::schema::tests::parses_step_environments_override ... ok\ntest config::schema::tests::parses_step_only_environments ... ok\ntest config::schema::tests::parses_step_with_inline_config ... ok\ntest config::schema::tests::parses_step_with_hooks ... ok\ntest config::schema::tests::parses_step_with_prompts ... ok\ntest config::schema::tests::parses_step_with_template ... ok\ntest config::schema::tests::parses_step_with_watches ... ok\ntest config::schema::tests::parses_template_sources ... ok\ntest config::schema::tests::parses_workflow_definition ... ok\ntest config::schema::tests::parses_workflow_with_env ... ok\ntest config::schema::tests::parses_workflow_with_overrides ... ok\ntest config::schema::tests::precondition_defaults_none ... ok\ntest config::schema::tests::serialize_omits_empty_vars ... ok\ntest config::schema::tests::serialize_omits_default_values ... ok\ntest config::schema::tests::serialize_omits_none_precondition ... ok\ntest config::schema::tests::serialize_includes_non_default_values ... ok\ntest config::schema::tests::settings_default_environment_defaults_none ... ok\ntest config::schema::tests::step_config_defaults_to_empty_hooks ... ok\ntest config::schema::tests::step_config_parses_before_hooks ... ok\ntest config::schema::tests::step_config_parses_after_hooks ... ok\ntest config::schema::tests::step_config_parses_both_hooks ... ok\ntest config::schema::tests::step_config_requires_defaults_empty ... ok\ntest config::schema::tests::step_config_requires_parses ... ok\ntest config::schema::tests::step_only_environments_defaults_empty ... ok\ntest config::schema::tests::step_defaults_are_correct ... ok\ntest config::tests::serde_yaml_handles_nested_structures ... ok\ntest config::schema::tests::step_environments_defaults_empty ... ok\ntest config::tests::serde_yaml_parses_basic_yaml ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest config::validator::tests::valid_config_returns_no_errors ... ok\ntest config::validator::tests::validate_returns_result ... ok\ntest config::validator::tests::validates_workflow_override_in_workflow ... ok\ntest config::validator::tests::validates_workflow_step_exists ... ok\ntest config::validator::tests::validates_step_has_command_or_template ... ok\ntest config::validator::tests::validates_depends_on_exists ... ok\ntest config::vars::tests::evaluate_empty_vars ... ok\ntest cli::session_wrapper::tests::session_wrapper_cleanup_old_sessions ... ok\ntest config::vars::tests::evaluate_static_var ... ok\ntest detection::command_detection::tests::command_detector_from_string ... ok\ntest detection::command_detection::tests::command_detector_not_found ... ok\ntest detection::command_detection::tests::command_succeeds_helper_false ... ok\ntest detection::command_detection::tests::extract_version_no_match ... ok\ntest detection::command_detection:",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false,
+              "persistedOutputPath": "/Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+              "persistedOutputSize": 108066
+            }
+          }
+        },
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_01Fj6CTFYP7Vej98xD6igMWF",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                  "name": "Bash",
+                  "input": {
+                    "command": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                    "description": "Check test results"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 1,
+                "cache_creation_input_tokens": 857,
+                "cache_read_input_tokens": 75239,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 857
+                },
+                "output_tokens": 25,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "476ffadb-3efd-4421-b7b2-25211f8eeada"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                  "type": "tool_result",
+                  "content": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                  "is_error": false
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+            "uuid": "97c1bf0e-e676-457e-afb7-e418199e79b1",
+            "tool_use_result": {
+              "stdout": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+              "stderr": "",
+              "interrupted": false,
+              "isImage": false,
+              "noOutputExpected": false
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        4,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "function": "_tool_indices_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2563754.535392375,
+      "tool_name": "Bash",
+      "substring": "git commit",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01FaZPcbuNLMS42GsaN3fFoB",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 4400,
+                  "cache_read_input_tokens": 50259,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 4400
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "e1c07f4d-4ab5-4327-ad4b-e4ced9e63615"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_014NR5Bo6qPAWRMkxVr92U7e",
+                    "type": "tool_result",
+                    "content": "Command running in background with ID: buaj1m4a9. Output is being written to: /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/tasks/buaj1m4a9.output",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "ab5ede7c-2f4d-4498-9eb0-c1c02c2cc10e",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "backgroundTaskId": "buaj1m4a9"
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01XyYEkFVvB3VjR3mBu34Hy6",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | tail -30",
+                      "description": "Run full test suite, show tail",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 531,
+                  "cache_read_input_tokens": 74506,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 531
+                  },
+                  "output_tokens": 26,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "5b90e889-25fa-43b1-a98e-1a484f05ab57"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XLrYGK6SyZ7SKYnWgD5Vnd"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "586d81c6-4c8f-44c8-ad1b-72a7f125694d",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1 | tail -30"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01WNKB4bRzx7RSHrd35Cfg5w",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "description": "Run full test suite",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 202,
+                  "cache_read_input_tokens": 75037,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 202
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "8afebf15-c660-44db-ac78-14d3c6f8cc9b"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01WjRFRjAHGjKMoNSzEawcSB",
+                    "type": "tool_result",
+                    "content": "<persisted-output>\nOutput too large (105.5KB). Full output saved to: /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt\n\nPreview (first 2KB):\n   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\n...\n</persisted-output>",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "dfb9554b-596c-43a2-b636-5a72d46d2e52",
+              "tool_use_result": {
+                "stdout": "   Compiling bivvy v1.7.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-bohvr3l0)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.28s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-51d6f25abf3d9f25)\n\nrunning 1480 tests\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cli::commands::cache::tests::list_empty_cache ... ok\ntest cli::commands::cache::tests::show_stats_empty ... ok\ntest cli::commands::cache::tests::show_stats_with_entries ... ok\ntest cli::commands::cache::tests::list_with_entries ... ok\ntest cli::commands::completions::tests::generates_bash_completions ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest cli::commands::completions::tests::generates_fish_completions ... ok\ntest cli::commands::config::tests::config_command_creation ... ok\ntest cli::commands::dispatcher::tests::dispatcher_creation ... ok\ntest cli::commands::completions::tests::generates_zsh_completions ... ok\ntest cli::commands::dispatcher::tests::command_result_failure ... ok\ntest cli::commands::dispatcher::tests::command_result_success ... ok\ntest cli::commands::display::tests::status_kind_conversion ... ok\ntest cli::commands::config::tests::config_no_config ... ok\ntest cli::commands::display::tests::show_step_status_includes_icons ... ok\ntest cli::commands::display::tests::show_step_status_uses_correct_ui_method ... ok\ntest cli::commands::display::tests::status_icon_values ... ok\ntest cli::commands::display::tests::status_symbol_values ... ok\ntest cli::commands::config::tests::config_json_output ... ok\ntest cli::commands::config::tests::config_applies_config_default_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_with_tags ... ok\ntest cli::commands::config::tests::config_yaml_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_basic ... ok\ntest cli::commands::feedback::tests::category_from_tags_defaults_to_other ... ok\ntest cli::commands::feedback::tests::capture_interactive_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_when_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_with_no_deliver_flag ... ok\ntest cli::commands::config::tests::config_shows_config_path ... ok\ntest cli::commands::feedback::tests::category_from_tags_finds_known_category ... ok\ntest cli::commands::feedback::tests::feedback_category_options_exist ... ok\ntest cli::commands::feedback::tests::feedback_prompt_uses_neutral_framing ... ok\ntest cli::commands::feedback::tests::list_by_different_statuses ... ok\ntest cli::commands::feedback::tests::list_empty_feedback ... ok\ntest cli::commands::feedback::tests::list_by_status ... ok\ntest cli::commands::feedback::tests::feedback_args_parsing ... ok\ntest cli::commands::feedback::tests::list_feedback_by_tag ... ok\ntest cli::commands::feedback::tests::list_invalid_status ... ok\ntest cli::commands::feedback::tests::list_all_feedback ... ok\ntest cli::commands::feedback::tests::no_deliver_flag_parsing ... ok\ntest cli::commands::feedback::tests::resolve_nonexistent_feedback ... ok\ntest cli::commands::feedback::tests::list_feedback_with_entries ... ok\ntest cli::commands::feedback::tests::session_feedback_no_sessions ... ok\ntest cli::commands::feedback::tests::resolve_with_default_note ... ok\ntest cli::commands::feedback::tests::resolve_feedback_entry ... ok\ntest cli::commands::history::tests::history_args_accessor ... ok\ntest cli::commands::history::tests::history_command_creation ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::init::tests::create_config_with_file_exists_check ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::feedback::tests::delivery_declined_saves_locally_only ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::history_with_limit ... ok\ntest cli::commands::history::tests::history_no_runs ... ok\ntest cli::commands::history::tests::history_since_filters_runs ... ok\ntest cli::commands::history::tests::history_detail_shows_steps ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::init::tests::init_interactive_shows_hints ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::last_no_runs ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::last::tests::last_shows_header ... ok\ntest cli::commands::last::tests::last_shows_error_for_failed_run ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::last::tests::last_shows_workflow_and_status ... ok\ntest cli::commands::last::tests::last_shows_steps_for_recorded_run ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_strict_mode_fails_on_warnings ... ok\ntest cli::commands::lint::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::list::tests::list_command_creation ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::commands::list::tests::list_no_config ... ok\ntest cli::commands::list::tests::list_no_skipped_when_environment_matches ... ok\ntest cli::commands::last::tests::last_shows_when_and_duration ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest cli::commands::last::tests::last_shows_skipped_steps ... ok\ntest cli::commands::list::tests::list_shows_step_command ... ok\ntest cli::commands::list::tests::list_shows_environment_info ... ok\ntest cli::commands::list::tests::list_shows_skipped_steps_for_environment ... ok\ntest cli::commands::list::tests::list_shows_environment_from_env_flag ... ok\ntest cli::commands::list::tests::list_shows_workflow_description ... ok\ntest cli::commands::list::tests::list_shows_step_title_when_no_description ... ok\ntest cli::commands::list::tests::list_shows_template_instead_of_command ... ok\ntest cli::commands::list::tests::list_shows_step_description ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::list::tests::list_shows_workflow_with_arrows ... ok\ntest cli::commands::list::tests::list_steps_only ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::list::tests::list_with_config ... ok\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::last::tests::last_untracked_step_shows_pending_icon ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::run::tests::execute_shows_config_path ... ok\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::execute_shows_environment_info ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli::commands::run::tests::execute_verbose_does_not_show_config_path ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::status::tests::status_shows_requirements_section_when_requires_present ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_multiple_calls ... ok\ntest cli::session_wrapper::tests::session_wrapper_capture_output ... ok\ntest cli::commands::status::tests::status_with_config ... ok\ntest cli::commands::status::tests::status_shows_skipped_steps_for_environment ... ok\ntest cli::session_wrapper::tests::session_wrapper_creation ... ok\ntest cli::session_wrapper::tests::session_wrapper_finalize_exit_code ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_store ... ok\ntest cli::session_wrapper::tests::session_wrapper_get_latest_session_id ... ok\ntest cli::session_wrapper::tests::session_wrapper_metadata_modification ... ok\ntest cli::session_wrapper::tests::session_wrapper_session_id_accessor ... ok\ntest config::env_file::tests::complex_env_file ... ok\ntest config::env_file::tests::handles_empty_values ... ok\ntest cli::session_wrapper::tests::session_wrapper_with_args ... ok\ntest config::env_file::tests::handles_lines_without_equals ... ok\ntest config::env_file::tests::handles_quoted_values ... ok\ntest config::env_file::tests::handles_values_with_equals ... ok\ntest config::env_file::tests::load_optional_returns_empty_for_missing_file ... ok\ntest config::env_file::tests::parses_simple_env_file ... ok\ntest config::env_file::tests::handles_whitespace_around_equals ... ok\ntest config::env_file::tests::skips_comments ... ok\ntest config::env_file::tests::skips_empty_lines ... ok\ntest config::env_layer::tests::default_stack_is_empty ... ok\ntest config::env_layer::tests::higher_layers_override_lower ... ok\ntest config::env_layer::tests::layer_contains_check ... ok\ntest cli::commands::status::tests::status_shows_steps_label ... ok\ntest config::env_layer::tests::layer_len_and_is_empty ... ok\ntest config::env_layer::tests::missing_key_returns_none ... ok\ntest config::env_layer::tests::multiple_overrides ... ok\ntest config::env_layer::tests::resolve_merges_all_layers ... ok\ntest config::env_layer::tests::tracks_variable_source ... ok\ntest config::env_layer::tests::stack_layer_count ... ok\ntest config::environment::tests::is_secret_matches_builtin_patterns ... ok\ntest config::environment::tests::is_secret_matches_custom_patterns ... ok\ntest config::environment::tests::is_secret_matches_suffix_patterns ... ok\ntest config::environment::tests::load_env_file_not_found ... ok\ntest config::environment::tests::load_env_file_optional_returns_empty ... ok\ntest config::environment::tests::load_system_env_returns_current_env ... ok\ntest config::environment::tests::load_env_file_works ... ok\ntest config::environment::tests::merge_env_overlays_correctly ... ok\ntest config::environment::tests::parse_dotenv_basic ... ok\ntest config::environment::tests::parse_dotenv_handles_equals_in_value ... ok\ntest config::environment::tests::parse_dotenv_rejects_invalid_lines ... ok\ntest config::environment::tests::parse_dotenv_skips_comments_and_empty ... ok\ntest config::environment::tests::parse_dotenv_strips_quotes ... ok\ntest config::extends::tests::config_without_extends_unchanged ... ok\ntest config::extends::tests::circular_extends_detected ... ok\ntest config::extends::tests::empty_extends_unchanged ... ok\ntest config::extends::tests::chained_extends ... ok\ntest config::extends::tests::extends_child_yaml_replaces_parent_ci_environment_block ... ok\ntest config::extends::tests::extends_cleared_from_result ... ok\ntest config::extends::tests::depth_limit_enforced ... ok\ntest config::extends::tests::extends_env_override_adds_new_environment ... ok\ntest config::extends::tests::extends_env_override_replaces_ci_block ... ok\ntest config::extends::tests::extends_env_override_preserves_unmentioned_environments ... ok\ntest config::extends::tests::extends_inherits_only_environments_when_unset ... ok\ntest config::extends::tests::extends_only_environments_replaces_list ... ok\ntest config::extends::tests::invalid_yaml_response ... ok\ntest config::extends::tests::local_overrides_base ... ok\ntest config::extends::tests::resolver_custom_max_depth ... ok\ntest config::extends::tests::resolver_has_default_max_depth ... ok\ntest config::extends::tests::multiple_extends_merge_in_order ... ok\ntest config::extends::tests::validate_extends_accepts_valid_urls ... ok\ntest config::extends::tests::validate_extends_allows_public_ip ... ok\ntest config::extends::tests::validate_extends_blocks_127_0_0_1 ... ok\ntest config::extends::tests::validate_extends_blocks_localhost ... ok\ntest config::extends::tests::single_extends_merges_base ... ok\ntest config::extends::tests::validate_extends_blocks_metadata_ip ... ok\ntest config::extends::tests::validate_extends_blocks_private_10_range ... ok\ntest config::extends::tests::validate_extends_blocks_private_192_168_range ... ok\ntest config::extends::tests::validate_extends_rejects_non_http_url ... ok\ntest config::extends::tests::validate_extends_rejects_empty_url ... ok\ntest config::extends::tests::validate_extends_rejects_relative_path ... ok\ntest config::interpolation::tests::context_includes_builtin_bivvy_version ... ok\ntest config::interpolation::tests::context_with_env_sets_env ... ok\ntest config::interpolation::tests::context_with_project_adds_project_vars ... ok\ntest config::interpolation::tests::extract_variables_returns_unique_names ... ok\ntest config::interpolation::tests::extract_variables_empty_for_literal ... ok\ntest config::interpolation::tests::has_interpolation_returns_true_for_variables ... ok\ntest config::extends::tests::unreachable_url_reports_which_url ... ok\ntest config::interpolation::tests::parse_adjacent_variables ... ok\ntest config::interpolation::tests::parse_dollar_without_brace ... ok\ntest config::interpolation::tests::parse_empty_string ... ok\ntest config::interpolation::tests::parse_escaped_dollar_brace ... ok\ntest config::interpolation::tests::parse_mixed_escaped_and_real ... ok\ntest config::interpolation::tests::parse_literal_only ... ok\ntest config::interpolation::tests::parse_multiple_variables ... ok\ntest config::interpolation::tests::parse_single_variable ... ok\ntest config::interpolation::tests::parse_variable_with_numbers ... ok\ntest config::interpolation::tests::parse_variable_with_surrounding_text ... ok\ntest config::interpolation::tests::parse_variable_with_underscore ... ok\ntest config::interpolation::tests::resolve_multiple_variables ... ok\ntest config::interpolation::tests::resolve_string_fails_on_missing_variable ... ok\ntest config::interpolation::tests::resolve_preserves_escaped ... ok\ntest config::interpolation::tests::resolve_string_uses_priority_order ... ok\ntest config::interpolation::tests::resolve_string_replaces_variables ... ok\ntest config::interpolation::tests::resolve_string_with_default_prefers_context ... ok\ntest config::interpolation::tests::resolve_string_with_default_uses_default ... ok\ntest config::interpolation::tests::vars_resolve_between_preferences_and_env ... ok\ntest config::interpolation::tests::with_vars_builder ... ok\ntest config::loader::tests::all_existing_returns_in_merge_order ... ok\ntest config::loader::tests::discover_finds_local_overrides ... ok\ntest config::loader::tests::discover_returns_none_for_missing_configs ... ok\ntest config::loader::tests::discover_finds_project_config ... ok\ntest config::loader::tests::config_without_extends_still_works ... ok\ntest config::loader::tests::find_project_root_finds_bivvy_dir ... ok\ntest config::loader::tests::find_project_root_finds_git_dir ... ok\ntest config::loader::tests::find_project_root_prefers_bivvy_over_git ... ok\ntest config::loader::tests::extends_merges_before_local_override ... ok\ntest config::loader::tests::load_config_file_handles_empty_file ... ok\ntest config::loader::tests::extends_with_local_override_file ... ok\ntest config::loader::tests::load_config_file_parses_full_config ... ok\ntest config::loader::tests::load_config_file_returns_not_found_error ... ok\ntest config::loader::tests::load_config_value_returns_raw_value ... ok\ntest config::loader::tests::load_config_file_parses_valid_yaml ... ok\ntest config::loader::tests::load_config_with_override_skips_merge ... ok\ntest config::loader::tests::load_config_without_override_uses_merge ... ok\ntest config::loader::tests::load_merged_config_fails_without_project_config ... ok\ntest config::loader::tests::load_merged_config_merges_project_and_local ... ok\ntest config::loader::tests::load_merged_config_preserves_step_definitions ... ok\ntest config::loader::tests::parse_config_returns_parse_error_for_invalid_yaml ... ok\ntest config::merger::tests::arrays_are_replaced_not_merged ... ok\ntest config::merger::tests::deep_merge_replaces_at_conflict_point ... ok\ntest config::merger::tests::deep_merge_without_leaves_behaves_as_before ... ok\ntest config::merger::tests::deeply_nested_merge ... ok\ntest config::merger::tests::empty_overlay_returns_base_unchanged ... ok\ntest config::merger::tests::leaf_key_adds_new_entries ... ok\ntest config::merger::tests::leaf_key_null_removes_entry ... ok\ntest config::merger::tests::leaf_key_preserves_unmentioned_entries ... ok\ntest config::merger::tests::leaf_key_replaces_entry_values ... ok\ntest config::merger::tests::merge_configs_merges_multiple_in_order ... ok\ntest config::merger::tests::merge_empty_configs_returns_empty ... ok\ntest config::merger::tests::nested_objects_merge_recursively ... ok\ntest config::merger::tests::null_removes_inherited_value ... ok\ntest config::merger::tests::scalar_overlay_replaces_mapping_base ... ok\ntest config::remote::tests::bearer_auth_header_format ... ok\ntest config::loader::tests::load_merged_config_resolves_extends ... ok\ntest config::remote::tests::cache_path_is_deterministic ... ok\ntest cli::commands::status::tests::status_shows_pending_for_never_run_steps ... ok\ntest config::remote::tests::clear_all_cache_removes_directory ... ok\ntest config::remote::tests::clear_cache_removes_cached_file ... ok\ntest config::remote::tests::clear_all_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_cache_dir ... ok\ntest config::remote::tests::clear_cache_triggers_refetch ... ok\ntest config::remote::tests::corrupted_cache_triggers_refetch ... ok\ntest config::remote::tests::creates_fetcher_with_custom_timeout ... ok\ntest config::remote::tests::concurrent_cache_access_no_corruption ... ok\ntest config::remote::tests::creates_fetcher_with_default_timeout ... ok\ntest config::remote::tests::custom_auth_header_format ... ok\ntest config::remote::tests::different_urls_have_different_cache_paths ... ok\ntest config::remote::tests::fetch_returns_error_on_500 ... ok\ntest config::remote::tests::fetch_returns_error_on_404 ... ok\ntest config::remote::tests::fetch_fresh_bypasses_cache ... ok\ntest config::remote::tests::resolve_auth_bearer ... ok\ntest config::remote::tests::fetch_returns_yaml_content ... ok\ntest config::remote::tests::resolve_auth_custom_header ... ok\ntest config::remote::tests::resolve_auth_missing_env_var ... ok\ntest config::remote::tests::fetch_uses_cache_on_second_call ... ok\ntest config::schema::tests::custom_requirement_file_exists_check ... ok\ntest config::schema::tests::custom_requirement_parses ... ok\ntest config::schema::tests::custom_requirement_service_check_parses ... ok\ntest config::remote::tests::fetch_sends_auth_header ... ok\ntest config::schema::tests::custom_requirement_with_install_template ... ok\ntest config::schema::tests::empty_config_has_defaults ... ok\ntest config::schema::tests::empty_requirements_defaults ... ok\ntest config::schema::tests::empty_vars_defaults ... ok\ntest config::schema::tests::environment_config_defaults ... ok\ntest config::schema::tests::environment_override_bare_null_parses_as_none ... ok\ntest config::schema::tests::environment_override_depends_on_parses ... ok\ntest config::schema::tests::environment_override_empty_string_is_not_null ... ok\ntest config::schema::tests::environment_override_title_parses ... ok\ntest config::schema::tests::environment_override_watches_parses ... ok\ntest config::schema::tests::parses_all_check ... ok\ntest config::schema::tests::parses_any_check ... ok\ntest config::schema::tests::parses_command_succeeds_check ... ok\ntest config::schema::tests::parses_computed_var ... ok\ntest config::schema::tests::parses_default_environment ... ok\ntest config::schema::tests::parses_environment_config ... ok\ntest config::schema::tests::parses_extends_config ... ok\ntest config::schema::tests::parses_file_exists_check ... ok\ntest config::schema::tests::parses_minimal_config ... ok\ntest config::schema::tests::parses_marker_check ... ok\ntest config::schema::tests::parses_mixed_vars ... ok\ntest config::schema::tests::parses_multiple_workflows ... ok\ntest config::schema::tests::parses_precondition_all ... ok\ntest config::schema::tests::parses_nested_composite_checks ... ok\ntest config::schema::tests::parses_precondition_command_succeeds ... ok\ntest config::schema::tests::parses_secrets_config ... ok\ntest config::schema::tests::parses_static_var ... ok\ntest config::schema::tests::parses_settings_with_env ... ok\ntest config::schema::tests::parses_step_environments_override ... ok\ntest config::schema::tests::parses_step_only_environments ... ok\ntest config::schema::tests::parses_step_with_inline_config ... ok\ntest config::schema::tests::parses_step_with_hooks ... ok\ntest config::schema::tests::parses_step_with_prompts ... ok\ntest config::schema::tests::parses_step_with_template ... ok\ntest config::schema::tests::parses_step_with_watches ... ok\ntest config::schema::tests::parses_template_sources ... ok\ntest config::schema::tests::parses_workflow_definition ... ok\ntest config::schema::tests::parses_workflow_with_env ... ok\ntest config::schema::tests::parses_workflow_with_overrides ... ok\ntest config::schema::tests::precondition_defaults_none ... ok\ntest config::schema::tests::serialize_omits_empty_vars ... ok\ntest config::schema::tests::serialize_omits_default_values ... ok\ntest config::schema::tests::serialize_omits_none_precondition ... ok\ntest config::schema::tests::serialize_includes_non_default_values ... ok\ntest config::schema::tests::settings_default_environment_defaults_none ... ok\ntest config::schema::tests::step_config_defaults_to_empty_hooks ... ok\ntest config::schema::tests::step_config_parses_before_hooks ... ok\ntest config::schema::tests::step_config_parses_after_hooks ... ok\ntest config::schema::tests::step_config_parses_both_hooks ... ok\ntest config::schema::tests::step_config_requires_defaults_empty ... ok\ntest config::schema::tests::step_config_requires_parses ... ok\ntest config::schema::tests::step_only_environments_defaults_empty ... ok\ntest config::schema::tests::step_defaults_are_correct ... ok\ntest config::tests::serde_yaml_handles_nested_structures ... ok\ntest config::schema::tests::step_environments_defaults_empty ... ok\ntest config::tests::serde_yaml_parses_basic_yaml ... ok\ntest config::validator::tests::detects_circular_dependency ... ok\ntest config::validator::tests::valid_config_returns_no_errors ... ok\ntest config::validator::tests::validate_returns_result ... ok\ntest config::validator::tests::validates_workflow_override_in_workflow ... ok\ntest config::validator::tests::validates_workflow_step_exists ... ok\ntest config::validator::tests::validates_step_has_command_or_template ... ok\ntest config::validator::tests::validates_depends_on_exists ... ok\ntest config::vars::tests::evaluate_empty_vars ... ok\ntest cli::session_wrapper::tests::session_wrapper_cleanup_old_sessions ... ok\ntest config::vars::tests::evaluate_static_var ... ok\ntest detection::command_detection::tests::command_detector_from_string ... ok\ntest detection::command_detection::tests::command_detector_not_found ... ok\ntest detection::command_detection::tests::command_succeeds_helper_false ... ok\ntest detection::command_detection::tests::extract_version_no_match ... ok\ntest detection::command_detection:",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "persistedOutputPath": "/Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                "persistedOutputSize": 108066
+              }
+            }
+          },
+          "primary_arg": "cargo test --all-features 2>&1"
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01Fj6CTFYP7Vej98xD6igMWF",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                    "name": "Bash",
+                    "input": {
+                      "command": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt",
+                      "description": "Check test results"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 857,
+                  "cache_read_input_tokens": 75239,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 857
+                  },
+                  "output_tokens": 25,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "476ffadb-3efd-4421-b7b2-25211f8eeada"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01KgXaYQpLSrQKbjEX6M4PGf",
+                    "type": "tool_result",
+                    "content": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "82a6a75b-c6d8-4738-9202-4dd3129d2fef",
+              "uuid": "97c1bf0e-e676-457e-afb7-e418199e79b1",
+              "tool_use_result": {
+                "stdout": "test result: ok. 1480 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 161.78s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.50s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.48s\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.14s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "primary_arg": "grep -E '(^test result:|FAILED|failures:)' /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-bohvr3l0/82a6a75b-c6d8-4738-9202-4dd3129d2fef/tool-results/bmwm4vw7z.txt"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2563754.535394083,
+      "operator": "exists_after",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "no B indices to follow"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2563754.535397083,
+      "passed": true,
+      "detail": "VACUOUS PASS: no B indices to follow. 'cargo check' (Bash) occurred after 'git commit' (Bash)"
+    }
+  ]
+}

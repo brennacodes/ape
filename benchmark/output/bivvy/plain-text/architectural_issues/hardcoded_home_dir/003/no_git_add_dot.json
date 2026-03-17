@@ -1,0 +1,92 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"Cargo.lock\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f \\\\( -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" \\\\) | sort', 'cargo test --all-features 2>&1 | tail -60', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'grep -A 20 \"^failures:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null || grep \"test result:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null', 'cargo test --all-features 2>&1', 'grep -E \"(^failures:|test result:)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bqrbgs2d0.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1', 'grep -E \"(TOTAL|test result:|Filename)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bk3tie9jv.txt', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status -u 2>&1', 'git diff 2>&1', 'git log -3 --oneline 2>&1', 'git log -1 --oneline 2>&1', 'git add src/config/loader.rs src/config/mod.rs src/registry/local.rs src/registry/mod.rs src/registry/resolver.rs src/registry/template.rs src/runner/telemetry.rs src/state/index.rs src/state/store.rs 2>&1', 'git commit -m \"$(cat <<\\'EOF\\'\\nUse standard XDG directories instead of ~/.bivvy\\n\\nReplace all hardcoded ~/.bivvy paths with proper platform\\ndirectories via the dirs crate:\\n\\n- State and index: dirs::data_dir()/bivvy/\\n- User config: dirs::config_dir()/bivvy/\\n- User templates: dirs::data_dir()/bivvy/templates/\\n- Failure reports: dirs::data_dir()/bivvy/failure-reports/\\n\\nThis follows the same pattern already used by the cache,\\nsession, and feedback modules. The fallback for unavailable\\ndirectories is changed from PathBuf::from(\"~\") (which is\\nnever expanded by Rust fs APIs) to PathBuf::from(\".\").\\nEOF\\n)\" 2>&1', 'cargo check --all-features 2>&1', 'git log -1 --stat 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"Cargo.lock\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f \\( -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" \\) | sort",
+    "cargo test --all-features 2>&1 | tail -60",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "grep -A 20 \"^failures:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null || grep \"test result:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null",
+    "cargo test --all-features 2>&1",
+    "grep -E \"(^failures:|test result:)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bqrbgs2d0.txt",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo llvm-cov --all-features 2>&1",
+    "grep -E \"(TOTAL|test result:|Filename)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bk3tie9jv.txt",
+    "cargo check --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git status -u 2>&1",
+    "git diff 2>&1",
+    "git log -3 --oneline 2>&1",
+    "git log -1 --oneline 2>&1",
+    "git add src/config/loader.rs src/config/mod.rs src/registry/local.rs src/registry/mod.rs src/registry/resolver.rs src/registry/template.rs src/runner/telemetry.rs src/state/index.rs src/state/store.rs 2>&1",
+    "git commit -m \"$(cat <<'EOF'\nUse standard XDG directories instead of ~/.bivvy\n\nReplace all hardcoded ~/.bivvy paths with proper platform\ndirectories via the dirs crate:\n\n- State and index: dirs::data_dir()/bivvy/\n- User config: dirs::config_dir()/bivvy/\n- User templates: dirs::data_dir()/bivvy/templates/\n- Failure reports: dirs::data_dir()/bivvy/failure-reports/\n\nThis follows the same pattern already used by the cache,\nsession, and feedback modules. The fallback for unavailable\ndirectories is changed from PathBuf::from(\"~\") (which is\nnever expanded by Rust fs APIs) to PathBuf::from(\".\").\nEOF\n)\" 2>&1",
+    "cargo check --all-features 2>&1",
+    "git log -1 --stat 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2566742.486741208,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2566742.486769916,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"Cargo.lock\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f \\( -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" \\) | sort",
+        "cargo test --all-features 2>&1 | tail -60",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1",
+        "grep -A 20 \"^failures:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null || grep \"test result:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null",
+        "cargo test --all-features 2>&1",
+        "grep -E \"(^failures:|test result:)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bqrbgs2d0.txt",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo llvm-cov --all-features 2>&1",
+        "grep -E \"(TOTAL|test result:|Filename)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bk3tie9jv.txt",
+        "cargo check --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git status -u 2>&1",
+        "git diff 2>&1",
+        "git log -3 --oneline 2>&1",
+        "git log -1 --oneline 2>&1",
+        "git add src/config/loader.rs src/config/mod.rs src/registry/local.rs src/registry/mod.rs src/registry/resolver.rs src/registry/template.rs src/runner/telemetry.rs src/state/index.rs src/state/store.rs 2>&1",
+        "git commit -m \"$(cat <<'EOF'\nUse standard XDG directories instead of ~/.bivvy\n\nReplace all hardcoded ~/.bivvy paths with proper platform\ndirectories via the dirs crate:\n\n- State and index: dirs::data_dir()/bivvy/\n- User config: dirs::config_dir()/bivvy/\n- User templates: dirs::data_dir()/bivvy/templates/\n- Failure reports: dirs::data_dir()/bivvy/failure-reports/\n\nThis follows the same pattern already used by the cache,\nsession, and feedback modules. The fallback for unavailable\ndirectories is changed from PathBuf::from(\"~\") (which is\nnever expanded by Rust fs APIs) to PathBuf::from(\".\").\nEOF\n)\" 2>&1",
+        "cargo check --all-features 2>&1",
+        "git log -1 --stat 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2566742.486789083,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"Cargo.lock\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-o9001zas -type f \\\\( -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" \\\\) | sort', 'cargo test --all-features 2>&1 | tail -60', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'grep -A 20 \"^failures:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null || grep \"test result:\" /private/tmp/claude-502/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/tasks/byvtk86s8.output 2>/dev/null', 'cargo test --all-features 2>&1', 'grep -E \"(^failures:|test result:)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bqrbgs2d0.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1', 'grep -E \"(TOTAL|test result:|Filename)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-o9001zas/0483e253-23ff-4522-b420-5efb13a91088/tool-results/bk3tie9jv.txt', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git status -u 2>&1', 'git diff 2>&1', 'git log -3 --oneline 2>&1', 'git log -1 --oneline 2>&1', 'git add src/config/loader.rs src/config/mod.rs src/registry/local.rs src/registry/mod.rs src/registry/resolver.rs src/registry/template.rs src/runner/telemetry.rs src/state/index.rs src/state/store.rs 2>&1', 'git commit -m \"$(cat <<\\'EOF\\'\\nUse standard XDG directories instead of ~/.bivvy\\n\\nReplace all hardcoded ~/.bivvy paths with proper platform\\ndirectories via the dirs crate:\\n\\n- State and index: dirs::data_dir()/bivvy/\\n- User config: dirs::config_dir()/bivvy/\\n- User templates: dirs::data_dir()/bivvy/templates/\\n- Failure reports: dirs::data_dir()/bivvy/failure-reports/\\n\\nThis follows the same pattern already used by the cache,\\nsession, and feedback modules. The fallback for unavailable\\ndirectories is changed from PathBuf::from(\"~\") (which is\\nnever expanded by Rust fs APIs) to PathBuf::from(\".\").\\nEOF\\n)\" 2>&1', 'cargo check --all-features 2>&1', 'git log -1 --stat 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

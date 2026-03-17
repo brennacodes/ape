@@ -1,0 +1,80 @@
+{
+  "check_id": "no_git_add_dot",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h -type f -name \"*.rs\" | head -20', 'grep -r \"\\\\.unwrap()\" --include=\"*.rs\" src/ui/', 'grep -r \"read_key\\\\|stdin\\\\|readline\" --include=\"*.rs\" src/ui/ | head -20', 'grep -r \"read_key\\\\|Ctrl.*D\\\\|EOF\\\\|Eof\" --include=\"*.rs\" -i src/', 'grep -r \"prompt_yes_no\\\\|read_key\" --include=\"*.rs\" tests/', 'cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h/Cargo.toml | grep -A 10 \"\\\\[dependencies\\\\]\"', \"grep -rn '\\\\.unwrap()' src/ --include='*.rs' | grep -v '#\\\\[cfg(test)\\\\]' | grep -v 'mod tests' | grep -v '// test' | head -40\", 'python3 -c \"\\nimport re\\n\\n# Read the file\\nwith open(\\'src/ui/prompts.rs\\') as f:\\n    content = f.read()\\n\\n# Split into test and non-test sections\\n# Find where #[cfg(test)] starts\\ntest_start = content.find(\\'#[cfg(test)]\\')\\nif test_start == -1:\\n    prod_code = content\\nelse:\\n    prod_code = content[:test_start]\\n\\n# Find all .unwrap() in production code\\nfor i, line in enumerate(prod_code.split(\\'\\\\n\\'), 1):\\n    if \\'.unwrap()\\' in line:\\n        print(f\\'Line {i}: {line.strip()}\\')\\n\"', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0\" -type d 2>/dev/null', 'cargo test --all-features 2>&1', 'tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt', 'grep -E \"test result:|filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1 | tail -20', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h -type f -name \"*.rs\" | head -20",
+    "grep -r \"\\.unwrap()\" --include=\"*.rs\" src/ui/",
+    "grep -r \"read_key\\|stdin\\|readline\" --include=\"*.rs\" src/ui/ | head -20",
+    "grep -r \"read_key\\|Ctrl.*D\\|EOF\\|Eof\" --include=\"*.rs\" -i src/",
+    "grep -r \"prompt_yes_no\\|read_key\" --include=\"*.rs\" tests/",
+    "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h/Cargo.toml | grep -A 10 \"\\[dependencies\\]\"",
+    "grep -rn '\\.unwrap()' src/ --include='*.rs' | grep -v '#\\[cfg(test)\\]' | grep -v 'mod tests' | grep -v '// test' | head -40",
+    "python3 -c \"\nimport re\n\n# Read the file\nwith open('src/ui/prompts.rs') as f:\n    content = f.read()\n\n# Split into test and non-test sections\n# Find where #[cfg(test)] starts\ntest_start = content.find('#[cfg(test)]')\nif test_start == -1:\n    prod_code = content\nelse:\n    prod_code = content[:test_start]\n\n# Find all .unwrap() in production code\nfor i, line in enumerate(prod_code.split('\\n'), 1):\n    if '.unwrap()' in line:\n        print(f'Line {i}: {line.strip()}')\n\"",
+    "find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null",
+    "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0\" -type d 2>/dev/null",
+    "cargo test --all-features 2>&1",
+    "tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt",
+    "grep -E \"test result:|filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo llvm-cov --all-features 2>&1 | tail -20",
+    "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+  ],
+  "target_value": "git add \\.",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2568220.356816875,
+      "check_id": "no_git_add_dot",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git add \\."
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2568220.356840166,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h -type f -name \"*.rs\" | head -20",
+        "grep -r \"\\.unwrap()\" --include=\"*.rs\" src/ui/",
+        "grep -r \"read_key\\|stdin\\|readline\" --include=\"*.rs\" src/ui/ | head -20",
+        "grep -r \"read_key\\|Ctrl.*D\\|EOF\\|Eof\" --include=\"*.rs\" -i src/",
+        "grep -r \"prompt_yes_no\\|read_key\" --include=\"*.rs\" tests/",
+        "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h/Cargo.toml | grep -A 10 \"\\[dependencies\\]\"",
+        "grep -rn '\\.unwrap()' src/ --include='*.rs' | grep -v '#\\[cfg(test)\\]' | grep -v 'mod tests' | grep -v '// test' | head -40",
+        "python3 -c \"\nimport re\n\n# Read the file\nwith open('src/ui/prompts.rs') as f:\n    content = f.read()\n\n# Split into test and non-test sections\n# Find where #[cfg(test)] starts\ntest_start = content.find('#[cfg(test)]')\nif test_start == -1:\n    prod_code = content\nelse:\n    prod_code = content[:test_start]\n\n# Find all .unwrap() in production code\nfor i, line in enumerate(prod_code.split('\\n'), 1):\n    if '.unwrap()' in line:\n        print(f'Line {i}: {line.strip()}')\n\"",
+        "find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null",
+        "find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0\" -type d 2>/dev/null",
+        "cargo test --all-features 2>&1",
+        "tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt",
+        "grep -E \"test result:|filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo llvm-cov --all-features 2>&1 | tail -20",
+        "cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1"
+      ],
+      "target_value": "git add \\.",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2568220.356858,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h -type f -name \"*.rs\" | head -20', 'grep -r \"\\\\.unwrap()\" --include=\"*.rs\" src/ui/', 'grep -r \"read_key\\\\|stdin\\\\|readline\" --include=\"*.rs\" src/ui/ | head -20', 'grep -r \"read_key\\\\|Ctrl.*D\\\\|EOF\\\\|Eof\" --include=\"*.rs\" -i src/', 'grep -r \"prompt_yes_no\\\\|read_key\" --include=\"*.rs\" tests/', 'cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-eg65ck6h/Cargo.toml | grep -A 10 \"\\\\[dependencies\\\\]\"', \"grep -rn '\\\\.unwrap()' src/ --include='*.rs' | grep -v '#\\\\[cfg(test)\\\\]' | grep -v 'mod tests' | grep -v '// test' | head -40\", 'python3 -c \"\\nimport re\\n\\n# Read the file\\nwith open(\\'src/ui/prompts.rs\\') as f:\\n    content = f.read()\\n\\n# Split into test and non-test sections\\n# Find where #[cfg(test)] starts\\ntest_start = content.find(\\'#[cfg(test)]\\')\\nif test_start == -1:\\n    prod_code = content\\nelse:\\n    prod_code = content[:test_start]\\n\\n# Find all .unwrap() in production code\\nfor i, line in enumerate(prod_code.split(\\'\\\\n\\'), 1):\\n    if \\'.unwrap()\\' in line:\\n        print(f\\'Line {i}: {line.strip()}\\')\\n\"', 'find ~/.cargo/registry/src -path \"*/console-0.16.2/src\" -type d 2>/dev/null', 'find ~/.cargo/registry/src -path \"*/dialoguer-0.12.0\" -type d 2>/dev/null', 'cargo test --all-features 2>&1', 'tail -30 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt', 'grep -E \"test result:|filtered out\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-eg65ck6h/e5421ad7-ec8a-4109-9358-320719d13f4e/tool-results/by180ogi5.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1 | tail -20', 'cargo check --all-targets --all-features 2>&1 && cargo build --release 2>&1'], expected regex_not_match 'git add \\\\.'"
+    }
+  ]
+}

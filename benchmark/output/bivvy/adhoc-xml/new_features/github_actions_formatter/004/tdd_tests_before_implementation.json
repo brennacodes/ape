@@ -1,0 +1,374 @@
+{
+  "check_id": "tdd_tests_before_implementation",
+  "phase": "specification",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)",
+  "category": "new_features",
+  "metric_value": [],
+  "target_value": [],
+  "operator": "strictly_precedes",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2578055.972396041,
+      "check_id": "tdd_tests_before_implementation",
+      "phase": "specification",
+      "condition": {
+        "metric": "tool_call.file_modify",
+        "metric_args": "test",
+        "operator": "strictly_precedes",
+        "target": "tool_call.file_modify",
+        "target_args": "src/"
+      }
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2578055.97244325,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_012vRa4eVwc9GRFBJmKtqT6y",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                    "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 5965,
+                "cache_read_input_tokens": 80112,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 5965
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+            "uuid": "9e2d78e8-fc84-46a0-a78d-8359d4d79839"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/swirling-percolating-sonnet.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+            "uuid": "46206d38-3e83-4a0f-92a9-493833afa84d",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+              "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        106
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2578055.972481833,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "test",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_012vRa4eVwc9GRFBJmKtqT6y",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                      "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 5965,
+                  "cache_read_input_tokens": 80112,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 5965
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+              "uuid": "9e2d78e8-fc84-46a0-a78d-8359d4d79839"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/swirling-percolating-sonnet.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+              "uuid": "46206d38-3e83-4a0f-92a9-493833afa84d",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "resolve_metric",
+      "action": "resolved_multi_tool_metric",
+      "timestamp": 2578055.972632208,
+      "metric": "tool_call.file_modify",
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "tool_calls": [
+        {
+          "tool_use_event": {
+            "type": "assistant",
+            "message": {
+              "model": "claude-opus-4-6",
+              "id": "msg_012vRa4eVwc9GRFBJmKtqT6y",
+              "type": "message",
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "tool_use",
+                  "id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                  "name": "Write",
+                  "input": {
+                    "file_path": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                    "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n"
+                  },
+                  "caller": {
+                    "type": "direct"
+                  }
+                }
+              ],
+              "stop_reason": null,
+              "stop_sequence": null,
+              "usage": {
+                "input_tokens": 3,
+                "cache_creation_input_tokens": 5965,
+                "cache_read_input_tokens": 80112,
+                "cache_creation": {
+                  "ephemeral_5m_input_tokens": 0,
+                  "ephemeral_1h_input_tokens": 5965
+                },
+                "output_tokens": 2,
+                "service_tier": "standard",
+                "inference_geo": "not_available"
+              },
+              "context_management": null
+            },
+            "parent_tool_use_id": null,
+            "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+            "uuid": "9e2d78e8-fc84-46a0-a78d-8359d4d79839"
+          },
+          "tool_result_event": {
+            "type": "user",
+            "message": {
+              "role": "user",
+              "content": [
+                {
+                  "tool_use_id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                  "type": "tool_result",
+                  "content": "File created successfully at: /Users/brenna/.claude/plans/swirling-percolating-sonnet.md"
+                }
+              ]
+            },
+            "parent_tool_use_id": null,
+            "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+            "uuid": "46206d38-3e83-4a0f-92a9-493833afa84d",
+            "tool_use_result": {
+              "type": "create",
+              "filePath": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+              "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n",
+              "structuredPatch": [],
+              "originalFile": null
+            }
+          }
+        }
+      ],
+      "result_indices": [
+        106
+      ]
+    },
+    {
+      "function": "_tool_indices_multi_matching",
+      "action": "filtered_tool_calls",
+      "timestamp": 2578055.9728,
+      "tool_names": [
+        "Write",
+        "Edit"
+      ],
+      "substring": "src/",
+      "matched": [],
+      "rejected": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_012vRa4eVwc9GRFBJmKtqT6y",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                    "name": "Write",
+                    "input": {
+                      "file_path": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                      "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n"
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "usage": {
+                  "input_tokens": 3,
+                  "cache_creation_input_tokens": 5965,
+                  "cache_read_input_tokens": 80112,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 5965
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+              "uuid": "9e2d78e8-fc84-46a0-a78d-8359d4d79839"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01Y92T5BBDhfAX26NCgoCoYr",
+                    "type": "tool_result",
+                    "content": "File created successfully at: /Users/brenna/.claude/plans/swirling-percolating-sonnet.md"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "ac730ff1-b3e8-4b59-b90c-e77f4ba1f33a",
+              "uuid": "46206d38-3e83-4a0f-92a9-493833afa84d",
+              "tool_use_result": {
+                "type": "create",
+                "filePath": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+                "content": "# GitHub Actions Output Formatter for `bivvy lint`\n\n## Context\n\nBivvy's lint system already has three output formatters (Human, JSON, SARIF) following a clean `LintFormatter` trait pattern. This change adds a fourth formatter that emits GitHub Actions workflow commands (`::error::`, `::warning::`, `::notice::`), causing lint diagnostics to appear as inline PR annotations in GitHub Actions CI.\n\n## Files to Change\n\n| File | Action |\n|------|--------|\n| `src/lint/output/github.rs` | **Create** \u2014 `GithubFormatter` struct + `LintFormatter` impl + tests |\n| `src/lint/output/mod.rs` | **Edit** \u2014 Add `pub mod github`, `Github` enum variant, `pub use` |\n| `src/lint/mod.rs` | **Edit** \u2014 Add `GithubFormatter` to re-exports |\n| `src/cli/commands/lint.rs` | **Edit** \u2014 Import `GithubFormatter`, add `\"github\"` match arm, add test |\n| `src/cli/args.rs` | **Edit** \u2014 Update `--format` help text to include \"github\" |\n\n## Implementation\n\n### 1. `src/lint/output/github.rs` (new file)\n\n- `GithubFormatter` unit struct (no fields, like `JsonFormatter`)\n- `new()` constructor + `Default` impl\n- `severity_to_command()`: `Error` \u2192 `\"error\"`, `Warning` \u2192 `\"warning\"`, `Hint` \u2192 `\"notice\"`\n- Two escape helpers:\n  - `escape_property()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`, `:`\u2192`%3A`, `,`\u2192`%2C`\n  - `escape_message()`: `%`\u2192`%25`, `\\r`\u2192`%0D`, `\\n`\u2192`%0A`\n- `LintFormatter::format()` emits one line per diagnostic:\n  ```\n  ::{command} file={file},line={line},col={col},endLine={endLine},endColumn={endColumn},title={rule_id}::{message}\n  ```\n  - Omit `endLine`/`endColumn` when `end_col == usize::MAX` (the `Span::line()` sentinel)\n  - Append suggestion to message with `%0A` separator when present\n  - No summary line (unlike human formatter)\n\n### 2. `src/lint/output/mod.rs`\n\n- Add `pub mod github;`\n- Add `Github` to `OutputFormat` enum\n- Add `pub use github::GithubFormatter;`\n\n### 3. `src/lint/mod.rs`\n\n- Add `GithubFormatter` to the `pub use output::{...}` line\n\n### 4. `src/cli/commands/lint.rs`\n\n- Import `GithubFormatter`\n- Add `\"github\"` arm in `format_output()` match (creates `GithubFormatter::new()`)\n- Add `lint_github_format` test (mirrors existing `lint_json_format`/`lint_sarif_format`)\n\n### 5. `src/cli/args.rs`\n\n- Update doc comment: `/// Output format: human, json, sarif, github`\n\n## Tests\n\n**Unit tests** in `src/lint/output/github.rs`:\n- Severity mapping for all three variants\n- Error with span \u2192 correct `::error file=...,line=...,col=...::` output\n- Warning without span \u2192 `::warning title=rule-id::message`\n- Hint maps to `::notice`\n- Suggestion appended with `%0A` separator\n- Multiple diagnostics \u2192 multiple lines\n- Empty diagnostics \u2192 empty output\n- `Span::line()` sentinel \u2192 `endLine`/`endColumn` omitted\n- Special characters escaped in properties and messages\n\n**Integration test** in `src/cli/commands/lint.rs`:\n- `lint_github_format` \u2014 valid config with `format: \"github\"` returns success\n\n## Verification\n\n```bash\ncargo test --all-features\ncargo clippy --all-targets --all-features -- -D warnings\ncargo fmt -- --check\ncargo doc --no-deps --all-features\ncargo build --release\n```\n",
+                "structuredPatch": [],
+                "originalFile": null
+              }
+            }
+          },
+          "primary_arg": "/Users/brenna/.claude/plans/swirling-percolating-sonnet.md",
+          "tool": "Write"
+        }
+      ],
+      "result_indices": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2578055.972804583,
+      "operator": "strictly_precedes",
+      "metric_value": [],
+      "target_value": [],
+      "passed": true,
+      "vacuous_reason": "empty A or B indices"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2578055.9728125,
+      "passed": true,
+      "detail": "VACUOUS PASS: empty A or B indices. 'test' (Write/Edit) occurred before 'src/' (Write/Edit)"
+    }
+  ]
+}
