@@ -12,6 +12,7 @@ Usage:
     python3 benchmark/run_benchmark.py --model claude-opus-4-20250514
     python3 benchmark/run_benchmark.py --timeout 20    # 20 minutes
     python3 benchmark/run_benchmark.py --max-turns 25
+    python3 benchmark/run_benchmark.py --runs 5                # repeat each case 5x
     python3 benchmark/run_benchmark.py --workers 1 --delay 5   # sequential
     python3 benchmark/run_benchmark.py --no-enrich-tokens
     python3 benchmark/run_benchmark.py --legacy-output
@@ -84,6 +85,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--timeout", type=float, default=45, help="Per-case timeout in minutes (default: 45).")
     parser.add_argument("--max-turns", type=int, default=None, help="Max CLI turns.")
     parser.add_argument("--dry-run", action="store_true", help="Show cases without executing.")
+    parser.add_argument("--runs", type=int, default=1, help="Number of times to run each case (default: 1).")
     parser.add_argument("--workers", type=int, default=4, help="Parallel workers (1=sequential).")
     parser.add_argument("--delay", type=float, default=0, help="Rate-limit delay (seconds).")
     parser.add_argument("--enrich-tokens", action="store_true", default=False, dest="enrich_tokens")
@@ -368,7 +370,8 @@ def dry_run(args: argparse.Namespace) -> int:
             console.print("  [dim]No prompts found in prompts/[/dim]")
         return 1
 
-    console.print("\n[bold yellow]Dry-run:[/bold yellow] listing discovered cases.\n")
+    runs_label = f" x {args.runs} runs" if args.runs > 1 else ""
+    console.print(f"\n[bold yellow]Dry-run:[/bold yellow] listing discovered cases{runs_label}.\n")
     for i, case in enumerate(cases, 1):
         console.print(f"  [dim]#{i:>3}[/dim]  [cyan]{case.case_id}[/cyan]")
         console.print(f"        app:      [green]{case.app.name}[/green]")
@@ -376,7 +379,11 @@ def dry_run(args: argparse.Namespace) -> int:
         console.print(f"        config:   [green]{case.test_config.path}[/green]")
         console.print(f"        prompt:   [green]{case.prompt.path}[/green]")
 
-    console.print(f"\n[bold]{len(cases)}[/bold] total cases would be executed.")
+    total = len(cases) * args.runs
+    if args.runs > 1:
+        console.print(f"\n[bold]{len(cases)}[/bold] unique cases x [bold]{args.runs}[/bold] runs = [bold]{total}[/bold] total executions.")
+    else:
+        console.print(f"\n[bold]{total}[/bold] total cases would be executed.")
     return 0
 
 
@@ -550,6 +557,11 @@ def run(args: argparse.Namespace) -> int:
         console.print("[red]No cases discovered.[/red] Nothing to run.")
         return 1
 
+    # Expand cases for multiple runs — each repeat gets its own run_id
+    unique_cases = len(cases)
+    if args.runs > 1:
+        cases = cases * args.runs
+
     # Pre-flight: verify authentication before running any cases
     console.print("[dim]Verifying authentication...[/dim]", end=" ")
     auth_ok, auth_msg = preflight_auth_check()
@@ -580,7 +592,9 @@ def run(args: argparse.Namespace) -> int:
 
     console.print(Panel.fit(
         f"[bold]Benchmark Run[/bold]\n"
-        f"  Cases:     {len(cases)}\n"
+        f"  Cases:     {len(cases)}"
+        + (f" ({unique_cases} unique x {args.runs} runs)" if args.runs > 1 else "")
+        + f"\n"
         f"  Model:     {args.model}\n"
         f"  Timeout:   {args.timeout}m\n"
         f"  Workers:   {args.workers}\n"

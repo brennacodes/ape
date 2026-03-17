@@ -5,6 +5,7 @@ Summarise benchmark results with flexible views and filters.
 Views (pick one, default is scenario + aggregate):
   --checks         Per-check pass rates across formats
   --phase          Per-phase pass rates across formats
+  --timeouts       Show which scenarios/runs timed out per format
 
 Filters (combine with any view):
   --category CAT   Filter to category (comma-separated)
@@ -16,6 +17,7 @@ Examples:
     bin/summary --checks                           # which checks pass per format
     bin/summary --checks --category bugs           # check detail for bugs only
     bin/summary --phase                            # phase-level comparison
+    bin/summary --timeouts                         # which runs timed out
     bin/summary --category bugs                    # scenario table, bugs only
     bin/summary --format ape,markdown              # compare two formats
     bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
@@ -544,6 +546,160 @@ def print_phase_table(
 
 
 # ---------------------------------------------------------------------------
+# Timeout view (--timeouts)
+# ---------------------------------------------------------------------------
+
+
+def print_timeouts_table(
+    summaries: list[dict],
+    formats: list[str],
+    title_suffix: str = "",
+) -> None:
+    """Print tables showing which scenarios/runs timed out per format."""
+    # Index: (prompt_id, format, run_id) -> timed out?
+    timed_out: dict[tuple[str, str, int], bool] = {}
+    all_run_ids: set[int] = set()
+    for s in summaries:
+        prompt_id = s.get("prompt_id", "")
+        fmt = s.get("format", "")
+        run_id = s.get("run_id", 0)
+        if not prompt_id or not fmt:
+            continue
+        timed_out[(prompt_id, fmt, run_id)] = not s.get("succeeded")
+        all_run_ids.add(run_id)
+
+    run_ids = sorted(all_run_ids)
+
+    # Only show scenarios that have at least one timeout
+    scenario_timeout_counts: dict[str, int] = defaultdict(int)
+    for (pid, fmt, rid), is_timeout in timed_out.items():
+        if is_timeout and fmt in formats:
+            scenario_timeout_counts[pid] += 1
+
+    timed_out_scenarios = sorted(
+        scenario_timeout_counts, key=scenario_timeout_counts.get, reverse=True
+    )
+    if not timed_out_scenarios:
+        console.print("[green]No timeouts found![/green]")
+        return
+
+    # -- Per-scenario grids: run# rows x format columns ---------------------
+    for prompt_id in timed_out_scenarios:
+        scenario_name = prompt_id.split("/", 1)[1]
+        n = scenario_timeout_counts[prompt_id]
+        table = Table(
+            title=f"{scenario_name} ({n} timeout{'s' if n != 1 else ''})",
+            title_style="bold",
+            show_lines=True,
+        )
+        table.add_column("Run", justify="center", min_width=5, style="bold")
+        for fmt in formats:
+            table.add_column(fmt, justify="center", min_width=10)
+
+        for rid in run_ids:
+            # Skip run rows where no format has data for this scenario
+            if not any(
+                (prompt_id, fmt, rid) in timed_out for fmt in formats
+            ):
+                continue
+            cells = []
+            for fmt in formats:
+                key = (prompt_id, fmt, rid)
+                if key not in timed_out:
+                    cells.append(Text("", style="dim"))
+                elif timed_out[key]:
+                    cells.append(Text("X", style="bold red"))
+                else:
+                    cells.append(Text("-", style="dim"))
+            table.add_row(f"#{rid}", *cells)
+
+        console.print(table)
+        console.print()
+
+    # -- Summary: totals by scenario ----------------------------------------
+    summary = Table(
+        title="Timeout Totals by Scenario",
+        title_style="bold",
+        show_lines=True,
+    )
+    summary.add_column("Scenario", style="bold", min_width=30)
+    for fmt in formats:
+        summary.add_column(fmt, justify="center", min_width=10)
+    summary.add_column("Total", justify="center", min_width=7, style="bold")
+
+    fmt_totals: dict[str, int] = defaultdict(int)
+    grand_total = 0
+
+    for prompt_id in timed_out_scenarios:
+        scenario_name = prompt_id.split("/", 1)[1]
+        cells = []
+        row_total = 0
+        for fmt in formats:
+            n = sum(
+                1
+                for rid in run_ids
+                if timed_out.get((prompt_id, fmt, rid))
+            )
+            if n:
+                cells.append(Text(str(n), style="red"))
+                row_total += n
+                fmt_totals[fmt] += n
+            else:
+                cells.append(Text("-", style="dim"))
+        grand_total += row_total
+        cells.append(Text(str(row_total), style="bold red"))
+        summary.add_row(scenario_name, *cells)
+
+    total_cells = []
+    for fmt in formats:
+        n = fmt_totals.get(fmt, 0)
+        total_cells.append(
+            Text(str(n), style="bold red" if n else "dim")
+        )
+    total_cells.append(Text(str(grand_total), style="bold red"))
+    summary.add_row(
+        Text("TOTAL", style="bold"), *total_cells, end_section=True
+    )
+
+    console.print(summary)
+
+    # -- Summary: totals by run number --------------------------------------
+    console.print()
+    run_table = Table(
+        title="Timeouts by Run Number",
+        title_style="bold",
+        show_lines=True,
+    )
+    run_table.add_column("Run", justify="center", min_width=6)
+    run_table.add_column("Timeouts", justify="center", min_width=10)
+    run_table.add_column("Total Runs", justify="center", min_width=10)
+    run_table.add_column("Rate", justify="center", min_width=8)
+
+    for rid in run_ids:
+        n_to = sum(
+            1
+            for (pid, fmt, r), v in timed_out.items()
+            if r == rid and v and fmt in formats
+        )
+        n_all = sum(
+            1
+            for (pid, fmt, r) in timed_out
+            if r == rid and fmt in formats
+        )
+        rate = n_to / n_all if n_all else 0
+        pct = f"{round(rate * 100)}%"
+        style = "red" if n_to else "dim"
+        run_table.add_row(
+            f"#{rid}",
+            Text(str(n_to), style=style),
+            str(n_all),
+            Text(pct, style=style),
+        )
+
+    console.print(run_table)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -556,6 +712,7 @@ def main() -> None:
 views (pick one, default is scenario + aggregate):
   --checks         Per-check pass rates across formats
   --phase          Per-phase pass rates across formats
+  --timeouts       Show which scenarios/runs timed out per format
 
 filters (combine with any view):
   --category CAT   Filter to category (comma-separated, e.g. bugs,new_features)
@@ -567,6 +724,7 @@ examples:
   bin/summary --checks                           # which checks pass per format
   bin/summary --checks --category bugs           # check detail for bugs only
   bin/summary --phase                            # phase-level comparison
+  bin/summary --timeouts                         # which runs timed out
   bin/summary --category bugs                    # scenario table, bugs only
   bin/summary --format ape,markdown              # compare two formats
   bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
@@ -589,6 +747,11 @@ examples:
         help="Show per-phase pass rates across formats",
     )
     parser.add_argument(
+        "--timeouts",
+        action="store_true",
+        help="Show which scenarios/runs timed out per format",
+    )
+    parser.add_argument(
         "--category",
         type=str,
         default=None,
@@ -609,8 +772,11 @@ examples:
     )
     args = parser.parse_args()
 
-    if args.checks and args.phase:
-        console.print("[red]--checks and --phase are mutually exclusive[/red]")
+    views = sum([args.checks, args.phase, args.timeouts])
+    if views > 1:
+        console.print(
+            "[red]--checks, --phase, and --timeouts are mutually exclusive[/red]"
+        )
         sys.exit(1)
 
     here = Path(__file__).resolve().parent
@@ -665,6 +831,8 @@ examples:
         print_checks_table(filtered, formats, title_suffix)
     elif args.phase:
         print_phase_table(filtered, formats, title_suffix)
+    elif args.timeouts:
+        print_timeouts_table(filtered, formats, title_suffix)
     else:
         scenario_data = build_scenario_data(filtered)
         print_scenario_table(scenario_data, formats, title_suffix)
