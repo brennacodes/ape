@@ -761,17 +761,24 @@ def run(args: argparse.Namespace) -> int:
     return 0 if failed == 0 else 1
 
 
-def _install_signal_handlers() -> None:
-    """Install signal handlers that kill all child processes on Ctrl+C / SIGTERM."""
-    def _handle(signum, frame):
-        shutdown_all()
-        # Restore default handler and re-raise so Python exits normally
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        signal.signal(signal.SIGTERM, signal.SIG_DFL)
-        os.kill(os.getpid(), signum)
+def _handle_shutdown_signal(signum: int, frame=None) -> None:
+    """Handle SIGINT/SIGTERM: kill children, then raise SystemExit.
 
-    signal.signal(signal.SIGINT, _handle)
-    signal.signal(signal.SIGTERM, _handle)
+    Resets the OS-default handlers first so a second signal terminates
+    immediately even if cleanup hangs. Raises SystemExit (a BaseException)
+    so context managers like SystemClaudeMdSwap unwind their __exit__
+    before the process exits with the conventional 128+signum code.
+    """
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    shutdown_all()
+    raise SystemExit(128 + signum)
+
+
+def _install_signal_handlers() -> None:
+    """Install signal handlers that kill child processes on Ctrl+C / SIGTERM."""
+    signal.signal(signal.SIGINT, _handle_shutdown_signal)
+    signal.signal(signal.SIGTERM, _handle_shutdown_signal)
 
 
 def baselines_only(args: argparse.Namespace) -> int:
