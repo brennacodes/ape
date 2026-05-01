@@ -57,6 +57,7 @@ from runner import (
     is_auth_error,
 )
 from environment import BenchmarkEnvironment, BaselineCache, BaselineMetrics
+from system_memory import SystemClaudeMdSwap
 from results import format_run_summary, write_json
 from recorder import Recorder, RunRecord
 
@@ -802,9 +803,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.dry_run:
         return dry_run(args)
-    if args.baselines_only:
-        return baselines_only(args)
-    return run(args)
+
+    with SystemClaudeMdSwap():
+        if args.baselines_only:
+            return baselines_only(args)
+        return run(args)
 
 
 if __name__ == "__main__":
