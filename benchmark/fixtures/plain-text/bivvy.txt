@@ -10,13 +10,13 @@ Third, add or update documentation. Add "///" doc comments to all public items. 
 
 Fourth, catch any style or static analysis issues. Run the linter using the exact command: "cargo fmt -- --check && cargo clippy --all-targets --all-features -- -D warnings". We treat warnings as errors with zero tolerance. If the linter fails, go back and fix the code.
 
-Fifth, verify test coverage. Run "cargo llvm-cov --all-features", which runs the full test suite and reports coverage. All tests must pass and coverage must be at or above 90%. If either condition fails, go back and fix the implementation.
+Fifth, run the full test suite and verify coverage. Run "cargo test --all-features" followed by "cargo llvm-cov --all-features". All tests must pass and coverage must be at or above 90%. If either fails, go back and fix the implementation.
 
-Sixth, verify the code compiles for both development and release targets. Run "cargo check --all-targets --all-features" and "cargo build --release". Both must succeed before committing.
+Sixth, run both development and release builds to confirm the code compiles cleanly. Run "cargo build --all-targets --all-features" and "cargo build --release". Both builds must succeed before committing.
 
 Seventh, create your commit. Stage files selectively—never use "git add -A" or "git add .". Your commit message must be in the imperative mood, 50 characters or less, capitalized, with no period at the end, and no type prefixes (like "feat:" or "fix:"). Leave a blank line between subject and body, and wrap the body at 72 characters. Ensure the commit is atomic and complete.
 
-Eighth, verify the committed state compiles cleanly. Run "cargo check --all-features", then "git log -1 --stat". The check must pass after the commit. If it fails, go back and fix it.
+Eighth, verify the committed state is clean. Run "cargo test --all-features", then "cargo build", then "git log -1 --stat". All tests and the build must pass after the commit. If anything fails, go back and fix it.
 
 Throughout this process, always remember:
 - ALWAYS run "cargo test --all-features" without any filters. Do not run things like "cargo test config" or "cargo test --lib". Every verification must run the entire test suite.
