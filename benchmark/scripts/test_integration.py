@@ -250,8 +250,8 @@ class TestFullPipeline:
         """Our well-behaved trace should pass constraint checks that detect violations."""
         result = run_case(case, environment=isolated_env, _execute=_make_trace_executor())
         outcomes = {o.check_id: o.passed for o in result.summary.outcomes}
-        # Constraint checks: the trace doesn't use git add . or deprecated APIs
-        assert outcomes.get("no_git_add_dot") is True
+        # Constraint checks: the trace doesn't use git add ./-A/--all/* or deprecated APIs
+        assert outcomes.get("no_git_add_all") is True
         assert outcomes.get("no_deprecated_apis") is True
 
     def test_summary_formatting(self, case, isolated_env):

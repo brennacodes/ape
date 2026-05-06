@@ -207,7 +207,7 @@ class TestEvaluatorRealDataApe:
     - cargo clippy was run (1 time) → run_clippy should pass
     - cargo llvm-cov was NOT run → run_coverage should fail
     - cargo test was run (7 times) → verify_tests_after_changes should pass
-    - No 'git add .' was used → no_git_add_dot should pass
+    - No 'git add .' was used → no_git_add_all should pass
     - cargo build was run → build_before_commit should pass
     - cargo build --all-targets was run → build_dev should pass
     - cargo build --release was NOT run → build_release should fail
@@ -238,11 +238,11 @@ class TestEvaluatorRealDataApe:
         rm = _result_map(results)
         assert rm["verify_tests_after_changes"].passed is True
 
-    def test_no_git_add_dot_passes(self, evaluated):
+    def test_no_git_add_all_passes(self, evaluated):
         """No 'git add .' command was used."""
         _, trace, results = evaluated
         rm = _result_map(results)
-        assert rm["no_git_add_dot"].passed is True
+        assert rm["no_git_add_all"].passed is True
 
     def test_build_before_commit_passes(self, evaluated):
         """cargo build precedes git commit (or git commit not present)."""
@@ -302,7 +302,7 @@ class TestEvaluatorRealDataNoWorkflow:
     - cargo build --all-targets was NOT run → build_dev should fail
     - cargo build --release was NOT run → build_release should fail
     - cargo test WAS run → verify_tests_after_changes should pass
-    - No 'git add .' → no_git_add_dot should pass
+    - No 'git add .' → no_git_add_all should pass
     """
 
     @pytest.fixture(scope="class")
@@ -340,11 +340,11 @@ class TestEvaluatorRealDataNoWorkflow:
         rm = _result_map(results)
         assert rm["verify_tests_after_changes"].passed is True
 
-    def test_no_git_add_dot_passes(self, evaluated):
+    def test_no_git_add_all_passes(self, evaluated):
         """No 'git add .' was used."""
         _, _, results = evaluated
         rm = _result_map(results)
-        assert rm["no_git_add_dot"].passed is True
+        assert rm["no_git_add_all"].passed is True
 
     def test_rerun_after_fix_passes(self, evaluated):
         _, _, results = evaluated

@@ -148,6 +148,8 @@ class RunRecord:
     passed: int = 0
     failed: int = 0
     skipped: int = 0
+    disabled: int = 0
+    not_applicable: int = 0
     pass_rate: float = 0.0
 
     # CLI output
@@ -244,6 +246,8 @@ class RunRecord:
             passed=summary.passed,
             failed=summary.failed,
             skipped=summary.skipped,
+            disabled=summary.disabled,
+            not_applicable=summary.not_applicable,
             pass_rate=summary.pass_rate,
             model=summary.metadata.model,
             session_id=summary.metadata.session_id,
@@ -434,6 +438,8 @@ class Recorder:
             "passed": record.passed,
             "failed": record.failed,
             "skipped": record.skipped,
+            "disabled": record.disabled,
+            "not_applicable": record.not_applicable,
             "pass_rate": record.pass_rate,
             "grade": grade,
             "checks": check_files,
@@ -492,6 +498,8 @@ class Recorder:
             passed=summary.get("passed", 0),
             failed=summary.get("failed", 0),
             skipped=summary.get("skipped", 0),
+            disabled=summary.get("disabled", 0),
+            not_applicable=summary.get("not_applicable", 0),
             pass_rate=summary.get("pass_rate", 0.0),
             error=summary.get("error", "") or "",
             wall_clock_ms=summary.get("wall_clock_ms", 0.0),

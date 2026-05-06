@@ -81,7 +81,9 @@ class CategoryScore:
     total: int
     passed: int
     failed: int
-    skipped: int
+    skipped: int             # disabled + not_applicable
+    disabled: int            # checks turned off via `enabled: false`
+    not_applicable: int      # everything else that produced passed=None
     pass_rate: float         # passed / (total - skipped), 0.0 if all skipped
 
 
@@ -93,7 +95,9 @@ class RunSummary:
     total: int
     passed: int
     failed: int
-    skipped: int
+    skipped: int             # disabled + not_applicable
+    disabled: int
+    not_applicable: int
     pass_rate: float         # passed / (total - skipped), 0.0 if all skipped
     outcomes: list[CheckOutcome]
     category_scores: dict[str, CategoryScore] = field(default_factory=dict)
@@ -107,7 +111,9 @@ class FormatScore:
     total: int
     passed: int
     failed: int
-    skipped: int
+    skipped: int             # disabled + not_applicable
+    disabled: int
+    not_applicable: int
     pass_rate: float
 
 
@@ -149,6 +155,16 @@ def make_outcome(check_id: str, phase: str, passed: Optional[bool],
     )
 
 
+_DISABLED_SKIP_REASON = "check disabled"
+
+
+def _classify_skip(skip_reason: Optional[str]) -> str:
+    """Bucket a skip into 'disabled' (config kill switch) or 'not_applicable'."""
+    if skip_reason == _DISABLED_SKIP_REASON:
+        return "disabled"
+    return "not_applicable"
+
+
 def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSummary:
     """
     Aggregate a list of CheckOutcomes into a RunSummary.
@@ -158,7 +174,10 @@ def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSum
     """
     total = len(outcomes)
     passed = sum(1 for o in outcomes if o.passed is True)
-    skipped = sum(1 for o in outcomes if o.passed is None)
+    skipped_outcomes = [o for o in outcomes if o.passed is None]
+    skipped = len(skipped_outcomes)
+    disabled = sum(1 for o in skipped_outcomes if _classify_skip(o.skip_reason) == "disabled")
+    not_applicable = skipped - disabled
     failed = total - passed - skipped
 
     evaluated = total - skipped
@@ -173,6 +192,8 @@ def summarize_run(outcomes: list[CheckOutcome], metadata: RunMetadata) -> RunSum
         passed=passed,
         failed=failed,
         skipped=skipped,
+        disabled=disabled,
+        not_applicable=not_applicable,
         pass_rate=round(pass_rate, 4),
         outcomes=outcomes,
         category_scores=category_scores,
@@ -197,7 +218,10 @@ def _summarize_run_by_category(outcomes: list[CheckOutcome]) -> dict[str, Catego
     for cat, cat_outcomes in by_category.items():
         total = len(cat_outcomes)
         passed = sum(1 for o in cat_outcomes if o.passed is True)
-        skipped = sum(1 for o in cat_outcomes if o.passed is None)
+        skipped_outcomes = [o for o in cat_outcomes if o.passed is None]
+        skipped = len(skipped_outcomes)
+        disabled = sum(1 for o in skipped_outcomes if _classify_skip(o.skip_reason) == "disabled")
+        not_applicable = skipped - disabled
         failed = total - passed - skipped
 
         evaluated = total - skipped
@@ -209,6 +233,8 @@ def _summarize_run_by_category(outcomes: list[CheckOutcome]) -> dict[str, Catego
             passed=passed,
             failed=failed,
             skipped=skipped,
+            disabled=disabled,
+            not_applicable=not_applicable,
             pass_rate=round(cat_pass_rate, 4),
         )
 
@@ -244,6 +270,8 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
             passed=s.passed,
             failed=s.failed,
             skipped=s.skipped,
+            disabled=s.disabled,
+            not_applicable=s.not_applicable,
             pass_rate=s.pass_rate,
         ))
 
@@ -322,10 +350,16 @@ def format_run_summary(summary: RunSummary, record: Any = None) -> str:
     if summary.metadata.session_id:
         lines.append(f"  Session: [dim]{summary.metadata.session_id}[/dim]")
 
+    skip_parts = []
+    if summary.disabled:
+        skip_parts.append(f"{summary.disabled} disabled")
+    if summary.not_applicable:
+        skip_parts.append(f"{summary.not_applicable} not_applicable")
+    skip_text = "  ".join(skip_parts) if skip_parts else "0 skipped"
     lines.append(
         f"  Checks:  [green]{summary.passed} passed[/green]  "
         f"[red]{summary.failed} failed[/red]  "
-        f"[dim]{summary.skipped} skipped[/dim]  "
+        f"[dim]{skip_text}[/dim]  "
         f"(of {summary.total})"
     )
     lines.append(f"  Rate:    [{rate_color}]{summary.pass_rate:.1%}[/{rate_color}]")
@@ -375,10 +409,18 @@ def format_run_summary(summary: RunSummary, record: Any = None) -> str:
 
     skipped = [o for o in summary.outcomes if o.passed is None]
     if skipped:
-        lines.append("  [yellow]Skipped checks:[/yellow]")
-        for o in skipped:
-            reason = o.skip_reason or "unknown"
-            lines.append(f"    [dim]{o.check_id}: {reason}[/dim]")
+        disabled_checks = [o for o in skipped if _classify_skip(o.skip_reason) == "disabled"]
+        not_applicable_checks = [o for o in skipped if _classify_skip(o.skip_reason) != "disabled"]
+        if disabled_checks:
+            lines.append("  [yellow]Disabled checks:[/yellow]")
+            for o in disabled_checks:
+                reason = o.skip_reason or "unknown"
+                lines.append(f"    [dim]{o.check_id}: {reason}[/dim]")
+        if not_applicable_checks:
+            lines.append("  [yellow]Not-applicable checks:[/yellow]")
+            for o in not_applicable_checks:
+                reason = o.skip_reason or "unknown"
+                lines.append(f"    [dim]{o.check_id}: {reason}[/dim]")
 
     return "\n".join(lines)
 

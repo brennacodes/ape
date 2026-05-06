@@ -221,6 +221,19 @@ class TestRecorderRoundTrip:
         assert loaded.total == 21
         assert loaded.wall_clock_ms == 15000.5
 
+    def test_skip_buckets_roundtrip(self, tmp_path):
+        recorder = Recorder(tmp_path)
+        record = RunRecord(
+            fixture_id="f", format="fmt", prompt_id="p", run_id=0,
+            total=10, passed=4, failed=3, skipped=3,
+            disabled=2, not_applicable=1, pass_rate=0.5714,
+        )
+        recorder.save_run(record)
+        loaded = recorder.load_run("f", "fmt", "p", 0)
+        assert loaded.skipped == 3
+        assert loaded.disabled == 2
+        assert loaded.not_applicable == 1
+
     def test_next_run_id(self, tmp_path):
         recorder = Recorder(tmp_path)
         assert recorder.next_run_id("x", "y", "z") == 0

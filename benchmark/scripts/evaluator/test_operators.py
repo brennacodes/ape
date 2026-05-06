@@ -582,6 +582,70 @@ class TestRegexNotMatch:
         assert op_regex_not_match(["README.md"], r"\.md$") is False
 
 
+class TestNoGitAddAllPattern:
+    """Locks in the broadened bivvy.yml `no_git_add_all` pattern."""
+
+    PATTERN = r"git\s+add\s+(?:\.(?:\s|$|&)|-A\b|--all\b|\*(?:\s|$|&)|:/(?:\.|\s|$|&))"
+
+    def test_forbids_git_add_dot(self):
+        assert op_regex_not_match(["git add ."], self.PATTERN) is False
+
+    def test_forbids_git_add_dot_with_chained_command(self):
+        assert op_regex_not_match(["git add . && git commit"], self.PATTERN) is False
+
+    def test_forbids_git_add_capital_a(self):
+        assert op_regex_not_match(["git add -A"], self.PATTERN) is False
+
+    def test_forbids_git_add_long_all(self):
+        assert op_regex_not_match(["git add --all"], self.PATTERN) is False
+
+    def test_forbids_git_add_glob(self):
+        assert op_regex_not_match(["git add *"], self.PATTERN) is False
+
+    def test_forbids_git_add_top_pathspec(self):
+        assert op_regex_not_match(["git add :/"], self.PATTERN) is False
+
+    def test_forbids_git_add_top_pathspec_dot(self):
+        assert op_regex_not_match(["git add :/."], self.PATTERN) is False
+
+    def test_allows_explicit_path(self):
+        assert op_regex_not_match(["git add ./src/foo.rs"], self.PATTERN) is True
+
+    def test_allows_named_file(self):
+        assert op_regex_not_match(["git add Cargo.toml"], self.PATTERN) is True
+
+    def test_allows_patch_mode(self):
+        assert op_regex_not_match(["git add -p"], self.PATTERN) is True
+
+    def test_allows_unrelated_command(self):
+        assert op_regex_not_match(["cargo add serde"], self.PATTERN) is True
+
+
+class TestCommitMsgNoTypePrefixPattern:
+    """Locks in the case-insensitive commit-message type-prefix pattern."""
+
+    PATTERN = r"(?i)^(feat|fix|chore|refactor|docs|style|test|ci|perf|build)(\(.+\))?:"
+
+    def test_lowercase_type_prefix_is_forbidden(self):
+        assert op_regex_not_match(["feat: add thing"], self.PATTERN) is False
+
+    def test_capitalized_type_prefix_is_forbidden(self):
+        assert op_regex_not_match(["Feat: add thing"], self.PATTERN) is False
+        assert op_regex_not_match(["Fix: thing"], self.PATTERN) is False
+
+    def test_uppercase_type_prefix_is_forbidden(self):
+        assert op_regex_not_match(["BUILD: thing"], self.PATTERN) is False
+
+    def test_scoped_type_prefix_is_forbidden(self):
+        assert op_regex_not_match(["fix(parser): handle nulls"], self.PATTERN) is False
+
+    def test_non_type_word_allowed(self):
+        assert op_regex_not_match(["Feature: add thing"], self.PATTERN) is True
+
+    def test_no_prefix_allowed(self):
+        assert op_regex_not_match(["Add the thing"], self.PATTERN) is True
+
+
 # ===========================================================================
 # has_key
 # ===========================================================================

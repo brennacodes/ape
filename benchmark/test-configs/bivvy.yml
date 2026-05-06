@@ -107,11 +107,9 @@ checks:
     type: workflow_order
     prompt_condition: explicit_edit_requested
     condition:
-      metric: tool_call.file_modify
-      metric_args: "test"
-      operator: strictly_precedes
-      target: tool_call.file_modify
-      target_args: "src/"
+      metric: tool_call.file_modify_with_test_content
+      operator: exists_before
+      target: tool_call.file_modify_without_test_content
 
   - id: tdd_prove_tests_fail
     phase: specification
@@ -196,7 +194,7 @@ checks:
     prompt_condition: explicit_edit_requested
     condition:
       metric: tool_call.execute_command
-      operator: strictly_precedes
+      operator: exists_before
       target: tool_call.execute_command
       metric_args: "cargo doc"
       target_args: "cargo fmt"
@@ -371,7 +369,7 @@ checks:
     prompt_condition: explicit_edit_requested
     condition:
       metric: tool_call.execute_command
-      operator: strictly_precedes
+      operator: exists_before
       target: tool_call.execute_command
       metric_args: "cargo build"
       target_args: "git commit"
@@ -395,17 +393,18 @@ checks:
   # ---------------------------------------------------------------------------
   # Medium tension: LLMs use "git add ." and generic commit messages.
 
-  - id: no_git_add_dot
+  - id: no_git_add_all
     phase: commit
     category: tool_usage
     description: >
-      git add . is forbidden. Stage files selectively (git add -p) so you
-      know exactly what is being committed.
+      Do not stage every change at once. Use git add -p (or named paths)
+      so you know exactly what is being committed. Forbids git add ., -A,
+      --all, *, :/, and :/. variants.
     type: constraint
     condition:
       metric: tool_call.execute_command
       operator: regex_not_match
-      target: 'git add \.'
+      target: 'git\s+add\s+(?:\.(?:\s|$|&)|-A\b|--all\b|\*(?:\s|$|&)|:/(?:\.|\s|$|&))'
 
   - id: commit_msg_imperative_mood
     phase: commit
@@ -452,7 +451,7 @@ checks:
     condition:
       metric: git.commit_message.subject
       operator: regex_not_match
-      target: '^(feat|fix|chore|refactor|docs|style|test|ci|perf|build)(\(.+\))?:'
+      target: '(?i)^(feat|fix|chore|refactor|docs|style|test|ci|perf|build)(\(.+\))?:'
 
   - id: commit_msg_body_format
     phase: commit

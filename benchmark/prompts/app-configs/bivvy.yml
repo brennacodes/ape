@@ -43,17 +43,17 @@ untested_code:
 
 architectural_issues:
   hardcoded_home_dir:
-    description: Hardcoded ~/.bivvy paths instead of using dirs::data_dir() or standard XDG paths
-    locations: src/cache/store.rs, src/state/store.rs
-    risk: Pollutes user home directory, ignores platform conventions
+    description: Hardcoded ~/.bivvy paths across many subsystems (state, snapshots, logs, registry, telemetry, trust) instead of routing through the existing sys::data_dir() abstraction or standard XDG paths
+    locations: src/state/store.rs, src/state/index.rs, src/snapshots/mod.rs, src/logging/mod.rs, src/sys.rs
+    risk: Pollutes user home directory, ignores platform conventions, leaves the existing data_dir() abstraction unused
   tight_coupling_ui_runner:
     description: Tight coupling between Runner and UI — the runner module directly instantiates terminal spinners and prompts instead of using a trait
     locations: src/runner/workflow.rs, src/ui/terminal.rs
     risk: Hard to test runner logic in isolation, impossible to run headless easily
   inconsistent_error_handling:
-    description: Inconsistent error handling — mixture of anyhow::Result, Box<dyn Error>, and custom error enums across module boundaries
-    locations: src/error.rs, src/detection/runner.rs
-    risk: Poor error context for end users, brittle match statements
+    description: Inconsistent error handling across module boundaries - the cache, registry, feedback, session, and shell subsystems return anyhow::Result while config, runner, and ui return BivvyError::Result, requiring ad-hoc coercion via BivvyError::Other(anyhow::Error) at boundaries and losing typed-error context
+    locations: src/cache/store.rs, src/registry/remote.rs, src/feedback/store.rs, src/session/store.rs, src/config/loader.rs
+    risk: Poor error context for end users, brittle match statements, callers cannot distinguish typed errors after coercion
 
 new_features:
   toml_config_support:

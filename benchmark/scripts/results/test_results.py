@@ -15,6 +15,7 @@ from results import (
     CategoryScore,
     FormatScore,
     ComparisonSummary,
+    _classify_skip,
     make_outcome,
     summarize_run,
     summarize_comparison,
@@ -163,6 +164,148 @@ class TestSummarizeRun:
 
 
 # ===========================================================================
+# _classify_skip and split skip taxonomy
+# ===========================================================================
+
+class TestClassifySkip:
+    def test_check_disabled_is_disabled_bucket(self):
+        assert _classify_skip("check disabled") == "disabled"
+
+    def test_prompt_condition_is_not_applicable(self):
+        assert _classify_skip(
+            "prompt_condition 'explicit_edit_requested' is false for this prompt"
+        ) == "not_applicable"
+
+    def test_runtime_check_not_applicable_is_not_applicable(self):
+        assert _classify_skip(
+            "No build failures occurred — routing check is not applicable"
+        ) == "not_applicable"
+
+    def test_unexpected_error_is_not_applicable(self):
+        assert _classify_skip(
+            "Unexpected error: ValueError: bad input"
+        ) == "not_applicable"
+
+    def test_none_skip_reason_is_not_applicable(self):
+        assert _classify_skip(None) == "not_applicable"
+
+
+class TestSummarizeRunSkipBuckets:
+    def test_disabled_count_isolated(self):
+        outcomes = [
+            _pass("c1"),
+            _skip("c2", reason="check disabled"),
+            _skip("c3", reason="No build failures occurred — routing check is not applicable"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert s.skipped == 2
+        assert s.disabled == 1
+        assert s.not_applicable == 1
+
+    def test_all_disabled(self):
+        outcomes = [
+            _skip("c1", reason="check disabled"),
+            _skip("c2", reason="check disabled"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert s.skipped == 2
+        assert s.disabled == 2
+        assert s.not_applicable == 0
+
+    def test_all_not_applicable(self):
+        outcomes = [
+            _skip("c1", reason="prompt_condition 'foo' is false for this prompt"),
+            _skip("c2", reason="No git commit messages found in trace"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        assert s.skipped == 2
+        assert s.disabled == 0
+        assert s.not_applicable == 2
+
+    def test_no_skips_reports_zero_for_both_buckets(self):
+        s = summarize_run([_pass("c1"), _fail("c2")], _meta())
+        assert s.skipped == 0
+        assert s.disabled == 0
+        assert s.not_applicable == 0
+
+
+class TestCategoryScoreSkipBuckets:
+    def test_category_score_splits_skips(self):
+        outcomes = [
+            _pass_adherence("c1"),
+            _skip("c2", category="adherence", reason="check disabled"),
+            _skip("c3", category="adherence", reason="No build failures occurred — routing check is not applicable"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        adh = s.category_scores["adherence"]
+        assert adh.skipped == 2
+        assert adh.disabled == 1
+        assert adh.not_applicable == 1
+
+
+class TestFormatScoreSkipBuckets:
+    def test_format_score_carries_buckets(self):
+        s1 = summarize_run(
+            [
+                _pass("c1"),
+                _skip("c2", reason="check disabled"),
+                _skip("c3", reason="No build failures occurred — routing check is not applicable"),
+            ],
+            _meta(fmt="plain-text"),
+        )
+        comp = summarize_comparison([s1])
+        f = comp.formats[0]
+        assert f.skipped == 2
+        assert f.disabled == 1
+        assert f.not_applicable == 1
+
+
+class TestFormatRunSummarySkipDisplay:
+    def test_disabled_and_not_applicable_both_shown(self):
+        outcomes = [
+            _pass("c1"),
+            _skip("c2", reason="check disabled"),
+            _skip("c3", reason="No build failures occurred — routing check is not applicable"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        text = format_run_summary(s)
+        assert "1 disabled" in text
+        assert "1 not_applicable" in text
+
+    def test_only_disabled_shown_when_no_not_applicable(self):
+        outcomes = [_pass("c1"), _skip("c2", reason="check disabled")]
+        s = summarize_run(outcomes, _meta())
+        text = format_run_summary(s)
+        assert "1 disabled" in text
+        assert "not_applicable" not in text
+
+    def test_only_not_applicable_shown_when_no_disabled(self):
+        outcomes = [
+            _pass("c1"),
+            _skip("c2", reason="No build failures occurred — routing check is not applicable"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        text = format_run_summary(s)
+        assert "1 not_applicable" in text
+        assert "disabled" not in text
+
+    def test_zero_skipped_falls_back_to_default(self):
+        s = summarize_run([_pass("c1")], _meta())
+        text = format_run_summary(s)
+        assert "0 skipped" in text
+
+    def test_disabled_and_not_applicable_lists_separated(self):
+        outcomes = [
+            _skip("c2", reason="check disabled"),
+            _skip("c3", reason="No build failures occurred — routing check is not applicable"),
+        ]
+        s = summarize_run(outcomes, _meta())
+        text = format_run_summary(s)
+        assert "Disabled checks:" in text
+        assert "Not-applicable checks:" in text
+
+
+# ===========================================================================
 # summarize_comparison
 # ===========================================================================
 
@@ -287,7 +430,7 @@ class TestFormatRunSummary:
         text = format_run_summary(s)
         assert "skipped_check" in text
         assert "phase not impl" in text
-        assert "Skipped checks" in text
+        assert "Not-applicable checks" in text
 
     def test_pass_rate_formatted_as_percent(self):
         s = summarize_run([_pass("c1"), _fail("c2")], _meta())

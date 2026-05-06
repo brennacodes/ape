@@ -886,6 +886,72 @@ class TestEvaluateCondition:
         passed, detail = evaluate_condition(cond, trace, self._ctx())
         assert passed is True, f"structuredPatch detection should find test content, got: {detail}"
 
+    def test_tdd_tests_before_implementation_substring_no_false_positive(self):
+        """Regression: paths containing 'test' as a substring (e.g. latest.json)
+        must not satisfy the tdd_tests_before_implementation check.
+
+        Mirrors the bivvy.yml condition shape: content-aware metrics on both
+        sides, no path-substring filters. A non-test write whose path happens
+        to contain the letters 't-e-s-t' should NOT count as a test edit.
+        """
+        trace = _simple_trace(
+            _user_prompt("ship feature"),
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "config/latest.json", "content": '{"version": 2}'},
+                "t1",
+            ),
+            _tool_result("t1"),
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/lib.rs", "content": 'pub fn run() {}'},
+                "t2",
+            ),
+            _tool_result("t2"),
+        )
+
+        cond = {
+            "metric": "tool_call.file_modify_with_test_content",
+            "operator": "exists_before",
+            "target": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is False, (
+            f"latest.json must not be classified as a test edit; got: {detail}"
+        )
+
+    def test_tdd_tests_before_implementation_genuine_test_passes(self):
+        """Companion to the false-positive regression: a real #[test] write
+        before an impl-only src edit should satisfy the check."""
+        trace = _simple_trace(
+            _user_prompt("ship feature"),
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/lib.rs",
+                 "content": '#[cfg(test)]\nmod tests {\n    #[test]\n    fn it_works() { assert!(false); }\n}'},
+                "t1",
+            ),
+            _tool_result("t1"),
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs", "new_string": 'pub fn run() {}'},
+                "t2",
+            ),
+            _tool_result("t2"),
+        )
+
+        cond = {
+            "metric": "tool_call.file_modify_with_test_content",
+            "operator": "exists_before",
+            "target": "tool_call.file_modify_without_test_content",
+        }
+
+        passed, detail = evaluate_condition(cond, trace, self._ctx())
+        assert passed is True, (
+            f"Genuine #[test] write before impl edit should pass; got: {detail}"
+        )
+
     def test_call_index_distinct_within_parallel_batch(self):
         """Verify that parallel tool calls get distinct call_index values."""
         trace = _simple_trace(
