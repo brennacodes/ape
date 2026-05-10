@@ -16,6 +16,9 @@ Usage:
     # Re-evaluate runs matching filters
     python3 benchmark/re_evaluate.py --format ape --prompt bugs/silent_yaml_failure
 
+    # Re-evaluate only runs started within the last 15 days
+    python3 benchmark/re_evaluate.py --since 15d
+
     # Re-evaluate a specific run directory
     python3 benchmark/re_evaluate.py benchmark/output/bivvy/ape/bugs/silent_yaml_failure/003
 
@@ -42,6 +45,7 @@ from results import (
     RunMetadata, CheckOutcome,
     summarize_run, format_run_summary, format_comparison, summarize_comparison,
 )
+from since_filter import filter_by_since, parse_since
 
 try:
     from rich.console import Console
@@ -151,6 +155,15 @@ def _discover_runs(results_dir):
     return runs
 
 
+def _run_label(record, source_path):
+    """Short identifier used in --since warning output."""
+    fixture = record.get("fixture_id", "?")
+    fmt = record.get("format", "?")
+    prompt = record.get("prompt_id", "?")
+    run = record.get("run_id", "?")
+    return f"{fixture}/{fmt}/{prompt}/{run}"
+
+
 def _filter_runs(runs, args):
     """Filter discovered runs based on CLI arguments.
 
@@ -182,6 +195,15 @@ def _filter_runs(runs, args):
         filtered = [(r, p) for r, p in filtered if r.get("prompt_id") == args.prompt]
     if args.run is not None:
         filtered = [(r, p) for r, p in filtered if r.get("run_id") == args.run]
+
+    if args.since is not None:
+        filtered = filter_by_since(
+            filtered,
+            args.since,
+            get_started_at=lambda item: item[0].get("started_at") or item[0].get("timestamp"),
+            label_for=lambda item: _run_label(item[0], item[1]),
+            warn=lambda msg: print(f"[re-evaluate] {msg}", file=sys.stderr),
+        )
 
     # --last: keep only the most recent run (highest run_id per unique case,
     # then the single latest by timestamp/path)
@@ -252,6 +274,8 @@ def _parse_args():
                "  %(prog)s --last --save            Re-evaluate and save corrected results\n"
                "  %(prog)s --run 3                  Re-evaluate run 003\n"
                "  %(prog)s --format ape             Re-evaluate all runs with format 'ape'\n"
+               "  %(prog)s --since 15d              Re-evaluate runs from the last 15 days\n"
+               "  %(prog)s --since 2026-04-24      Re-evaluate runs on/after 2026-04-24\n"
                "  %(prog)s output/bivvy/ape/.../003  Re-evaluate a specific run directory\n"
                "  %(prog)s --all                    Re-evaluate everything\n",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -273,14 +297,18 @@ def _parse_args():
                         help="Filter by prompt ID (e.g. 'bugs/silent_yaml_failure')")
     parser.add_argument("--save", action="store_true",
                         help="Write corrected results back to disk (summary.json + check files)")
+    parser.add_argument("--since", type=parse_since, default=None,
+                        help=("Only re-evaluate runs started within this window "
+                              "(e.g. 15d, 36h, 2026-04-24, 2026-04-24T12:00:00)"))
 
     args = parser.parse_args()
 
     # Require at least one targeting option
     has_filter = any([args.path, args.last, args.all, args.run is not None,
-                      args.fixture, args.format, args.prompt])
+                      args.fixture, args.format, args.prompt,
+                      args.since is not None])
     if not has_filter:
-        parser.error("specify a target. Use --last for the most recent run, or --all for everything.")
+        parser.error("specify a target. Use --last for the most recent run, --since for a date window, or --all for everything.")
 
     return args
 
@@ -304,7 +332,10 @@ def main():
 
     runs = _filter_runs(runs, args)
     if not runs:
-        print("No runs matched the specified filters.")
+        if args.since is not None:
+            print(f"No runs started on or after {args.since.isoformat()}")
+        else:
+            print("No runs matched the specified filters.")
         return
 
     printout(f"[bold]Re-evaluating {len(runs)} run(s)...[/bold]\n")

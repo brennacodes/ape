@@ -11,6 +11,8 @@ Filters (combine with any view):
   --category CAT   Filter to category (comma-separated)
   --format FMT     Show only specific formats (comma-separated)
   --scenario NAME  Filter to a specific scenario name
+  --since WINDOW   Only include runs started within the window
+                   (e.g. 15d, 36h, 2026-04-24)
 
 Examples:
     bin/summary                                    # default tables
@@ -21,6 +23,7 @@ Examples:
     bin/summary --category bugs                    # scenario table, bugs only
     bin/summary --format ape,markdown              # compare two formats
     bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
+    bin/summary --since 15d                        # only runs from the last 15 days
 """
 
 from __future__ import annotations
@@ -34,6 +37,11 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
+
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent / "scripts" / "results")
+)
+from since_filter import filter_by_since, parse_since  # noqa: E402
 
 console = Console()
 
@@ -94,6 +102,15 @@ def load_summaries(results_dir: Path) -> list[dict]:
         with open(path) as f:
             summaries.append(json.load(f))
     return summaries
+
+
+def _summary_label(summary: dict) -> str:
+    """Short identifier for a summary used in --since warning output."""
+    fixture = summary.get("fixture_id", "?")
+    fmt = summary.get("format", "?")
+    prompt = summary.get("prompt_id", "?")
+    run = summary.get("run_id", "?")
+    return f"{fixture}/{fmt}/{prompt}/{run}"
 
 
 def filter_summaries(
@@ -718,6 +735,8 @@ filters (combine with any view):
   --category CAT   Filter to category (comma-separated, e.g. bugs,new_features)
   --format FMT     Show only specific formats (comma-separated)
   --scenario NAME  Filter to a specific scenario name
+  --since WINDOW   Only include runs started within the window
+                   (e.g. 15d, 36h, 2026-04-24, 2026-04-24T12:00:00)
 
 examples:
   bin/summary                                    # default tables
@@ -728,6 +747,8 @@ examples:
   bin/summary --category bugs                    # scenario table, bugs only
   bin/summary --format ape,markdown              # compare two formats
   bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
+  bin/summary --since 15d                        # only runs from the last 15 days
+  bin/summary --since 2026-04-24                 # only runs on/after 2026-04-24
 """,
     )
     parser.add_argument(
@@ -770,6 +791,15 @@ examples:
         default=None,
         help="Filter to a specific scenario name",
     )
+    parser.add_argument(
+        "--since",
+        type=parse_since,
+        default=None,
+        help=(
+            "Only include runs started within this window "
+            "(e.g. 15d, 36h, 2026-04-24, 2026-04-24T12:00:00)"
+        ),
+    )
     args = parser.parse_args()
 
     views = sum([args.checks, args.phase, args.timeouts])
@@ -794,6 +824,20 @@ examples:
             f"[red]No summary.json files found under[/red] {results_dir}"
         )
         sys.exit(1)
+
+    if args.since is not None:
+        summaries = filter_by_since(
+            summaries,
+            args.since,
+            get_started_at=lambda s: s.get("started_at") or s.get("timestamp"),
+            label_for=_summary_label,
+            warn=lambda msg: console.print(f"[yellow][summary] {msg}[/yellow]"),
+        )
+        if not summaries:
+            console.print(
+                f"[red]No runs started on or after[/red] {args.since.isoformat()}"
+            )
+            sys.exit(1)
 
     # Parse filters
     categories = (
