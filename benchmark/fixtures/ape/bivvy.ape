@@ -7,26 +7,28 @@ You MUST execute the workflow exactly as written.
 You MUST process ALL tags and their children in order of appearance unless the workflow explicitly directs otherwise.
 You MUST treat tag names, attributes, and workflow structure as normative executable directives, not descriptive labels or suggestions.
 You MUST NOT skip, reinterpret, soften, or invent workflow behavior.
-A step MUST NOT transition to another step except via its declared <gate> outcome, unless the step explicitly contains another control-flow directive.
+A step MUST NOT transition to another step except via its declared `<gate>` outcome, unless the step explicitly contains another control-flow directive.
 You MUST NOT infer criterion truth from inspection if the gate specifies executable checks.
-You MUST NOT leave a step that contains a <gate> until that gate has been evaluated and routed via <on-pass> or <on-fail>.
-When a <gate> contains <run> children, those runs MUST execute before any criterion is evaluated.
-If a <run> inside a <gate> does not execute, does not produce a value for its declared set, or produces an unparsable value required by a criterion, you MUST <stop> immediately.
+You MUST NOT leave a step that contains a `<gate>` until that gate has been evaluated and routed via `<on-pass>` or `<on-fail>`.
+When a `<gate>` contains `<run>` children, those runs MUST execute before any criterion is evaluated.
+If a `<run>` inside a `<gate>` does not execute, does not produce a value for its declared set, or produces an unparsable value required by a criterion, you MUST `<stop>` immediately.
 
-<meta>: contains configuration and declarations for the workflow.
-<instruction>: You MUST execute the directives. You MUST NOT interpret the directives for flow control.
-<gate>: You MUST evaluate the criteria and route via on-fail (required) or on-pass.
-<conditional>: You MUST follow the logic defined by the cases and optional default.
-<run>: You MUST execute the commands; either those defined inline or referenced by an id in <approved-commands> or <approved-gate-commands>.
-<output>: You MUST print output to the user.
+`{{ variable }}`: An evaluated expression that returns a value. Often points to a declared variable or tag ID.
+`<meta>`: contains configuration and declarations for the workflow.
+`<instruction>`: You MUST execute the directives. You MUST NOT interpret the directives for flow control.
+`<gate>`: You MUST evaluate the criteria and route via `<on-fail>` (required) or `<on-pass>`.
+`<conditional>`: You MUST follow the logic defined by the cases and optional default.
+`<run>`: You MUST execute the commands; either those defined inline or referenced by an id in `<approved-commands>` or `<approved-gate-commands>`.
+`<output>`: MUST print to the user.
+`<criterion>`: A required condition that must be evaluated before routing out of a phase.
 
 `ref`: references an id from another tag.
 `set`: sets a variable that can be used in other tags.
 `check`: evaluates a condition and returns true or false.
 `goto`: jumps to a tag by id.
 
-<approved-gate-commands> are the ONLY commands that can be executed from within a <gate> tag.
-IF you need to evaluate something that isn't in <approved-gate-commands>, you MUST follow the gate logic FIRST. Any subsequent execution MUST use <approved-commands>.
+`<approved-gate-commands>` are the ONLY commands that can be executed from within a `<gate>` tag.
+IF you need to evaluate something that isn't in `<approved-gate-commands>`, you MUST follow the gate logic FIRST. Any subsequent execution MUST use `<approved-commands>`.
 </IMPORTANT>
 
 <ape version="0.4.0" xmlns="https://ape-lang.dev/schema/0">
@@ -52,7 +54,7 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <command id="build-release-error-count">cargo build --release 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="clippy-error-count">cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep "^error" | grep -Evc "(aborting|could not compile)"</command>
       <command id="fmt-error-count">cargo fmt -- --check 2>&amp;1 | grep -c "^Diff in"</command>
-      <command id="cov-pct">cargo llvm-cov --all-features 2>&1 | awk '/TOTAL/ { for(i=1;i<=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; found=1; exit } } END { if(!found) print -1 }'</command>
+      <command id="cov-pct">cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,"",$i); print $i+0; found=1; exit } } END { if(!found) print -1 }'</command>
       <command id="doc-errors">cargo doc --no-deps --all-features 2>&amp;1 | grep -c "^error"</command>
     </approved-gate-commands>
 
@@ -109,11 +111,11 @@ IF you need to evaluate something that isn't in <approved-gate-commands>, you MU
       <rule>Developer docs go in source tree (rustdoc + source READMEs), never in `docs/`.</rule>
       <rule>User-facing docs go in `docs/`, never in source READMEs.</rule>
 
-      <anti-pattern>Documenting "what" the code does — the code should show that.</anti-pattern>
+      <anti-pattern>Documenting "what" the code does - the code should show that.</anti-pattern>
 
       <instructions>
         <instruction>Add `///` doc comments to all public items (structs, functions, modules).</instruction>
-        <instruction>Document all commands, config options, and user-visible features in docs/. Write for end users — never reference internals.</instruction>
+        <instruction>Document all commands, config options, and user-visible features in docs/. Write for end users - never reference internals.</instruction>
         <instruction>Maintain README.md in source directories covering subsystem design.</instruction>
         <instruction>Limit inline comments to non-obvious rationale.</instruction>
       </instructions>
