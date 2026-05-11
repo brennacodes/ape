@@ -217,6 +217,8 @@ class LiveProgress:
             console=self._console,
             refresh_per_second=4,
             transient=True,
+            redirect_stdout=False,
+            redirect_stderr=False,
         )
         self._live.start()
 
@@ -807,7 +809,8 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(message)s",
         handlers=[RichHandler(
-            console=console, rich_tracebacks=True, markup=True, show_path=False,
+            console=Console(stderr=True),
+            rich_tracebacks=True, markup=True, show_path=False,
         )],
     )
     args.git_sha = capture_git_sha(args.benchmark_root.parent)
