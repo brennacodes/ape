@@ -338,6 +338,21 @@ class TestRecorderRoundTrip:
         assert summary["api_time_formatted"] == "45s"
         assert summary["succeeded"] is True
 
+    def test_git_sha_roundtrips_in_summary(self, tmp_path):
+        recorder = Recorder(tmp_path)
+        record = RunRecord(
+            fixture_id="f", format="fmt", prompt_id="p", run_id=0,
+            git_sha="abc123def456-dirty",
+        )
+        run_dir = recorder.save_run(record)
+
+        with open(run_dir / "summary.json") as f:
+            summary = json.load(f)
+        assert summary["git_sha"] == "abc123def456-dirty"
+
+        loaded = recorder.load_run("f", "fmt", "p", 0)
+        assert loaded.git_sha == "abc123def456-dirty"
+
     def test_load_raw_output(self, tmp_path):
         """load_raw_output should reconstruct JSONL from stream.json."""
         recorder = Recorder(tmp_path)

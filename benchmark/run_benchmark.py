@@ -54,7 +54,7 @@ from coordinator import (
 )
 from runner import (
     run_case, run_all, run_parallel, DEFAULT_MODEL, CaseResult, shutdown_all,
-    is_auth_error,
+    is_auth_error, capture_git_sha,
 )
 from environment import BenchmarkEnvironment, BaselineCache, BaselineMetrics
 from system_memory import SystemClaudeMdSwap
@@ -442,6 +442,7 @@ def _save_result(
             completed_at=completed_at,
             ape_version=result.ape_version,
             workflow_hash=result.workflow_hash,
+            git_sha=args.git_sha,
         )
     else:
         # Error case — no summary but still capture everything we have.
@@ -465,6 +466,7 @@ def _save_result(
             completed_at=completed_at,
             ape_version=result.ape_version,
             workflow_hash=result.workflow_hash,
+            git_sha=args.git_sha,
         )
 
     recorder.save_run(record, stream_path=result.stream_path, raw_output=result.raw_output)
@@ -808,6 +810,7 @@ def main(argv: list[str] | None = None) -> int:
             console=console, rich_tracebacks=True, markup=True, show_path=False,
         )],
     )
+    args.git_sha = capture_git_sha(args.benchmark_root.parent)
     if args.dry_run:
         return dry_run(args)
 

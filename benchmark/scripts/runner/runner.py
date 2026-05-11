@@ -95,6 +95,35 @@ def _compute_workflow_hash(workflow_path: Path) -> str:
         return ""
 
 
+def capture_git_sha(repo_root: Path) -> str:
+    """Capture the APE repo HEAD commit SHA, with a dirty marker if needed.
+
+    Returns the 12-char short SHA, suffixed with ``-dirty`` when the working
+    tree (tracked or untracked) differs from HEAD. Raises ``RuntimeError`` if
+    ``repo_root`` is not a git checkout or ``git`` is unavailable - APE is
+    only intended to run from the repository, so the caller should fail fast.
+    """
+    try:
+        sha = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "--short=12", "HEAD"],
+            check=True, capture_output=True, text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "-C", str(repo_root), "status", "--porcelain"],
+            check=True, capture_output=True, text=True,
+        ).stdout
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise RuntimeError(
+            f"Failed to capture git SHA from {repo_root}: {exc}. "
+            "APE must run from a git checkout."
+        ) from exc
+
+    if not sha:
+        raise RuntimeError(f"git rev-parse returned empty SHA for {repo_root}")
+
+    return f"{sha}-dirty" if status.strip() else sha
+
+
 def _extract_ape_version(workflow_path: Path, benchmark_root: Path | None = None) -> str:
     """Extract the APE spec version relevant to this workflow.
 

@@ -193,6 +193,7 @@ class RunRecord:
     # Version tracking
     ape_version: str = ""
     workflow_hash: str = ""
+    git_sha: str = ""
 
     # Meta
     timestamp: str = ""
@@ -413,6 +414,7 @@ class Recorder:
             "run_id": record.run_id,
             "ape_version": record.ape_version,
             "workflow_hash": record.workflow_hash,
+            "git_sha": record.git_sha,
             "model": record.model,
             "session_id": session_id,
             "started_at": record.started_at,
@@ -523,6 +525,7 @@ class Recorder:
             model_usage=summary.get("model_usage", {}),
             ape_version=summary.get("ape_version", ""),
             workflow_hash=summary.get("workflow_hash", ""),
+            git_sha=summary.get("git_sha", ""),
             timestamp=summary.get("timestamp", ""),
         )
 
