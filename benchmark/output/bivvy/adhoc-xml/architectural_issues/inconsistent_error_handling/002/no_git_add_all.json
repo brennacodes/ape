@@ -1,0 +1,28 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6 -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6/src -type f -name \"*.rs\" | sort', 'grep -r \"-> Result<\" src/ | head -40', 'grep -r \"use crate::error\" src/ | wc -l', 'grep -r \"with_context\\\\|context\\\\|anyhow::\" src/ | head -20', 'grep -r \"fn.*Result\" src/ | head -50 | cut -d: -f1,3-', 'find src -name \"*.rs\" -exec grep -l \"use anyhow\" {} \\\\;', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6/src', 'grep -r \"pub struct.*Error\\\\|pub enum.*Error\\\\|#\\\\[derive.*Error\\\\|thiserror\\\\|#\\\\[error\" src/ --include=\"*.rs\" | head -30', 'find src -type f -name \"*.rs\" | wc -l', 'grep -l \"Result<\" src/**/*.rs 2>/dev/null | wc -l', 'grep -r \"use anyhow\" src/ | grep -v \"^Binary\" | sed \\'s/:.*/:/\\' | sort -u', 'grep -r \"use crate::error\" src/ | grep -v \"^Binary\" | sed \\'s/:.*/:/\\' | sort -u', 'grep -r \"trait.*Error\" src/ --include=\"*.rs\" | head -20', 'grep -r \"impl.*std::error::Error\" src/ --include=\"*.rs\"'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6 -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6/src -type f -name \"*.rs\" | sort",
+    "grep -r \"-> Result<\" src/ | head -40",
+    "grep -r \"use crate::error\" src/ | wc -l",
+    "grep -r \"with_context\\|context\\|anyhow::\" src/ | head -20",
+    "grep -r \"fn.*Result\" src/ | head -50 | cut -d: -f1,3-",
+    "find src -name \"*.rs\" -exec grep -l \"use anyhow\" {} \\;",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vnlio5f6/src",
+    "grep -r \"pub struct.*Error\\|pub enum.*Error\\|#\\[derive.*Error\\|thiserror\\|#\\[error\" src/ --include=\"*.rs\" | head -30",
+    "find src -type f -name \"*.rs\" | wc -l",
+    "grep -l \"Result<\" src/**/*.rs 2>/dev/null | wc -l",
+    "grep -r \"use anyhow\" src/ | grep -v \"^Binary\" | sed 's/:.*/:/' | sort -u",
+    "grep -r \"use crate::error\" src/ | grep -v \"^Binary\" | sed 's/:.*/:/' | sort -u",
+    "grep -r \"trait.*Error\" src/ --include=\"*.rs\" | head -20",
+    "grep -r \"impl.*std::error::Error\" src/ --include=\"*.rs\""
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": null
+}

@@ -1,0 +1,28 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'cargo test --all-features runner::dependency 2>&1', 'cargo doc --no-deps --all-features 2>&1 | grep -c \"^error\"', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka status', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka diff src/runner/dependency.rs', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka log --oneline -5', 'git add src/runner/dependency.rs && git commit -m \"$(cat <<\\'EOF\\'\\nAdd circular reference tests for dependency resolver\\n\\nThe dependency graph\\'s recursive traversal methods (transitive_dependents,\\ncompute_skips, parallel_groups, topological_order) could infinite loop\\non circular references. While the implementation correctly handles cycles\\nvia visited-set guards, this behavior had zero test coverage.\\n\\nAdd 20 tests covering:\\n- transitive_dependents termination on 2-node, 3-node, and self cycles\\n- transitive_dependents with a tail leading into a cycle\\n- topological_order cycle detection for self, 2-node, 3-node, and\\n  mixed cyclic/acyclic graphs\\n- find_cycle with acyclic subgraphs and multiple disjoint cycles\\n- parallel_groups error propagation on cycles\\n- compute_skips termination with SkipWithDependents and SkipOnly on\\n  cyclic graphs\\n- is_ready deadlock detection in mutual dependency\\n- CircularDependency error message content verification\\n- Edge cases: empty graph cycle check, nonexistent step lookups\\nEOF\\n)\"', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka log -1 --stat', 'cargo check --all-features 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "untested_code",
+  "metric_value": [
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features runner::dependency 2>&1",
+    "cargo doc --no-deps --all-features 2>&1 | grep -c \"^error\"",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo llvm-cov --all-features 2>&1",
+    "cargo check --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka status",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka diff src/runner/dependency.rs",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka log --oneline -5",
+    "git add src/runner/dependency.rs && git commit -m \"$(cat <<'EOF'\nAdd circular reference tests for dependency resolver\n\nThe dependency graph's recursive traversal methods (transitive_dependents,\ncompute_skips, parallel_groups, topological_order) could infinite loop\non circular references. While the implementation correctly handles cycles\nvia visited-set guards, this behavior had zero test coverage.\n\nAdd 20 tests covering:\n- transitive_dependents termination on 2-node, 3-node, and self cycles\n- transitive_dependents with a tail leading into a cycle\n- topological_order cycle detection for self, 2-node, 3-node, and\n  mixed cyclic/acyclic graphs\n- find_cycle with acyclic subgraphs and multiple disjoint cycles\n- parallel_groups error propagation on cycles\n- compute_skips termination with SkipWithDependents and SkipOnly on\n  cyclic graphs\n- is_ready deadlock detection in mutual dependency\n- CircularDependency error message content verification\n- Edge cases: empty graph cycle check, nonexistent step lookups\nEOF\n)\"",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wmop9wka log -1 --stat",
+    "cargo check --all-features 2>&1"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": null
+}

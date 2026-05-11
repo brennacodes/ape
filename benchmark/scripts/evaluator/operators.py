@@ -233,6 +233,132 @@ def op_strictly_ordered_subset(observed: list[str], defined: list[str]) -> bool:
     return indices == sorted(indices)
 
 
+def op_strict_with_legal_redirects(
+    timeline: list[str],
+    defined: list[str],
+    legal_redirect_targets: dict[str, list[str]],
+) -> tuple[bool, dict]:
+    """
+    Strict ordering check with declared legal redirect paths for re-occurrences.
+
+    Inputs:
+    - timeline: phase activation timeline in event-order (consecutive duplicates
+      already collapsed). Phases not present in `defined` (floating phases like
+      `failure_recovery`) are filtered out by this operator before applying the
+      rules so they can appear anywhere without affecting the verdict.
+    - defined: canonical ordered list of phases (e.g. spec, impl, doc, ...).
+    - legal_redirect_targets: per-phase map of declared legal re-entry targets,
+      mirroring workflow gate `<on-fail>` / `<on-pass>` routing.
+
+    Returns (passed, details) where `details` is a dict with the full audit:
+      {
+        "filtered_timeline": list[str],   # timeline after floating-phase strip
+        "coverage": {
+            "passed": bool,
+            "missing": list[str],          # phases absent from timeline
+        },
+        "first_occurrence_order": {
+            "passed": bool,
+            "actual": list[str],           # first-occurrence order detected
+            "expected": list[str],         # canonical defined order
+        },
+        "transitions": {
+            "passed": bool,
+            "illegal": list[dict],         # per illegal transition
+            "all": list[dict],             # every transition examined
+        },
+      }
+
+    PASS iff all three rules hold:
+      1. Coverage: every phase in `defined` appears in `filtered_timeline`.
+      2. First-occurrence order: phases in `defined` first appear in `defined`-
+         order in `filtered_timeline`.
+      3. Re-occurrence legality: each transition `(prev, curr)` (with `prev !=
+         curr`) is legal if any of:
+           a. curr is the canonical-next phase after prev.
+           b. curr is in `legal_redirect_targets[prev]`.
+           c. prev is in `legal_redirect_targets[curr]` AND curr has already
+              had its first occurrence earlier in the timeline (return arc
+              from an on-fail loop).
+
+    When coverage fails (missing phases > 0), the transition-legality check is
+    skipped to avoid compounding a single root cause (missing phase) into
+    multiple spurious illegal-transition reports.
+    """
+    defined_set = set(defined)
+    filtered = [p for p in timeline if p in defined_set]
+
+    missing = [p for p in defined if p not in filtered]
+    coverage_passed = len(missing) == 0
+
+    seen: dict[str, int] = {}
+    for i, p in enumerate(filtered):
+        if p not in seen:
+            seen[p] = i
+    actual_first_order = sorted(seen.keys(), key=lambda p: seen[p])
+    expected_first_order = [p for p in defined if p in seen]
+    first_order_passed = actual_first_order == expected_first_order
+
+    defined_index = {p: i for i, p in enumerate(defined)}
+    illegal: list[dict] = []
+    all_transitions: list[dict] = []
+    if coverage_passed:
+        first_occurrence: dict[str, int] = {}
+        for i, p in enumerate(filtered):
+            if p not in first_occurrence:
+                first_occurrence[p] = i
+        for i, (prev, curr) in enumerate(zip(filtered, filtered[1:]), start=1):
+            if prev == curr:
+                continue
+            prev_idx = defined_index.get(prev)
+            curr_idx = defined_index.get(curr)
+            is_forward = (
+                prev_idx is not None
+                and curr_idx is not None
+                and curr_idx == prev_idx + 1
+            )
+            redirects = legal_redirect_targets.get(prev, []) or []
+            is_redirect = curr in redirects
+            curr_redirects = legal_redirect_targets.get(curr, []) or []
+            curr_first = first_occurrence.get(curr)
+            is_return_arc = (
+                prev in curr_redirects
+                and curr_first is not None
+                and curr_first < i
+            )
+            legal = is_forward or is_redirect or is_return_arc
+            rec = {
+                "prev": prev,
+                "curr": curr,
+                "was_canonical_forward": is_forward,
+                "was_legal_redirect": is_redirect,
+                "was_return_arc": is_return_arc,
+                "legal": legal,
+            }
+            all_transitions.append(rec)
+            if not legal:
+                illegal.append(rec)
+    transitions_passed = len(illegal) == 0
+
+    passed = coverage_passed and first_order_passed and transitions_passed
+
+    details = {
+        "filtered_timeline": filtered,
+        "coverage": {"passed": coverage_passed, "missing": missing},
+        "first_occurrence_order": {
+            "passed": first_order_passed,
+            "actual": actual_first_order,
+            "expected": expected_first_order,
+        },
+        "transitions": {
+            "passed": transitions_passed,
+            "illegal": illegal,
+            "all": all_transitions,
+        },
+    }
+    return passed, details
+
+
 def op_subset_of(a: Any, b: Any) -> bool:
     """True if A ⊆ B (both coerced to sets)."""
     return set(a) <= set(b)
@@ -545,6 +671,7 @@ COLLECTION_OPERATORS: dict[str, Any] = {
     "followed_by": op_followed_by,
     "strictly_precedes": op_strictly_precedes,
     "strictly_ordered_subset": op_strictly_ordered_subset,
+    "strict_with_legal_redirects": op_strict_with_legal_redirects,
     "subset_of": op_subset_of,
     "only_via": op_only_via,
     "each_preceded_by_within_N_steps": op_each_preceded_by_within_N_steps,

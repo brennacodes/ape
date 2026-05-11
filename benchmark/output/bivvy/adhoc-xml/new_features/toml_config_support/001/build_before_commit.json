@@ -3,80 +3,10 @@
   "phase": "build",
   "passed": true,
   "skip_reason": null,
-  "detail": "VACUOUS PASS: empty A or B indices. 'cargo build' (Bash) occurred before 'git commit' (Bash)",
+  "detail": "VACUOUS PASS: no B indices to precede. 'cargo build' (Bash) occurred before 'git commit' (Bash)",
   "category": "new_features",
   "metric_value": [],
   "target_value": [],
-  "operator": "strictly_precedes",
-  "eval_trace": [
-    {
-      "function": "evaluate_check",
-      "action": "check_started",
-      "timestamp": 2490568.910158875,
-      "check_id": "build_before_commit",
-      "phase": "build",
-      "condition": {
-        "metric": "tool_call.execute_command",
-        "operator": "strictly_precedes",
-        "target": "tool_call.execute_command",
-        "metric_args": "cargo build",
-        "target_args": "git commit"
-      }
-    },
-    {
-      "function": "resolve_metric",
-      "action": "resolved_tool_call_metric",
-      "timestamp": 2490568.910172375,
-      "metric": "tool_call.execute_command",
-      "tool_name": "Bash",
-      "tool_calls": [],
-      "result_indices": []
-    },
-    {
-      "function": "_tool_indices_matching",
-      "action": "filtered_tool_calls",
-      "timestamp": 2490568.91018025,
-      "tool_name": "Bash",
-      "substring": "cargo build",
-      "matched": [],
-      "rejected": [],
-      "result_indices": []
-    },
-    {
-      "function": "resolve_metric",
-      "action": "resolved_tool_call_metric",
-      "timestamp": 2490568.910193958,
-      "metric": "tool_call.execute_command",
-      "tool_name": "Bash",
-      "tool_calls": [],
-      "result_indices": []
-    },
-    {
-      "function": "_tool_indices_matching",
-      "action": "filtered_tool_calls",
-      "timestamp": 2490568.910201333,
-      "tool_name": "Bash",
-      "substring": "git commit",
-      "matched": [],
-      "rejected": [],
-      "result_indices": []
-    },
-    {
-      "function": "evaluate_condition_with_evidence",
-      "action": "applied_operator",
-      "timestamp": 2490568.910203958,
-      "operator": "strictly_precedes",
-      "metric_value": [],
-      "target_value": [],
-      "passed": true,
-      "vacuous_reason": "empty A or B indices"
-    },
-    {
-      "function": "evaluate_check",
-      "action": "check_completed",
-      "timestamp": 2490568.910210625,
-      "passed": true,
-      "detail": "VACUOUS PASS: empty A or B indices. 'cargo build' (Bash) occurred before 'git commit' (Bash)"
-    }
-  ]
+  "operator": "exists_before",
+  "eval_trace": null
 }

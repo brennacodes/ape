@@ -44,6 +44,7 @@ from evaluator import (
     _CONTENT_OPERATORS,
     _ALL_METRIC_NAMES,
     _detect_phases,
+    _build_activation_timeline,
     _matches_signal,
     _count_impl_verify_cycles,
     _resolve_diff_files_changed,
@@ -319,6 +320,76 @@ class TestResolveMetric:
         }
         result = resolve_metric("phase.execution_order", trace, ctx)
         assert result == ["investigation", "implementation"]
+
+    def test_phase_activation_timeline_requires_mapping(self):
+        trace = _simple_trace(_user_prompt("task"))
+        with pytest.raises(MetricNotResolvable, match="requires phase_tool_mapping"):
+            resolve_metric("phase.activation_timeline", trace, self._ctx())
+
+    def test_phase_activation_timeline_collapses_consecutive_duplicates(self):
+        # Three consecutive writes (all impl) followed by a bash test should
+        # collapse to ["implementation", "verification"].
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("a.py", "t1"),
+            _tool_result("t1"),
+            _write("b.py", "t2"),
+            _tool_result("t2"),
+            _write("c.py", "t3"),
+            _tool_result("t3"),
+            _bash("pytest", "t4"),
+            _tool_result("t4"),
+        )
+        ctx = self._ctx()
+        ctx["phase_tool_mapping"] = {
+            "implementation": {
+                "signals": ["tool_call.file_write"],
+                "position": "any",
+            },
+            "verification": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_implementation",
+            },
+        }
+        ctx["phase_classification"] = {
+            "ordered": ["implementation", "verification"],
+            "floating": [],
+        }
+        result = resolve_metric("phase.activation_timeline", trace, ctx)
+        assert result == ["implementation", "verification"]
+
+    def test_phase_activation_timeline_filters_floating_phase(self):
+        # A floating phase that shares event indices with an ordered phase
+        # should be tie-broken away.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("a.py", "t1"),
+            _tool_result("t1"),
+            _bash("pytest", "t2"),
+            _tool_result("t2"),
+        )
+        ctx = self._ctx()
+        ctx["phase_tool_mapping"] = {
+            "implementation": {
+                "signals": ["tool_call.file_write"],
+                "position": "any",
+            },
+            "verification": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_implementation",
+            },
+            "failure_recovery": {
+                "signals": ["tool_call.file_write", "tool_call.execute_command"],
+                "position": "any",
+            },
+        }
+        ctx["phase_classification"] = {
+            "ordered": ["implementation", "verification"],
+            "floating": ["failure_recovery"],
+        }
+        result = resolve_metric("phase.activation_timeline", trace, ctx)
+        # Both indices are tie-broken to the ordered phase
+        assert "failure_recovery" not in result
 
     def test_phase_cycle_count(self):
         trace = _simple_trace(
@@ -1366,6 +1437,120 @@ class TestEvaluateCheck:
         result = evaluate_check(check, trace, ctx)
         assert result.passed is True
 
+    def test_strict_with_legal_redirects_empty_timeline_fails(self):
+        """An empty trace -> empty timeline -> fails coverage."""
+        trace = _simple_trace(_user_prompt("task"))
+        check = {
+            "id": "phase_ordering",
+            "phase": "workflow",
+            "description": "Strict ordering",
+            "type": "workflow_order",
+            "condition": {
+                "metric": "phase.activation_timeline",
+                "operator": "strict_with_legal_redirects",
+                "target": ["investigation", "implementation"],
+            },
+        }
+        ctx = self._ctx()
+        ctx["phase_tool_mapping"] = {
+            "investigation": {"signals": ["tool_call.search"], "position": "before_implementation"},
+            "implementation": {"signals": ["tool_call.file_write"], "position": "any"},
+        }
+        ctx["phase_classification"] = {"ordered": ["investigation", "implementation"], "floating": []}
+        result = evaluate_check(check, trace, ctx)
+        assert result.passed is False
+        assert result.operator == "strict_with_legal_redirects"
+        assert "missing phases" in (result.detail or "")
+
+    def test_strict_with_legal_redirects_full_pass(self):
+        """All phases fire in canonical order -> passes."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _grep("foo", {}, "t1"),
+            _tool_result("t1"),
+            _write("bar.py", "t2"),
+            _tool_result("t2"),
+        )
+        check = {
+            "id": "phase_ordering",
+            "phase": "workflow",
+            "description": "Strict ordering",
+            "type": "workflow_order",
+            "condition": {
+                "metric": "phase.activation_timeline",
+                "operator": "strict_with_legal_redirects",
+                "target": ["investigation", "implementation"],
+            },
+        }
+        ctx = self._ctx()
+        ctx["phase_tool_mapping"] = {
+            "investigation": {
+                "signals": ["tool_call.search"],
+                "position": "before_implementation",
+                "legal_redirect_targets": [],
+            },
+            "implementation": {
+                "signals": ["tool_call.file_write"],
+                "position": "any",
+                "legal_redirect_targets": [],
+            },
+        }
+        ctx["phase_classification"] = {"ordered": ["investigation", "implementation"], "floating": []}
+        result = evaluate_check(check, trace, ctx)
+        assert result.passed is True
+        assert result.operator == "strict_with_legal_redirects"
+        assert result.eval_trace is not None
+
+    def test_strict_with_legal_redirects_eval_trace_records_rules(self):
+        """eval_trace records per-rule verdicts including the activation timeline."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("bar.py", "t1"),
+            _tool_result("t1"),
+        )
+        # impl present but investigation missing -> coverage failure
+        check = {
+            "id": "phase_ordering",
+            "phase": "workflow",
+            "description": "Strict ordering",
+            "type": "workflow_order",
+            "condition": {
+                "metric": "phase.activation_timeline",
+                "operator": "strict_with_legal_redirects",
+                "target": ["investigation", "implementation"],
+            },
+        }
+        ctx = self._ctx()
+        ctx["phase_tool_mapping"] = {
+            "investigation": {
+                "signals": ["tool_call.search"],
+                "position": "before_implementation",
+                "legal_redirect_targets": [],
+            },
+            "implementation": {
+                "signals": ["tool_call.file_write"],
+                "position": "any",
+                "legal_redirect_targets": [],
+            },
+        }
+        ctx["phase_classification"] = {"ordered": ["investigation", "implementation"], "floating": []}
+        result = evaluate_check(check, trace, ctx)
+        assert result.passed is False
+        # Find the audit entry that captures rule verdicts
+        rule_entries = [
+            e for e in result.eval_trace
+            if e.get("function") == "_evaluate_strict_with_legal_redirects"
+            and e.get("action") == "rules_evaluated"
+        ]
+        assert len(rule_entries) == 1
+        entry = rule_entries[0]
+        assert "coverage_passed" in entry
+        assert "first_occurrence_passed" in entry
+        assert "transitions_passed" in entry
+        assert "filtered_timeline" in entry
+        assert entry["coverage_passed"] is False
+        assert "investigation" in entry["coverage_missing"]
+
     def test_precedes_per_path_pass(self):
         trace = _simple_trace(
             _user_prompt("task"),
@@ -1825,6 +2010,27 @@ class TestApplyOperator:
             ["intake", "investigation", "commits"],
             10, {},
         ) is True
+
+    def test_strictly_ordered_subset_still_available_regression(self):
+        """The legacy subset operator must remain registered and behave as
+        documented even after strict_with_legal_redirects landed."""
+        # Empty observed -> vacuously passes (subset semantics).
+        assert _apply_operator(
+            "strictly_ordered_subset", [],
+            ["spec", "impl", "doc"], 10, {},
+        ) is True
+        # Sparse but in-order -> passes.
+        assert _apply_operator(
+            "strictly_ordered_subset",
+            ["spec", "doc"],
+            ["spec", "impl", "doc"], 10, {},
+        ) is True
+        # Out-of-order -> fails.
+        assert _apply_operator(
+            "strictly_ordered_subset",
+            ["doc", "spec"],
+            ["spec", "impl", "doc"], 10, {},
+        ) is False
 
     def test_subset_of(self):
         assert _apply_operator("subset_of", [1, 2], [1, 2, 3], 10, {}) is True
@@ -2703,6 +2909,211 @@ class TestMatchesSignal:
 
 
 # ===========================================================================
+# not_match: distinguish step commands from gate commands (bivvy.ape)
+# ===========================================================================
+
+GATE_EXCLUSION = r"\|\s*(awk|grep|wc|cut|head|tail|sort|uniq|sed)\b"
+
+
+class TestNotMatchExcludesGateCommands:
+    """Bivvy's APE workflow runs the same `cargo` binaries from steps and from
+    gate evaluation. Step commands run the binary directly; gate commands wrap
+    them in a parsing pipeline (e.g. ``cargo test ... 2>&1 | awk ...``).
+
+    `not_match` excludes the gate-pipelined invocations so they don't get
+    misclassified as the work phase. Without it, every gate that runs
+    ``cargo test`` would register as a "testing" phase event regardless of
+    which step it ran from.
+    """
+
+    def test_step_command_matches_without_pipe(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "cargo test --all-features 2>&1"},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "cargo test", not_match=GATE_EXCLUSION) is True
+
+    def test_gate_command_excluded_when_piped_to_awk(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'"},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "cargo test", not_match=GATE_EXCLUSION) is False
+
+    def test_gate_command_excluded_when_piped_to_grep(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "cargo build 2>&1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\""},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "cargo build", not_match=GATE_EXCLUSION) is False
+
+    def test_gate_command_excluded_when_piped_to_wc(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "git diff --cached --name-only | wc -l"},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "git diff", not_match=GATE_EXCLUSION) is False
+
+    def test_no_not_match_keeps_old_behavior(self):
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "cargo test --all-features 2>&1 | awk '...'"},
+            event_index=0,
+        )
+        # Without not_match, the command still matches "cargo test"
+        assert _matches_signal(tc, "cargo test") is True
+
+    def test_2to1_redirect_alone_does_not_trigger_exclusion(self):
+        # `2>&1` is a stderr-to-stdout redirect, not a pipe. The exclusion
+        # regex must only fire on the `|` pipe character, not on `>`.
+        tc = ToolCall(
+            tool_use_id="t1", name="Bash",
+            input={"command": "cargo doc --no-deps --all-features 2>&1"},
+            event_index=0,
+        )
+        assert _matches_signal(tc, "cargo doc", not_match=GATE_EXCLUSION) is True
+
+
+class TestPhaseDetectionIgnoresGateCommands:
+    """End-to-end: gate-style cargo invocations run from non-testing steps must
+    not be classified as `testing` phase events. This is the bug that caused
+    `phase_ordering` to be disabled."""
+
+    def _make_bivvy_config(self):
+        return {
+            "specification": {
+                "signals": ["tool_call.file_write", "tool_call.file_edit"],
+                "position": "before_implementation",
+                "match": "test",
+                "content_match": r"#\[test\]|#\[cfg\(test\)\]|mod tests",
+            },
+            "implementation": {
+                "signals": ["tool_call.file_write", "tool_call.file_edit", "tool_call.file_create"],
+                "position": "any",
+            },
+            "linting": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_implementation",
+                "match": "cargo fmt",
+                "not_match": GATE_EXCLUSION,
+            },
+            "testing": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_implementation",
+                "match": "cargo test",
+                "not_match": GATE_EXCLUSION,
+            },
+            "build": {
+                "signals": ["tool_call.execute_command"],
+                "position": "after_implementation",
+                "match": "cargo build",
+                "not_match": GATE_EXCLUSION,
+            },
+        }
+
+    def _make_classification(self):
+        return {
+            "ordered": ["specification", "implementation", "linting", "testing", "build"],
+            "floating": [],
+        }
+
+    def test_specification_gate_cargo_test_does_not_count_as_testing(self):
+        """Step 1 (specification) gate runs ``cargo test ... | awk ...`` to
+        count failures. That gate run must not be detected as a testing phase
+        event - the actual testing step hasn't run yet."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("tests/foo_test.rs", "t1"),
+            _tool_result("t1"),
+            # Specification gate: cargo test piped through awk
+            _bash("cargo test --all-features 2>&1 | awk '/test result:/ { print 0 }'", "t2"),
+            _tool_result("t2"),
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(trace, self._make_bivvy_config(), self._make_classification())
+        # No testing phase: the only cargo test was a gate command
+        assert "testing" not in events
+
+    def test_real_testing_step_still_detected(self):
+        """When the agent actually runs ``cargo test`` as a step command, it
+        should still be detected as the testing phase."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _write("tests/foo_test.rs", "t1"),
+            _tool_result("t1"),
+            _edit("src/lib.rs", "t2"),
+            _tool_result("t2"),
+            # Real testing step
+            _bash("cargo test --all-features 2>&1", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(trace, self._make_bivvy_config(), self._make_classification())
+        assert "testing" in events
+
+    def test_post_commit_gate_cargo_build_excluded(self):
+        """Post-commit gate runs ``cargo build 2>&1 | grep ...`` to count
+        errors. That must not register as another build phase event."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            # Real build step command
+            _bash("cargo build --all-targets --all-features 2>&1", "t2"),
+            _tool_result("t2"),
+            # Post-commit gate command - must be excluded
+            _bash("cargo build 2>&1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\"", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(trace, self._make_bivvy_config(), self._make_classification())
+        # build phase should only have the step-command event, not the gate one
+        build_events = events.get("build", [])
+        assert len(build_events) == 1, f"build should have exactly 1 event, got {build_events}"
+
+    def test_full_bivvy_sequence_classifies_correctly(self):
+        """Realistic bivvy.ape trace with mixed step + gate commands. The
+        execution order must reflect the step sequence, not the gate runs."""
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # 1. specification (write tests)
+            _write("tests/foo_test.rs", "t1"),
+            _tool_result("t1"),
+            # specification gate
+            _bash("cargo test --all-features 2>&1 | awk '{print 1}'", "t2"),
+            _tool_result("t2"),
+            # 2. implementation
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            # implementation gate
+            _bash("cargo test --all-features 2>&1 | awk '{print 0}'", "t4"),
+            _tool_result("t4"),
+            # 3. linting (step)
+            _bash("cargo fmt -- --check 2>&1", "t5"),
+            _tool_result("t5"),
+            # linting gate
+            _bash("cargo fmt -- --check 2>&1 | grep -c \"^Diff in\"", "t6"),
+            _tool_result("t6"),
+            # 4. testing (step)
+            _bash("cargo test --all-features 2>&1", "t7"),
+            _tool_result("t7"),
+            # testing gate (cov-pct + test-failure-count)
+            _bash("cargo llvm-cov --all-features 2>&1 | awk '{print 95}'", "t8"),
+            _tool_result("t8"),
+            # 5. build (step)
+            _bash("cargo build --all-targets --all-features 2>&1", "t9"),
+            _tool_result("t9"),
+        )
+        order, events = _detect_phases(trace, self._make_bivvy_config(), self._make_classification())
+        # All 5 phases should be detected, in the declared order
+        assert order == ["specification", "implementation", "linting", "testing", "build"], \
+            f"Unexpected phase order: {order}"
+
+
+# ===========================================================================
 # Bug 4: after_tdd_specify position in _detect_phases
 # ===========================================================================
 
@@ -3043,3 +3454,1683 @@ class TestResolvePositionBoundary:
         )
         boundary = _resolve_position_boundary("after_implementation", trace, self._ctx())
         assert boundary is None
+
+
+# ===========================================================================
+# Phase ordering scoring spec - obligations from SCORING_SPEC section 6
+# ===========================================================================
+
+from evaluator import (  # noqa: E402
+    _proximity_factor,
+    _cross_phase_factor,
+    _position_factor,
+    _UnifiedEvent,
+    _RequiredCommand,
+    _PhaseSpec,
+    _candidates_for,
+    _unified_events,
+    _score_phase,
+    _migrate_legacy_phase,
+    _parse_phase_spec,
+)
+
+
+def _ue(unified_pos: int, kind: str = "tool_call", call_index=None, event_index=None) -> _UnifiedEvent:
+    """Build a synthetic _UnifiedEvent for factor-level tests."""
+    if call_index is None and kind == "tool_call":
+        call_index = unified_pos
+    if event_index is None:
+        event_index = unified_pos
+    u = _UnifiedEvent(
+        kind=kind,
+        call_index=call_index,
+        event_index=event_index,
+        tc=None,
+        text="",
+    )
+    u.unified_pos = unified_pos
+    return u
+
+
+class TestProximityFactor:
+    """Obligation: proximity returns 1.0 at distance 0, 0.6 at distance 6,
+    0.0 at distance >= window, and uses NEAREST other for 3+ commands."""
+
+    def test_distance_zero_returns_one(self):
+        assert _proximity_factor(_ue(10), [_ue(10)], window=15) == 1.0
+
+    def test_distance_three_returns_eight_tenths(self):
+        assert _proximity_factor(_ue(10), [_ue(13)], window=15) == pytest.approx(0.8)
+
+    def test_distance_six_returns_six_tenths(self):
+        assert _proximity_factor(_ue(10), [_ue(16)], window=15) == pytest.approx(0.6)
+
+    def test_distance_at_or_above_window_returns_zero(self):
+        assert _proximity_factor(_ue(10), [_ue(25)], window=15) == 0.0
+        assert _proximity_factor(_ue(10), [_ue(30)], window=15) == 0.0
+
+    def test_uses_nearest_with_three_commands(self):
+        # Distances 14 and 1 → nearest is 1 → factor = 1 - 1/15.
+        result = _proximity_factor(_ue(10), [_ue(24), _ue(11)], window=15)
+        assert result == pytest.approx(1.0 - 1.0 / 15.0)
+
+    def test_no_others_returns_one(self):
+        # R == 1 case.
+        assert _proximity_factor(_ue(10), [], window=15) == 1.0
+
+
+class TestCrossPhaseFactor:
+    """Obligation: cross_phase factor counts illegal candidates inside cluster
+    intervals; honors legal_redirect_targets; never goes below zero; doesn't
+    double-count an event in overlapping intervals."""
+
+    def test_no_illegal_candidates_returns_one(self):
+        u_i = _ue(10)
+        u_j = _ue(15)
+        # Only "self" candidates, none other.
+        result = _cross_phase_factor(u_i, [u_j], {}, "self", set())
+        assert result == 1.0
+
+    def test_one_illegal_returns_zero_point_eight(self):
+        u_i = _ue(10)
+        u_j = _ue(20)
+        other = {"build": [_ue(15)]}
+        result = _cross_phase_factor(u_i, [u_j], other, "self", set())
+        assert result == pytest.approx(0.8)
+
+    def test_three_illegals_returns_zero_point_four(self):
+        u_i = _ue(10)
+        u_j = _ue(20)
+        other = {"build": [_ue(12), _ue(14)], "lint": [_ue(16)]}
+        result = _cross_phase_factor(u_i, [u_j], other, "self", set())
+        assert result == pytest.approx(0.4)
+
+    def test_never_below_zero(self):
+        u_i = _ue(10)
+        u_j = _ue(20)
+        # Six illegal candidates → 1 - 0.2*6 = -0.2, clamped to 0.
+        other = {"build": [_ue(p) for p in (11, 12, 13, 14, 15, 16)]}
+        result = _cross_phase_factor(u_i, [u_j], other, "self", set())
+        assert result == 0.0
+
+    def test_legal_redirect_targets_not_counted(self):
+        u_i = _ue(10)
+        u_j = _ue(20)
+        other = {"implementation": [_ue(15)]}
+        result = _cross_phase_factor(u_i, [u_j], other, "self", legal_redirect_targets={"implementation"})
+        assert result == 1.0
+
+    def test_no_double_count_overlapping_intervals(self):
+        # Three required commands at 10, 15, 20 → pair intervals (10,15),
+        # (15,20), (10,20) merge to (10,20). One illegal at 12 should be
+        # counted exactly once, not three times.
+        u_i = _ue(10)
+        others = [_ue(15), _ue(20)]
+        other = {"build": [_ue(12)]}
+        result = _cross_phase_factor(u_i, others, other, "self", set())
+        assert result == pytest.approx(0.8)
+
+    def test_no_others_returns_one(self):
+        # R == 1 case.
+        assert _cross_phase_factor(_ue(10), [], {"build": [_ue(15)]}, "self", set()) == 1.0
+
+
+class TestPositionFactor:
+    """Obligation: position factor returns 0.5 (soft) for out-of-window
+    after_implementation, 0.0 (hard) for after_specification beyond impl
+    and before_implementation past the impl boundary, and 1.0 with
+    vacuous boundaries.
+
+    Cascade-suppression cure: when the predecessor phase of an ``after_*``
+    position did NOT fire (boundary is None), the constraint is vacuous
+    and the factor returns 1.0. The previous 0.5 default capped per-required
+    contributions at (1/R)*0.5, which made R=2 phases mathematically unable
+    to reach the 0.8 threshold and silently cascaded skipped-phase failures
+    into all downstream ``after_*`` phases. Score the cluster strength
+    on its own merits when the predecessor never happened.
+    """
+
+    def test_any_returns_one(self):
+        assert _position_factor(_ue(0), "any", {}) == 1.0
+
+    def test_after_implementation_in_window(self):
+        assert _position_factor(_ue(15), "after_implementation", {"implementation": 5}) == 1.0
+
+    def test_after_implementation_out_of_window_soft(self):
+        assert _position_factor(_ue(2), "after_implementation", {"implementation": 5}) == 0.5
+
+    def test_after_implementation_no_boundary_vacuous_returns_one(self):
+        # Predecessor phase did not fire; the "after" constraint is vacuous
+        # so the factor is 1.0 (cascade-suppression cure).
+        assert _position_factor(_ue(2), "after_implementation", {"implementation": None}) == 1.0
+
+    def test_after_linting_no_boundary_vacuous_returns_one(self):
+        assert _position_factor(_ue(2), "after_linting", {"linting": None}) == 1.0
+
+    def test_after_testing_no_boundary_vacuous_returns_one(self):
+        assert _position_factor(_ue(2), "after_testing", {"testing": None}) == 1.0
+
+    def test_after_verification_no_boundary_vacuous_returns_one(self):
+        assert _position_factor(_ue(2), "after_verification", {"testing": None}) == 1.0
+
+    def test_before_implementation_vacuous_returns_one(self):
+        assert _position_factor(_ue(2), "before_implementation", {"implementation": None}) == 1.0
+
+    def test_before_implementation_in_window(self):
+        """Event preceding the implementation boundary scores full credit."""
+        assert _position_factor(_ue(2), "before_implementation", {"implementation": 5}) == 1.0
+
+    def test_before_implementation_out_of_window_hard_zero(self):
+        """Event after the implementation boundary contributes 0.0.
+
+        `before_implementation` is HARD: mid-impl edits that look like
+        spec/investigation must not earn partial credit, otherwise they
+        cluster with mid-impl `cargo test` and incorrectly fire spec
+        after implementation has started. The other soft positions
+        (after_implementation, after_linting, etc.) remain at 0.5.
+        """
+        assert _position_factor(_ue(7), "before_implementation", {"implementation": 5}) == 0.0
+
+    def test_after_specification_above_impl_hard_zero(self):
+        assert _position_factor(
+            _ue(20),
+            "after_specification",
+            {"specification_last": 5, "implementation": 10},
+        ) == 0.0
+
+    def test_after_specification_below_spec_soft(self):
+        assert _position_factor(
+            _ue(2),
+            "after_specification",
+            {"specification_last": 5, "implementation": 10},
+        ) == 0.5
+
+    def test_after_specification_in_window(self):
+        assert _position_factor(
+            _ue(7),
+            "after_specification",
+            {"specification_last": 5, "implementation": 10},
+        ) == 1.0
+
+    def test_last_in_window(self):
+        assert _position_factor(_ue(15), "last", {"last_lower_bound": 10}) == 1.0
+
+    def test_last_out_of_window_hard_zero(self):
+        assert _position_factor(_ue(5), "last", {"last_lower_bound": 10}) == 0.0
+
+    def test_last_no_lower_bound_returns_one(self):
+        assert _position_factor(_ue(5), "last", {"last_lower_bound": None}) == 1.0
+
+    def test_post_hoc_returns_zero(self):
+        assert _position_factor(_ue(5), "post_hoc", {}) == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Helpers for end-to-end phase scoring tests.
+# ---------------------------------------------------------------------------
+
+def _testing_phase_config():
+    return {
+        "implementation": {
+            "position": "any",
+            "legal_redirect_targets": ["linting", "testing"],
+            "required_commands": [
+                {"id": "src_edit", "signal": "tool_call.file_edit", "match": ".*"},
+                {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+            ],
+        },
+        "linting": {
+            "position": "after_implementation",
+            "legal_redirect_targets": ["implementation", "testing"],
+            "required_commands": [
+                {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+            ],
+        },
+        "testing": {
+            "position": "after_linting",
+            "legal_redirect_targets": ["implementation", "linting"],
+            "required_commands": [
+                {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+            ],
+        },
+    }
+
+
+def _testing_classification():
+    return {"ordered": ["implementation", "linting", "testing"], "floating": []}
+
+
+class TestRequiredCommandsScoring:
+    """Obligations: R=1 fires when in-window candidate exists; R=2 fires at
+    distance 0-3 and not at distance 6+ on a clean trace."""
+
+    def test_r1_fires_when_candidate_in_window(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" in events
+
+    def test_r2_fires_at_distance_zero(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_parallel([
+                ("Bash", {"command": "cargo fmt"}, "t1"),
+                ("Bash", {"command": "cargo clippy"}, "t2"),
+            ]),
+            _tool_result("t1"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" in events
+
+    def test_r2_fires_at_distance_three(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt", "t1"),
+            _tool_result("t1"),
+            _bash("noop1", "t2"),
+            _tool_result("t2"),
+            _bash("noop2", "t3"),
+            _tool_result("t3"),
+            _bash("cargo clippy", "t4"),
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" in events
+
+    def test_r2_does_not_fire_at_distance_six(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        # Six unrelated commands between fmt and clippy.
+        events_lst = [_user_prompt("task"), _bash("cargo fmt", "t1"), _tool_result("t1")]
+        for i in range(2, 8):
+            events_lst.append(_bash(f"noop{i}", f"tn{i}"))
+            events_lst.append(_tool_result(f"tn{i}"))
+        events_lst.append(_bash("cargo clippy", "tc"))
+        events_lst.append(_tool_result("tc"))
+        trace = _simple_trace(*events_lst)
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" not in events
+
+
+class TestHardPrerequisites:
+    """Obligations: requires AND semantics; absent prereq = phase doesn't fire."""
+
+    def test_commit_does_not_fire_without_git_add(self):
+        config = {
+            "commit": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "git_add", "signal": "tool_call.execute_command", "match": "git add"},
+                    {"id": "git_commit", "signal": "tool_call.execute_command", "match": "git commit", "requires": ["git_add"]},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("git commit -m 'x'", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["commit"], "floating": []})
+        assert "commit" not in events
+
+    def test_commit_fires_when_git_add_precedes(self):
+        config = {
+            "commit": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "git_add", "signal": "tool_call.execute_command", "match": "git add"},
+                    {"id": "git_commit", "signal": "tool_call.execute_command", "match": "git commit", "requires": ["git_add"]},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("git add -p", "t1"),
+            _tool_result("t1"),
+            _bash("git commit -m 'x'", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["commit"], "floating": []})
+        assert "commit" in events
+
+    def test_requires_and_semantics_two_prereqs(self):
+        config = {
+            "phase_x": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "alpha"},
+                    {"id": "b", "signal": "tool_call.execute_command", "match": "beta"},
+                    {"id": "c", "signal": "tool_call.execute_command", "match": "gamma", "requires": ["a", "b"]},
+                ],
+            },
+        }
+        # alpha precedes gamma but beta does NOT precede gamma → phase should
+        # not fire (no feasible assignment with beta before gamma).
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("alpha", "t1"),
+            _tool_result("t1"),
+            _bash("gamma", "t2"),
+            _tool_result("t2"),
+            _bash("beta", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["phase_x"], "floating": []})
+        # No assignment of (a, b, c) has BOTH a and b strictly before c, so c
+        # contributes 0 and the phase score = (1/3)+(1/3)+0 = 0.667 < 0.8.
+        assert "phase_x" not in events
+
+
+class TestOptionalCommands:
+    """Obligations: optional present and clean adds up to 1/R; absent = no
+    effect; isolated optional contributes 0; rescues borderline cluster."""
+
+    def test_optional_present_and_clean_does_not_break_phase(self):
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                    {"id": "working_on", "signal": "assistant_text", "match": "Working on: testing", "optional": True},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_text("Working on: testing"),
+            _bash("cargo llvm-cov", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" in events
+
+    def test_optional_absent_no_penalty(self):
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                    {"id": "working_on", "signal": "assistant_text", "match": "Working on: testing", "optional": True},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo llvm-cov", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" in events
+
+    def test_optional_rescues_borderline_cluster(self):
+        # Two required at distance 9 → required contribution 0.4 (below 0.8).
+        # Optional clean at the cluster contributes 0.5 → total 0.9 → fires.
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                    {"id": "working_on", "signal": "assistant_text", "match": "Working on: testing", "optional": True},
+                ],
+            },
+        }
+        events_lst = [
+            _user_prompt("task"),
+            _assistant_text("Working on: testing"),
+            _bash("cargo llvm-cov", "t1"),
+            _tool_result("t1"),
+        ]
+        for i in range(2, 11):
+            events_lst.append(_bash(f"noop{i}", f"tn{i}"))
+            events_lst.append(_tool_result(f"tn{i}"))
+        events_lst.append(_bash("cargo test", "tc"))
+        events_lst.append(_tool_result("tc"))
+        trace = _simple_trace(*events_lst)
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" in events
+
+
+class TestAssistantTextSignal:
+    """Obligations: assistant_text matches Working on: lines; indexed by
+    TraceEvent.index, ordered before tool calls in the same event."""
+
+    def test_assistant_text_matches_working_on(self):
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                    {"id": "working_on", "signal": "assistant_text", "match": "Working on: testing"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_text("Working on: testing"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" in events
+
+    def test_text_ordered_before_tool_calls_same_event(self):
+        # Build a unified stream from a trace with text then a tool call.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_text("Working on: testing"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+        )
+        unified = _unified_events(trace)
+        text_events = [u for u in unified if u.kind == "text"]
+        bash_events = [u for u in unified if u.kind == "tool_call"]
+        assert text_events
+        assert bash_events
+        # Text from event N should come before bash from event > N.
+        assert text_events[0].unified_pos < bash_events[0].unified_pos
+
+
+class TestMultiOccurrence:
+    """Obligations: with multiple cargo test occurrences, scorer picks the one
+    that pairs best; dedup prevents earlier-phase events being re-claimed."""
+
+    def test_testing_picks_cargo_test_paired_with_llvm_cov(self):
+        config = {
+            "implementation": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": ".*"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "testing": {
+                "position": "after_implementation",
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),  # impl-gate test
+            _tool_result("t2"),
+            _bash("cargo llvm-cov", "t3"),
+            _tool_result("t3"),
+            _bash("cargo test", "t4"),  # testing-step test
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(
+            trace, config,
+            {"ordered": ["implementation", "testing"], "floating": []},
+        )
+        assert "testing" in events
+        # The testing phase should have indices that include the llvm-cov call
+        # index and the second cargo test (paired with llvm-cov).
+        # call_indices: Edit=0, cargo test#1=1, llvm-cov=2, cargo test#2=3.
+        assert 2 in events["testing"]
+        assert 3 in events["testing"]
+
+    def test_dedup_prevents_post_commit_stealing_testing_indices(self):
+        # Use position=any everywhere and legal_redirect_targets to allow each
+        # phase's required commands to coexist without polluting each other.
+        # This isolates the dedup behavior from cross-phase pollution math.
+        config = {
+            "testing": {
+                "position": "any",
+                "legal_redirect_targets": ["post-commit"],
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "post-commit": {
+                "position": "any",
+                "legal_redirect_targets": ["testing"],
+                "required_commands": [
+                    {"id": "git_log", "signal": "tool_call.execute_command", "match": "git log -1 --stat"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo llvm-cov", "t1"),  # call_index 0
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),       # call_index 1 - testing-step
+            _tool_result("t2"),
+            _bash("git log -1 --stat", "t3"),  # call_index 2
+            _tool_result("t3"),
+            _bash("cargo test", "t4"),       # call_index 3 - post-commit
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(
+            trace, config,
+            {"ordered": ["testing", "post-commit"], "floating": []},
+        )
+        assert "testing" in events
+        assert "post-commit" in events
+        # No index appears in both testing and post-commit lists (dedup).
+        overlap = set(events["testing"]) & set(events["post-commit"])
+        assert overlap == set()
+
+
+class TestFirstOccurrence:
+    """Obligation: streaming first-occurrence returns the first k where the
+    partial score crosses; if pollution drops the final score below threshold,
+    the phase does not fire."""
+
+    def test_first_occurrence_streams_to_threshold(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt", "t1"),
+            _tool_result("t1"),
+            _bash("cargo clippy", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        # The phase fires; its first-occurrence index reflects the second
+        # contributor (where the cluster is complete).
+        assert "linting" in events
+        assert min(events["linting"]) == 0  # cargo fmt at call_index 0
+
+
+class TestBoundaryOrdering:
+    """Obligations: linting (boundary phase) is scored before testing (which
+    depends on it). Implementation ignores its own position constraint."""
+
+    def test_linting_scored_before_testing(self):
+        # If testing's position requires after_linting and linting fires,
+        # testing should benefit from the boundary value. Cluster impl edits
+        # and a test run tightly so impl fires; legal_redirect_targets keep
+        # cross-phase pollution from breaking the math.
+        config = _testing_phase_config()
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            _bash("cargo fmt", "t3"),
+            _tool_result("t3"),
+            _bash("cargo clippy", "t4"),
+            _tool_result("t4"),
+            _bash("cargo llvm-cov", "t5"),
+            _tool_result("t5"),
+            _bash("cargo test", "t6"),
+            _tool_result("t6"),
+        )
+        order, events = _detect_phases(trace, config, _testing_classification())
+        assert "linting" in events
+        assert "testing" in events
+        # Linting should appear before testing in execution order.
+        assert order.index("linting") < order.index("testing")
+
+    def test_implementation_ignores_self_position(self):
+        # If implementation declares some non-any position, it is forced to
+        # `any` to break self-reference. Use a config where implementation has
+        # `position: after_implementation` (nonsensical but valid syntactically).
+        config = {
+            "implementation": {
+                "position": "after_implementation",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": ".*"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["implementation"], "floating": []})
+        assert "implementation" in events
+
+    def _bivvy_like_spec_impl_config(self):
+        # Mirrors the bivvy spec/impl mapping (path match, content_match,
+        # not_match) so we can exercise the impl_first_idx_static fix.
+        return {
+            "specification": {
+                "position": "before_implementation",
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {
+                        "id": "test_edit",
+                        "signal": ["tool_call.file_write", "tool_call.file_edit"],
+                        "match": "test",
+                        "content_match": "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests",
+                    },
+                    {
+                        "id": "cargo_test",
+                        "signal": "tool_call.execute_command",
+                        "match": "cargo test",
+                    },
+                ],
+            },
+            "implementation": {
+                "position": "any",
+                "repeatable": True,
+                "legal_redirect_targets": [],
+                "required_commands": [
+                    {
+                        "id": "src_edit",
+                        "signal": ["tool_call.file_edit", "tool_call.file_write", "tool_call.file_create"],
+                        "match": "src/",
+                        "not_match": "(?:^|/)tests?(?:/|\\b)",
+                    },
+                    {
+                        "id": "cargo_test",
+                        "signal": "tool_call.execute_command",
+                        "match": "cargo test",
+                    },
+                ],
+            },
+        }
+
+    def test_specification_does_not_fire_on_mid_impl_inline_test_edit(self):
+        # Reproduces the bug where specification was firing on an inline
+        # `#[cfg(test)]` block added to a src/ file partway through the
+        # implementation phase. With the impl_first_idx_static fix the
+        # spec candidates that fall AT or AFTER the first non-test src
+        # edit must score 0.0 on `before_implementation`, so spec cannot
+        # fire and the timeline starts with implementation.
+        config = self._bivvy_like_spec_impl_config()
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # 1. Non-test src edit (impl boundary).
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/foo.rs", "content": "pub fn foo() -> i32 { 42 }"},
+                "t1",
+            ),
+            _tool_result("t1"),
+            # 2. cargo test.
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # 3. Add an inline `#[cfg(test)]` block to the same src file.
+            _assistant_tool_use(
+                "Edit",
+                {
+                    "file_path": "src/foo.rs",
+                    "new_string": "#[cfg(test)]\nmod tests {\n    #[test]\n    fn t() {}\n}",
+                },
+                "t3",
+            ),
+            _tool_result("t3"),
+            # 4. cargo test again.
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(
+            trace,
+            config,
+            {"ordered": ["specification", "implementation"], "floating": []},
+        )
+        assert "specification" not in events, (
+            f"specification should not fire on a mid-impl inline test edit, got events={events}"
+        )
+        assert "implementation" in events
+        assert order and order[0] == "implementation"
+
+    def test_specification_fires_on_genuine_tdd_first(self):
+        # The mirror case: when the test edit and `cargo test` come BEFORE
+        # any non-test src edit, specification must still fire and execution
+        # order must be [specification, implementation].
+        config = self._bivvy_like_spec_impl_config()
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # 1. Test edit first (tests/ path so impl src_edit's not_match
+            # excludes it; content also signals a test).
+            _assistant_tool_use(
+                "Write",
+                {
+                    "file_path": "tests/test_foo.rs",
+                    "content": "#[test]\nfn t() { assert!(false); }",
+                },
+                "t1",
+            ),
+            _tool_result("t1"),
+            # 2. cargo test (the failing run).
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # 3. Non-test src edit (impl boundary).
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/foo.rs", "content": "pub fn foo() -> i32 { 42 }"},
+                "t3",
+            ),
+            _tool_result("t3"),
+            # 4. cargo test (the passing run).
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(
+            trace,
+            config,
+            {"ordered": ["specification", "implementation"], "floating": []},
+        )
+        assert "specification" in events
+        assert "implementation" in events
+        assert order[:2] == ["specification", "implementation"], (
+            f"genuine TDD should produce [specification, implementation, ...], got order={order}"
+        )
+
+
+class TestDedupAndFloating:
+    """Obligations: dedup removes claimed indices from later phases; floating
+    phases appear in phase_events but not execution_order."""
+
+    def test_dedup_removes_specification_index_from_implementation(self):
+        # Default bivvy-style mapping where impl matches edits only on src.
+        config = {
+            "specification": {
+                "position": "before_implementation",
+                "required_commands": [
+                    {"id": "test_edit", "signal": "tool_call.file_edit", "match": "test"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "implementation": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": ".*"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("tests/foo.rs", "t1"),  # spec-claimable
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+        )
+        order, events = _detect_phases(
+            trace, config,
+            {"ordered": ["specification", "implementation"], "floating": []},
+        )
+        assert "specification" in events
+        assert "implementation" in events
+        spec_idxs = set(events["specification"])
+        impl_idxs = set(events["implementation"])
+        # No overlap: dedup strips spec-claimed indices from impl's list.
+        assert spec_idxs & impl_idxs == set()
+
+    def test_floating_phase_in_events_not_in_order(self):
+        config = {
+            "implementation": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": ".*"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "failure_recovery": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "edit", "signal": "tool_call.file_edit", "match": ".*"},
+                    {"id": "command", "signal": "tool_call.execute_command", "match": ".*"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(
+            trace, config,
+            {"ordered": ["implementation"], "floating": ["failure_recovery"]},
+        )
+        assert "failure_recovery" in events
+        assert "failure_recovery" not in order
+
+
+class TestLegacyMigration:
+    """Obligation: legacy schema (signals + match) auto-migrates and produces
+    the same firing behavior as it did before for that phase."""
+
+    def test_legacy_single_signal_phase_fires(self):
+        legacy_config = {
+            "linting": {
+                "signals": ["tool_call.execute_command"],
+                "position": "any",
+                "match": "cargo fmt",
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, legacy_config, {"ordered": ["linting"], "floating": []})
+        assert "linting" in events
+
+    def test_migrate_legacy_phase_returns_required_commands(self):
+        migrated = _migrate_legacy_phase("linting", {
+            "signals": ["tool_call.execute_command"],
+            "position": "after_implementation",
+            "match": "cargo fmt",
+        })
+        assert "required_commands" in migrated
+        assert len(migrated["required_commands"]) == 1
+        cmd = migrated["required_commands"][0]
+        assert cmd["signal"] == "tool_call.execute_command"
+        assert cmd["match"] == "cargo fmt"
+        assert cmd["optional"] is False
+
+
+class TestMatchOperator:
+    """Obligations: re.search semantics; \\bcargo test\\b excludes
+    cargo testbed."""
+
+    def test_re_search_matches_substring(self):
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "ct", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo test --release", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" in events
+
+    def test_word_boundary_excludes_testbed(self):
+        config = {
+            "testing": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "ct", "signal": "tool_call.execute_command", "match": "\\bcargo test\\b"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo testbed", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["testing"], "floating": []})
+        assert "testing" not in events
+
+
+class TestEmptyAndRealisticTraces:
+    """Obligations: empty trace returns ([], {}); realistic full-sequence
+    trace fires all 8 phases in declared order."""
+
+    def test_empty_trace(self):
+        # An empty trace (no events) should return empty results regardless
+        # of mapping.
+        trace = _simple_trace(_user_prompt("task"))
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                ],
+            },
+        }
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert order == []
+        assert events == {}
+
+    def test_full_sequence_all_phases_in_order(self):
+        # Compliant ape trace: spec edits, impl edits, doc, lint, test+cov,
+        # build, commit, post-commit. Use a simplified config but still 8
+        # ordered phases.
+        config = {
+            "specification": {
+                "position": "before_implementation",
+                "required_commands": [
+                    {"id": "test_edit", "signal": "tool_call.file_edit", "match": "test"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "implementation": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": "src/"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "documentation": {
+                "position": "after_implementation",
+                "required_commands": [
+                    {"id": "cargo_doc_a", "signal": "tool_call.execute_command", "match": "cargo doc"},
+                    {"id": "cargo_doc_b", "signal": "tool_call.execute_command", "match": "cargo doc"},
+                ],
+            },
+            "linting": {
+                "position": "after_implementation",
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+            "testing": {
+                "position": "after_linting",
+                "legal_redirect_targets": ["implementation", "build"],
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "build": {
+                "position": "after_testing",
+                "legal_redirect_targets": ["linting", "commit"],
+                "required_commands": [
+                    {"id": "build_dev", "signal": "tool_call.execute_command", "match": "cargo build --all-targets"},
+                    {"id": "build_release", "signal": "tool_call.execute_command", "match": "cargo build --release"},
+                ],
+            },
+            "commit": {
+                "position": "after_verification",
+                "required_commands": [
+                    {"id": "git_add", "signal": "tool_call.execute_command", "match": "git add"},
+                    {"id": "git_commit", "signal": "tool_call.execute_command", "match": "git commit", "requires": ["git_add"]},
+                ],
+            },
+            "post-commit": {
+                "position": "last",
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {"id": "git_log", "signal": "tool_call.execute_command", "match": "git log -1 --stat"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                    {"id": "cargo_build", "signal": "tool_call.execute_command", "match": "cargo build"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # specification
+            _edit("tests/foo.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # implementation
+            _edit("src/lib.rs", "t3"),
+            _tool_result("t3"),
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+            # documentation
+            _bash("cargo doc", "t5"),
+            _tool_result("t5"),
+            _bash("cargo doc --no-deps", "t6"),
+            _tool_result("t6"),
+            # linting
+            _bash("cargo fmt", "t7"),
+            _tool_result("t7"),
+            _bash("cargo clippy", "t8"),
+            _tool_result("t8"),
+            # testing
+            _bash("cargo llvm-cov", "t9"),
+            _tool_result("t9"),
+            _bash("cargo test", "ta"),
+            _tool_result("ta"),
+            # build
+            _bash("cargo build --all-targets", "tb"),
+            _tool_result("tb"),
+            _bash("cargo build --release", "tc"),
+            _tool_result("tc"),
+            # commit
+            _bash("git add -p", "td"),
+            _tool_result("td"),
+            _bash("git commit -m 'x'", "te"),
+            _tool_result("te"),
+            # post-commit
+            _bash("git log -1 --stat", "tf"),
+            _tool_result("tf"),
+            _bash("cargo test", "tg"),
+            _tool_result("tg"),
+            _bash("cargo build", "th"),
+            _tool_result("th"),
+        )
+        classification = {
+            "ordered": ["specification", "implementation", "documentation", "linting", "testing", "build", "commit", "post-commit"],
+            "floating": [],
+        }
+        order, events = _detect_phases(trace, config, classification)
+        # All 8 phases should fire and be in declared order.
+        assert order == classification["ordered"], f"got {order}"
+
+    def test_out_of_order_trace_reorders_execution_order(self):
+        # Trace runs linting BEFORE the formal testing cluster; impl is split
+        # across the trace. Execution order should reflect actual first
+        # occurrences regardless of declared sequence.
+        config = _testing_phase_config()
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # Linting cluster
+            _bash("cargo fmt", "t3"),
+            _tool_result("t3"),
+            _bash("cargo clippy", "t4"),
+            _tool_result("t4"),
+            # Testing cluster
+            _bash("cargo llvm-cov", "t5"),
+            _tool_result("t5"),
+            _bash("cargo test", "t6"),
+            _tool_result("t6"),
+        )
+        order, events = _detect_phases(trace, config, _testing_classification())
+        assert "implementation" in order
+        assert "linting" in order
+        assert "testing" in order
+        # All three phases should be in declared order on this compliant trace.
+        assert order.index("implementation") < order.index("linting") < order.index("testing")
+        assert "testing" in order
+
+    def test_build_fires_when_testing_did_not_fire(self):
+        # Cascade-suppression cure: testing's R=2 cluster (cargo llvm-cov +
+        # cargo test) is incomplete because the agent skipped `cargo llvm-cov`,
+        # so testing does not fire. Build's `after_testing` position now sees
+        # a vacuous boundary (None) and contributes 1.0, letting build's own
+        # cluster (cargo build --all-targets + cargo build --release) decide
+        # whether it fires. The cluster is near-adjacent so build MUST fire
+        # and appear in the execution order.
+        config = {
+            "implementation": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "src_edit", "signal": "tool_call.file_edit", "match": "src/"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "testing": {
+                "position": "after_implementation",
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test_cov", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "build": {
+                "position": "after_testing",
+                "required_commands": [
+                    {"id": "build_dev", "signal": "tool_call.execute_command", "match": "cargo build --all-targets"},
+                    {"id": "build_release", "signal": "tool_call.execute_command", "match": "cargo build --release"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            # implementation cluster.
+            _edit("src/lib.rs", "t1"),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            # No cargo llvm-cov => testing should NOT fire.
+            # build cluster, near-adjacent.
+            _bash("cargo build --all-targets", "t3"),
+            _tool_result("t3"),
+            _bash("cargo build --release", "t4"),
+            _tool_result("t4"),
+        )
+        classification = {
+            "ordered": ["implementation", "testing", "build"],
+            "floating": [],
+        }
+        order, events = _detect_phases(trace, config, classification)
+        assert "testing" not in events
+        assert "build" in events
+        assert "build" in order
+
+
+class TestSchemaValidation:
+    """Sanity: schema validation rejects broken phase entries."""
+
+    def test_duplicate_id_raises(self):
+        bad = {
+            "x": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "alpha"},
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "beta"},
+                ],
+            },
+        }
+        with pytest.raises(ValueError, match="duplicate"):
+            _detect_phases(_simple_trace(_user_prompt("task")), bad, {"ordered": ["x"], "floating": []})
+
+    def test_unknown_requires_id_raises(self):
+        bad = {
+            "x": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "alpha"},
+                    {"id": "b", "signal": "tool_call.execute_command", "match": "beta", "requires": ["nope"]},
+                ],
+            },
+        }
+        with pytest.raises(ValueError, match="unknown id"):
+            _detect_phases(_simple_trace(_user_prompt("task")), bad, {"ordered": ["x"], "floating": []})
+
+    def test_threshold_out_of_range_raises(self):
+        bad = {
+            "x": {
+                "threshold": 1.5,
+                "position": "any",
+                "required_commands": [
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "alpha"},
+                ],
+            },
+        }
+        with pytest.raises(ValueError, match="threshold"):
+            _detect_phases(_simple_trace(_user_prompt("task")), bad, {"ordered": ["x"], "floating": []})
+
+    def test_proximity_window_below_one_raises(self):
+        bad = {
+            "x": {
+                "proximity_window": 0,
+                "position": "any",
+                "required_commands": [
+                    {"id": "a", "signal": "tool_call.execute_command", "match": "alpha"},
+                ],
+            },
+        }
+        with pytest.raises(ValueError, match="proximity_window"):
+            _detect_phases(_simple_trace(_user_prompt("task")), bad, {"ordered": ["x"], "floating": []})
+
+
+class TestEvalTracePayload:
+    """Obligation: eval_trace payload includes per-phase scoring detail."""
+
+    def test_eval_trace_logs_per_phase_score(self):
+        from eval_trace import EvalTrace
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt", "t1"),
+            _tool_result("t1"),
+            _bash("cargo clippy", "t2"),
+            _tool_result("t2"),
+        )
+        et = EvalTrace()
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []}, eval_trace=et)
+        log = et.to_list()
+        phase_log = [e for e in log if e["action"] == "phase_detection"]
+        assert phase_log
+        per_phase = phase_log[0]["per_phase"]
+        assert "linting" in per_phase
+        # The payload must record the score and required-command details.
+        assert "score" in per_phase["linting"]
+        assert "required" in per_phase["linting"]
+        assert any(d["id"] == "cargo_fmt" for d in per_phase["linting"]["required"])
+        assert any(d["id"] == "cargo_clippy" for d in per_phase["linting"]["required"])
+
+
+class TestSameEventGuard:
+    """A single UnifiedEvent must not satisfy two required-command slots in
+    the same phase. Spec section 3 assumes distinct cluster events, and
+    chained Bash invocations (e.g. `cargo fmt -- --check && cargo clippy`)
+    can match multiple regexes simultaneously."""
+
+    def test_chained_fmt_clippy_does_not_fire_linting(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        # Single chained Bash call matching both regexes; no other cargo
+        # invocations in the trace.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt -- --check && cargo clippy --all-targets", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" not in events
+
+    def test_distinct_events_still_fire_when_both_present(self):
+        config = {
+            "linting": {
+                "position": "any",
+                "required_commands": [
+                    {"id": "cargo_fmt", "signal": "tool_call.execute_command", "match": "cargo fmt"},
+                    {"id": "cargo_clippy", "signal": "tool_call.execute_command", "match": "cargo clippy"},
+                ],
+            },
+        }
+        # One chained call matches both, but a second clippy call is
+        # available; the assignment search must pair fmt with the chained
+        # call (or use the chained call once) without claiming it twice.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo fmt && cargo clippy", "t1"),
+            _tool_result("t1"),
+            _bash("cargo clippy", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(trace, config, {"ordered": ["linting"], "floating": []})
+        assert "linting" in events
+        # Two distinct unified positions claimed; not the same event twice.
+        assert len(set(events["linting"])) == len(events["linting"])
+        assert len(events["linting"]) >= 2
+
+
+class TestImplVerifyCycleCounter:
+    """Cycle counter must observe interleaved impl/test events for repeatable
+    phases. With clustering the chosen-cluster lists are too thin to count
+    cycles, so repeatable phases expand to their full candidate sets after
+    scoring."""
+
+    def _config(self):
+        return {
+            "implementation": {
+                "position": "any",
+                "repeatable": True,
+                "required_commands": [
+                    {
+                        "id": "src_edit",
+                        "signal": ["tool_call.file_edit", "tool_call.file_write"],
+                        "match": "src/",
+                        "not_match": "(?:^|/)tests?(?:/|\\b)",
+                    },
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "testing": {
+                "position": "after_implementation",
+                "repeatable": True,
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+
+    def _classification(self):
+        return {"ordered": ["implementation", "testing"], "floating": []}
+
+    def test_three_cycles_observed_when_interleaved(self):
+        # impl-test-impl-test-impl-test cycle: the trace-aware cycle counter
+        # sees src edits as impl activity and cargo test runs as verify
+        # activity, observing three impl->verify transitions.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "i1"),
+            _tool_result("i1"),
+            _bash("cargo test", "v1"),
+            _tool_result("v1"),
+            _edit("src/foo.rs", "i2"),
+            _tool_result("i2"),
+            _bash("cargo test", "v2"),
+            _tool_result("v2"),
+            _edit("src/bar.rs", "i3"),
+            _tool_result("i3"),
+            _bash("cargo test", "v3"),
+            _tool_result("v3"),
+            _bash("cargo llvm-cov", "v4"),
+            _tool_result("v4"),
+            _bash("cargo test", "v5"),
+            _tool_result("v5"),
+        )
+        config = self._config()
+        _, events = _detect_phases(trace, config, self._classification())
+        cycles = _count_impl_verify_cycles(events, trace=trace, phase_tool_mapping=config)
+        assert cycles >= 3
+
+    def test_single_impl_single_test_one_cycle(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "i1"),
+            _tool_result("i1"),
+            _bash("cargo test", "v1"),
+            _tool_result("v1"),
+            _bash("cargo llvm-cov", "v2"),
+            _tool_result("v2"),
+            _bash("cargo test", "v3"),
+            _tool_result("v3"),
+        )
+        config = self._config()
+        _, events = _detect_phases(trace, config, self._classification())
+        assert _count_impl_verify_cycles(
+            events, trace=trace, phase_tool_mapping=config,
+        ) == 1
+
+    def test_no_test_zero_cycles(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "i1"),
+            _tool_result("i1"),
+            _edit("src/foo.rs", "i2"),
+            _tool_result("i2"),
+        )
+        config = self._config()
+        _, events = _detect_phases(trace, config, self._classification())
+        assert _count_impl_verify_cycles(
+            events, trace=trace, phase_tool_mapping=config,
+        ) == 0
+
+
+class TestRepeatableExpansionPreservesOrdering:
+    """Expanding repeatable phases' event lists must not shift the canonical
+    cluster-anchor first-occurrence used for execution_order ordering."""
+
+    def test_execution_order_uses_cluster_anchor_not_min(self):
+        # Implementation has an early src edit that becomes part of the
+        # expanded set after scoring. Testing's cluster fires later.
+        # Without a canonical first-occurrence, expanding implementation's
+        # event list could put it before testing in execution_order; with
+        # the canonical anchor, the order matches the true cluster anchor.
+        config = {
+            "implementation": {
+                "position": "any",
+                "repeatable": True,
+                "required_commands": [
+                    {
+                        "id": "src_edit",
+                        "signal": ["tool_call.file_edit", "tool_call.file_write"],
+                        "match": "src/",
+                    },
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+            "testing": {
+                "position": "any",
+                "repeatable": True,
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {"id": "cargo_llvm_cov", "signal": "tool_call.execute_command", "match": "cargo llvm-cov"},
+                    {"id": "cargo_test", "signal": "tool_call.execute_command", "match": "cargo test"},
+                ],
+            },
+        }
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("src/lib.rs", "e1"),
+            _tool_result("e1"),
+            _bash("cargo test", "t1"),
+            _tool_result("t1"),
+            _bash("cargo llvm-cov", "t2"),
+            _tool_result("t2"),
+            _bash("cargo test", "t3"),
+            _tool_result("t3"),
+        )
+        order, events = _detect_phases(
+            trace, config,
+            {"ordered": ["implementation", "testing"], "floating": []},
+        )
+        assert order == ["implementation", "testing"]
+        # Implementation's expanded event list contains the early edit.
+        assert min(events["implementation"]) == 0
+
+
+class TestRepeatableExpansionRespectsEarlierPhaseTerritory:
+    """Pass E2 must not pull events into a repeatable phase if those events
+    sit at unified_pos values inside an earlier-ordered phase's candidate
+    union, even when that earlier phase only retained a small chosen cluster.
+
+    Regression: an inline `#[test]` write under src/ matches both
+    `specification`'s test-content edit (content_match) and
+    `implementation`'s src_edit. If impl absorbs it during expansion the
+    activation timeline can open with `implementation` before
+    `specification`, producing an illegal `implementation -> specification`
+    transition."""
+
+    def test_repeatable_expansion_respects_earlier_phase_candidate_territory(self):
+        config = {
+            "specification": {
+                "position": "before_implementation",
+                "legal_redirect_targets": ["implementation"],
+                "required_commands": [
+                    {
+                        "id": "test_edit",
+                        "signal": ["tool_call.file_write", "tool_call.file_edit"],
+                        "match": "test",
+                        "content_match": "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests",
+                    },
+                    {
+                        "id": "cargo_test",
+                        "signal": "tool_call.execute_command",
+                        "match": "cargo test",
+                    },
+                ],
+            },
+            "implementation": {
+                "position": "any",
+                "repeatable": True,
+                "legal_redirect_targets": [],
+                "required_commands": [
+                    {
+                        "id": "src_edit",
+                        "signal": ["tool_call.file_edit", "tool_call.file_write", "tool_call.file_create"],
+                        "match": "src/",
+                        "not_match": "(?:^|/)tests?(?:/|\\b)",
+                    },
+                    {
+                        "id": "cargo_test",
+                        "signal": "tool_call.execute_command",
+                        "match": "cargo test",
+                    },
+                ],
+            },
+        }
+        # Trace layout (unified_pos in comments):
+        #   user prompt (pos 0)
+        #   1. Test edit at tests/ path -> spec test_edit cand (pos 2 after result)
+        #   2. cargo test -> spec + impl cand (pos 4)
+        #   3. Non-test src edit src/foo.rs -> impl src_edit cand (pos 6)
+        #   4. cargo test (pos 8)
+        #   5. Inline #[test] edit under src/foo.rs -> matches BOTH spec
+        #      (content_match catches #[test]) AND impl src_edit (pos 10)
+        #   6. cargo test (pos 12)
+        # Expected: spec fires on (test edit, cargo test) cluster at the
+        # front; impl's expansion does NOT include event 5 because that
+        # unified_pos sits in specification's candidate union.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_tool_use(
+                "Write",
+                {
+                    "file_path": "tests/test_foo.rs",
+                    "content": "#[test]\nfn t() { assert!(false); }",
+                },
+                "t1",
+            ),
+            _tool_result("t1"),
+            _bash("cargo test", "t2"),
+            _tool_result("t2"),
+            _assistant_tool_use(
+                "Write",
+                {"file_path": "src/foo.rs", "content": "pub fn foo() -> i32 { 42 }"},
+                "t3",
+            ),
+            _tool_result("t3"),
+            _bash("cargo test", "t4"),
+            _tool_result("t4"),
+            _assistant_tool_use(
+                "Edit",
+                {
+                    "file_path": "src/foo.rs",
+                    "new_string": "#[cfg(test)]\nmod tests {\n    #[test]\n    fn t() {}\n}",
+                },
+                "t5",
+            ),
+            _tool_result("t5"),
+            _bash("cargo test", "t6"),
+            _tool_result("t6"),
+        )
+        classification = {"ordered": ["specification", "implementation"], "floating": []}
+        order, events = _detect_phases(trace, config, classification)
+
+        # Trace tool_call indices (0-based) for the 6 assistant tool uses:
+        # 0 -> Write tests/test_foo.rs (t1)
+        # 1 -> Bash cargo test (t2)
+        # 2 -> Write src/foo.rs non-test (t3)
+        # 3 -> Bash cargo test (t4)
+        # 4 -> Edit src/foo.rs with #[test] (t5)
+        # 5 -> Bash cargo test (t6)
+        assert "specification" in events
+        assert "implementation" in events
+        # specification chose the two TDD anchors at the front.
+        assert set(events["specification"]) == {0, 1}, (
+            f"specification anchors expected to be the test edit + cargo test, "
+            f"got events={events['specification']}"
+        )
+        # implementation MUST NOT include the inline #[test] write (index 4),
+        # because its unified_pos sits in specification's candidate union.
+        assert 4 not in events["implementation"], (
+            f"implementation must not absorb the inline #[test] write at "
+            f"call_index 4; got events={events['implementation']}"
+        )
+
+        timeline = _build_activation_timeline(events, config, classification)
+        assert timeline[:2] == ["specification", "implementation"], (
+            f"timeline must open with [specification, implementation, ...], "
+            f"got {timeline}"
+        )
+
+
+class TestDocumentationR2:
+    """The documentation phase requires BOTH a doc-file edit AND a `cargo
+    doc` run; a lone `cargo doc` invocation must not satisfy R=2."""
+
+    def _config(self):
+        return {
+            "documentation": {
+                "position": "any",
+                "required_commands": [
+                    {
+                        "id": "doc_edit",
+                        "signal": ["tool_call.file_write", "tool_call.file_edit"],
+                        "match": "README\\.md|/docs/|^docs/",
+                        "content_match": "///|//!",
+                    },
+                    {"id": "cargo_doc", "signal": "tool_call.execute_command", "match": "cargo doc"},
+                ],
+            },
+        }
+
+    def test_cargo_doc_alone_does_not_fire(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _bash("cargo doc --no-deps", "t1"),
+            _tool_result("t1"),
+        )
+        order, events = _detect_phases(
+            trace, self._config(),
+            {"ordered": ["documentation"], "floating": []},
+        )
+        assert "documentation" not in events
+
+    def test_readme_edit_plus_cargo_doc_fires(self):
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _edit("README.md", "t1"),
+            _tool_result("t1"),
+            _bash("cargo doc --no-deps", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(
+            trace, self._config(),
+            {"ordered": ["documentation"], "floating": []},
+        )
+        assert "documentation" in events
+
+    def test_rustdoc_content_edit_plus_cargo_doc_fires(self):
+        # Content_match catches /// rustdoc comments even when the path is
+        # not under docs/.
+        trace = _simple_trace(
+            _user_prompt("task"),
+            _assistant_tool_use(
+                "Edit",
+                {"file_path": "src/lib.rs", "new_string": "/// docstring\npub fn foo() {}"},
+                "t1",
+            ),
+            _tool_result("t1"),
+            _bash("cargo doc", "t2"),
+            _tool_result("t2"),
+        )
+        order, events = _detect_phases(
+            trace, self._config(),
+            {"ordered": ["documentation"], "floating": []},
+        )
+        assert "documentation" in events

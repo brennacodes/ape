@@ -25,44 +25,160 @@ phase_classification:
 # ---------------------------------------------------------------------------
 # PHASE TOOL MAPPING
 # ---------------------------------------------------------------------------
+#
+# Each phase declares one or more `required_commands` whose occurrences must
+# cluster in the trace for the phase to fire. Phase score is a weighted sum of
+# proximity, cross-phase pollution, and position factors; the phase fires when
+# the score meets `threshold` (default 0.8). See
+# `.claude/local/plans/PHASE_ORDERING_SCORING_SPEC.md` for the algorithm.
+#
+# `legal_redirect_targets` mirrors bivvy.ape's `<on-fail>` and `<on-pass>` gate
+# routing. Candidates of those phases are NOT counted as cross-phase pollution
+# in the scoring window.
 phase_tool_mapping:
   specification:
-    signals: [tool_call.file_write, tool_call.file_edit]
     position: before_implementation
-    match: "test" # Target test files
-    content_match: "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests"
+    legal_redirect_targets: [implementation]
+    required_commands:
+      - id: test_edit
+        signal: [tool_call.file_write, tool_call.file_edit]
+        match: "test"
+        content_match: "#\\[test\\]|#\\[cfg\\(test\\)\\]|mod tests"
+      - id: cargo_test
+        signal: tool_call.execute_command
+        match: "cargo test"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: specification"
+        optional: true
+
   implementation:
-    signals: [tool_call.file_write, tool_call.file_edit, tool_call.file_create]
     position: any
     repeatable: true
+    legal_redirect_targets: []
+    required_commands:
+      - id: src_edit
+        signal: [tool_call.file_edit, tool_call.file_write, tool_call.file_create]
+        match: "src/"
+        not_match: "(?:^|/)tests?(?:/|\\b)"
+      - id: cargo_test
+        signal: tool_call.execute_command
+        match: "cargo test"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: implementation"
+        optional: true
+
   documentation:
-    signals: [tool_call.file_write, tool_call.file_edit, tool_call.execute_command]
     position: after_implementation
-    match: "cargo doc"
+    legal_redirect_targets: [linting]
+    required_commands:
+      - id: doc_edit
+        # A documentation-file write or edit. Path-side regex matches README
+        # files or paths under docs/; content-side regex catches rustdoc
+        # comments (`///` or `//!`) in any file. The candidate fires when
+        # either side matches (see SCORING_SPEC section 3.2).
+        signal: [tool_call.file_write, tool_call.file_edit]
+        match: "README\\.md|/docs/|^docs/"
+        content_match: "///|//!"
+      - id: cargo_doc
+        signal: tool_call.execute_command
+        match: "cargo doc"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: documentation"
+        optional: true
+
   linting:
-    signals: [tool_call.execute_command]
     position: after_implementation
-    match: "cargo fmt" # Primary signal; run_clippy check verifies clippy separately
+    legal_redirect_targets: [implementation]
+    required_commands:
+      - id: cargo_fmt
+        signal: tool_call.execute_command
+        match: "cargo fmt"
+      - id: cargo_clippy
+        signal: tool_call.execute_command
+        match: "cargo clippy"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: linting"
+        optional: true
+
   testing:
-    signals: [tool_call.execute_command]
-    position: after_implementation
+    position: after_linting
     repeatable: true
-    match: "cargo test" # Primary signal; run_coverage check verifies llvm-cov separately
+    legal_redirect_targets: [implementation, build]
+    required_commands:
+      - id: cargo_llvm_cov
+        signal: tool_call.execute_command
+        match: "cargo llvm-cov"
+      - id: cargo_test
+        signal: tool_call.execute_command
+        match: "cargo test"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: testing"
+        optional: true
+
   build:
-    signals: [tool_call.execute_command]
-    position: after_implementation
-    match: "cargo build"
+    position: after_testing
+    legal_redirect_targets: [linting, commit]
+    required_commands:
+      - id: cargo_build_dev
+        signal: tool_call.execute_command
+        match: "cargo build --all-targets"
+      - id: cargo_build_release
+        signal: tool_call.execute_command
+        match: "cargo build --release"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: build"
+        optional: true
+
   commit:
-    signals: [tool_call.execute_command]
     position: after_verification
-    match: "git commit"
+    legal_redirect_targets: []
+    required_commands:
+      - id: git_add
+        signal: tool_call.execute_command
+        match: "git add"
+      - id: git_commit
+        signal: tool_call.execute_command
+        match: "git commit"
+        requires: [git_add]
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: commit"
+        optional: true
+
   post-commit:
-    signals: [tool_call.execute_command]
     position: last
-    match: "git log"
+    legal_redirect_targets: [implementation]
+    required_commands:
+      - id: git_log
+        signal: tool_call.execute_command
+        match: "git log -1 --stat"
+      - id: cargo_test
+        signal: tool_call.execute_command
+        match: "cargo test"
+      - id: cargo_build
+        signal: tool_call.execute_command
+        match: "cargo build"
+      - id: working_on
+        signal: assistant_text
+        match: "Working on: post-commit"
+        optional: true
+
   failure_recovery:
-    signals: [tool_call.file_edit, tool_call.execute_command]
     position: any
+    legal_redirect_targets: []
+    required_commands:
+      - id: edit
+        signal: tool_call.file_edit
+        match: ".*"
+      - id: command
+        signal: tool_call.execute_command
+        match: ".*"
 
 checks:
   # ---------------------------------------------------------------------------
@@ -71,15 +187,14 @@ checks:
   - id: phase_ordering
     phase: workflow
     category: adherence
-    enabled: false  # Disabled: phase detection needs redesign to distinguish gate commands from step commands
     description: >
       Steps must respect the pipeline sequence declared in bivvy.ape:
       specification → implementation → documentation → linting → testing →
       build → commit → post-commit.
     type: workflow_order
     condition:
-      metric: phase.execution_order
-      operator: strictly_ordered_subset
+      metric: phase.activation_timeline
+      operator: strict_with_legal_redirects
       target: ${phase_classification.ordered}
 
   - id: max_impl_test_cycles

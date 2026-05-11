@@ -1,0 +1,25 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5 -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5 -type f \\\\( -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.md\" \\\\) | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -h \"use anyhow\\\\|use thiserror\" | sort | uniq -c', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -h \"-> Result<\\\\|BivvyError\\\\|Box<dyn\" | wc -l', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f -exec grep -l \"anyhow::Result\" {} \\\\; | wc -l', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f -exec grep -l \"BivvyError\" {} \\\\; | wc -l', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -l \"Box<dyn\"', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | while read f; do\\n  anyhow_count=$(grep -c \"anyhow::Result\" \"$f\" 2>/dev/null || echo 0)\\n  bivvy_count=$(grep -c \"BivvyError\\\\|crate::error::Result\" \"$f\" 2>/dev/null || echo 0)\\n  if [ \"$anyhow_count\" -gt 0 ] || [ \"$bivvy_count\" -gt 0 ]; then\\n    echo \"$(basename \"$f\"): anyhow=$anyhow_count, bivvy=$bivvy_count\"\\n  fi\\ndone', 'grep -r \"anyhow::Result\\\\|anyhow::Error\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src --include=\"*.rs\" | cut -d: -f1 | sort -u', 'grep -r \"impl From<\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src --include=\"*.rs\"', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src/cli/commands -type f -name \"*.rs\"'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5 -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5 -type f \\( -name \"*.rs\" -o -name \"Cargo.toml\" -o -name \"*.md\" \\) | sort",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -h \"use anyhow\\|use thiserror\" | sort | uniq -c",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -h \"-> Result<\\|BivvyError\\|Box<dyn\" | wc -l",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f -exec grep -l \"anyhow::Result\" {} \\; | wc -l",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f -exec grep -l \"BivvyError\" {} \\; | wc -l",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | xargs grep -l \"Box<dyn\"",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -name \"*.rs\" -type f | while read f; do\n  anyhow_count=$(grep -c \"anyhow::Result\" \"$f\" 2>/dev/null || echo 0)\n  bivvy_count=$(grep -c \"BivvyError\\|crate::error::Result\" \"$f\" 2>/dev/null || echo 0)\n  if [ \"$anyhow_count\" -gt 0 ] || [ \"$bivvy_count\" -gt 0 ]; then\n    echo \"$(basename \"$f\"): anyhow=$anyhow_count, bivvy=$bivvy_count\"\n  fi\ndone",
+    "grep -r \"anyhow::Result\\|anyhow::Error\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src --include=\"*.rs\" | cut -d: -f1 | sort -u",
+    "grep -r \"impl From<\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src --include=\"*.rs\"",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-u4ojrga5/src/cli/commands -type f -name \"*.rs\""
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": null
+}

@@ -1,0 +1,32 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq -type f -name \"*.toml\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src -type f -name \"*.rs\" | sort', 'grep -r \"thread\\\\|spawn\\\\|async\\\\|await\\\\|tokio\\\\|rayon\\\\|parking_lot\\\\|crossbeam\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src --include=\"*.rs\" | head -50', 'grep -r \"race\\\\|corrupt\\\\|unsafe\\\\|TOCTOU\\\\|atomic\\\\|lock\\\\|mutex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src --include=\"*.rs\"', 'wc -l /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src/config/remote.rs', 'head -50 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src/shell/command.rs', 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1', 'cargo llvm-cov --all-features 2>&1 | tail -5', 'cargo llvm-cov --all-features 2>&1 | grep -E \"FAILED|failures:\" -A 20', 'cargo llvm-cov --all-features 2>&1 | grep -B 5 \"FAILED\"', 'cargo llvm-cov --all-features 2>&1 | grep -E \"test result:\" '], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq -type f -name \"*.toml\" | head -20",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src -type f -name \"*.rs\" | sort",
+    "grep -r \"thread\\|spawn\\|async\\|await\\|tokio\\|rayon\\|parking_lot\\|crossbeam\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src --include=\"*.rs\" | head -50",
+    "grep -r \"race\\|corrupt\\|unsafe\\|TOCTOU\\|atomic\\|lock\\|mutex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src --include=\"*.rs\"",
+    "wc -l /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src/config/remote.rs",
+    "head -50 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-49yhduhq/src/shell/command.rs",
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo llvm-cov --all-features 2>&1",
+    "cargo llvm-cov --all-features 2>&1 | tail -5",
+    "cargo llvm-cov --all-features 2>&1 | grep -E \"FAILED|failures:\" -A 20",
+    "cargo llvm-cov --all-features 2>&1 | grep -B 5 \"FAILED\"",
+    "cargo llvm-cov --all-features 2>&1 | grep -E \"test result:\" "
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": null
+}

@@ -15,6 +15,7 @@ from operators import (
     # collection operators
     op_exists_before, op_exists_after, op_exists_between, op_followed_by,
     op_strictly_precedes, op_strictly_ordered_subset,
+    op_strict_with_legal_redirects,
     op_subset_of, op_each_preceded_by_within_N_steps,
     op_precedes_per_path, op_only_via, op_not_contains, op_regex_not_match,
     op_regex_match, op_imperative_mood, op_valid_format,
@@ -394,6 +395,230 @@ class TestStrictlyOrderedSubset:
             ["verification", "implementation", "commits"],
             ["implementation", "commits"],
         ) is True
+
+
+# ===========================================================================
+# strict_with_legal_redirects
+# ===========================================================================
+
+class TestStrictWithLegalRedirects:
+    CANONICAL = [
+        "specification", "implementation", "documentation", "linting",
+        "testing", "build", "commit", "post-commit",
+    ]
+
+    REDIRECTS = {
+        "specification": ["implementation"],
+        "implementation": [],
+        "documentation": ["linting"],
+        "linting": ["implementation"],
+        "testing": ["implementation", "build"],
+        "build": ["linting", "commit"],
+        "commit": [],
+        "post-commit": ["implementation"],
+    }
+
+    def _ok_timeline(self):
+        return list(self.CANONICAL)
+
+    def test_empty_timeline_fails(self):
+        passed, details = op_strict_with_legal_redirects([], self.CANONICAL, self.REDIRECTS)
+        assert passed is False
+        assert details["coverage"]["passed"] is False
+        assert details["coverage"]["missing"] == self.CANONICAL
+
+    def test_all_phases_in_canonical_order_passes(self):
+        passed, details = op_strict_with_legal_redirects(
+            self._ok_timeline(), self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert details["coverage"]["missing"] == []
+        assert details["transitions"]["illegal"] == []
+
+    def test_missing_phase_fails(self):
+        timeline = [p for p in self.CANONICAL if p != "commit"]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is False
+        assert details["coverage"]["passed"] is False
+        assert "commit" in details["coverage"]["missing"]
+
+    def test_missing_phase_skips_transition_check(self):
+        # When testing is missing, linting -> build is a skip-forward that
+        # would otherwise be reported as illegal. With the fix, coverage
+        # failure is the sole reported reason; no illegal transitions.
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is False
+        assert details["coverage"]["passed"] is False
+        assert "testing" in details["coverage"]["missing"]
+        assert details["transitions"]["illegal"] == []
+        assert details["transitions"]["all"] == []
+
+    def test_return_arc_from_on_fail_loop_passes(self):
+        # testing -> implementation is a legal redirect. The agent then runs
+        # implementation again and returns directly to testing. The return
+        # transition implementation -> testing is legal via rule 3:
+        # implementation is in testing's legal_redirect_targets and testing
+        # has already had its first occurrence earlier.
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "testing", "implementation", "testing", "build", "commit",
+            "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert details["transitions"]["illegal"] == []
+        return_arc = [
+            t for t in details["transitions"]["all"]
+            if t["prev"] == "implementation" and t["curr"] == "testing"
+        ]
+        assert return_arc and return_arc[0]["was_return_arc"] is True
+        assert return_arc[0]["legal"] is True
+
+    def test_build_linting_loop_both_directions_legal(self):
+        # build -> linting is a legal redirect (linting in build's redirects).
+        # linting -> build on the return is legal via rule 3 because build
+        # has been visited before and linting is in build's redirects.
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "testing", "build", "linting", "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert details["transitions"]["illegal"] == []
+        out = [
+            t for t in details["transitions"]["all"]
+            if t["prev"] == "build" and t["curr"] == "linting"
+        ]
+        assert out and out[0]["was_legal_redirect"] is True
+        ret = [
+            t for t in details["transitions"]["all"]
+            if t["prev"] == "linting" and t["curr"] == "build"
+        ]
+        assert ret and ret[0]["was_return_arc"] is True
+
+    def test_illegal_non_redirect_reoccurrence_fails(self):
+        # documentation re-occurs after testing. testing -> documentation:
+        # not canonical forward (build is), not in testing's redirects
+        # (implementation, build), and documentation's redirects are
+        # [linting] - so rule 3 does not apply either. Must FAIL.
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "testing", "documentation", "linting", "testing", "build",
+            "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is False
+        assert details["transitions"]["passed"] is False
+        illegal = details["transitions"]["illegal"]
+        assert any(
+            t["prev"] == "testing" and t["curr"] == "documentation"
+            for t in illegal
+        )
+
+    def test_first_occurrence_out_of_order_fails(self):
+        # testing appears before documentation
+        timeline = [
+            "specification", "implementation", "linting", "testing",
+            "documentation", "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is False
+        assert details["first_occurrence_order"]["passed"] is False
+
+    def test_legal_loopback_passes(self):
+        # testing -> implementation (legal redirect), then resumes through the
+        # canonical pipeline (implementation -> documentation -> linting ->
+        # testing -> ...). Each subsequent transition is a canonical forward.
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "testing", "implementation", "documentation", "linting", "testing",
+            "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert details["transitions"]["illegal"] == []
+        # The testing -> implementation hop is the legal redirect; subsequent
+        # impl -> doc -> linting -> testing hops are canonical forward steps.
+        loopback = [
+            t for t in details["transitions"]["all"]
+            if t["prev"] == "testing" and t["curr"] == "implementation"
+        ]
+        assert loopback and loopback[0]["was_legal_redirect"] is True
+
+    def test_illegal_loopback_fails(self):
+        # commit -> linting; commit has no legal redirects and linting is not
+        # commit's canonical-next (post-commit is)
+        timeline = [
+            "specification", "implementation", "documentation", "linting",
+            "testing", "build", "commit", "linting", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is False
+        assert details["transitions"]["passed"] is False
+        illegal = details["transitions"]["illegal"]
+        assert any(t["prev"] == "commit" and t["curr"] == "linting" for t in illegal)
+
+    def test_floating_phase_interleaved_is_ignored(self):
+        # failure_recovery is not in the canonical target; should be filtered
+        timeline = [
+            "specification", "failure_recovery", "implementation",
+            "documentation", "linting", "testing", "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert "failure_recovery" not in details["filtered_timeline"]
+
+    def test_canonical_forward_transition_legal_without_explicit_redirect(self):
+        # implementation has no legal_redirect_targets declared but
+        # implementation -> documentation is a canonical forward step.
+        timeline = self._ok_timeline()
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        forward = [
+            t for t in details["transitions"]["all"]
+            if t["prev"] == "implementation" and t["curr"] == "documentation"
+        ]
+        assert len(forward) == 1
+        assert forward[0]["was_canonical_forward"] is True
+        assert forward[0]["was_legal_redirect"] is False
+        assert forward[0]["legal"] is True
+
+    def test_consecutive_duplicates_in_input_skipped_in_transitions(self):
+        # If callers pass a not-fully-collapsed timeline with duplicates,
+        # transitions where prev == curr are skipped (not counted as illegal).
+        timeline = [
+            "specification", "implementation", "implementation",
+            "documentation", "linting", "testing", "build", "commit", "post-commit",
+        ]
+        passed, details = op_strict_with_legal_redirects(
+            timeline, self.CANONICAL, self.REDIRECTS,
+        )
+        assert passed is True
+        assert details["transitions"]["illegal"] == []
 
 
 # ===========================================================================
@@ -1076,6 +1301,7 @@ class TestDispatchTables:
             "exists_before", "exists_after", "exists_between",
             "followed_by",
             "strictly_precedes", "strictly_ordered_subset",
+            "strict_with_legal_redirects",
             "subset_of", "each_preceded_by_within_N_steps",
             "precedes_per_path", "not_contains", "regex_not_match",
             "regex_match", "imperative_mood", "valid_format",

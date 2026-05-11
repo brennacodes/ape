@@ -1,0 +1,33 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag -name \"*.rs\" -path \"*test*\" -o -name \"*_test.rs\" | head -20', 'grep -r \"cache.*corruption\\\\|concurrent.*cache\\\\|race condition\\\\|TODO.*cache\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src --include=\"*.rs\" 2>/dev/null | head -20', 'grep -n \"check_cache\\\\|save_cache\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src/config/remote.rs', 'grep -rn \"TOCTOU\\\\|check.*then.*use\\\\|time of check.*time of use\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag --include=\"*.rs\" 2>/dev/null', \"cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src/cache/store.rs | sed -n '64,90p'\", 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo llvm-cov --all-features 2>&1', 'cargo llvm-cov --all-features 2>&1 | tail -30', 'cargo llvm-cov --all-features 2>&1 | tail -20', 'RUST_TEST_THREADS=4 cargo llvm-cov --all-features 2>&1 | tail -25', 'RUST_TEST_THREADS=1 cargo llvm-cov --all-features 2>&1 | tail -25', 'cargo check --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag status', 'git diff', 'git log --oneline -5'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag -name \"*.rs\" -path \"*test*\" -o -name \"*_test.rs\" | head -20",
+    "grep -r \"cache.*corruption\\|concurrent.*cache\\|race condition\\|TODO.*cache\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src --include=\"*.rs\" 2>/dev/null | head -20",
+    "grep -n \"check_cache\\|save_cache\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src/config/remote.rs",
+    "grep -rn \"TOCTOU\\|check.*then.*use\\|time of check.*time of use\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag --include=\"*.rs\" 2>/dev/null",
+    "cat /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag/src/cache/store.rs | sed -n '64,90p'",
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo llvm-cov --all-features 2>&1",
+    "cargo llvm-cov --all-features 2>&1 | tail -30",
+    "cargo llvm-cov --all-features 2>&1 | tail -20",
+    "RUST_TEST_THREADS=4 cargo llvm-cov --all-features 2>&1 | tail -25",
+    "RUST_TEST_THREADS=1 cargo llvm-cov --all-features 2>&1 | tail -25",
+    "cargo check --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git -C /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-gza6esag status",
+    "git diff",
+    "git log --oneline -5"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": null
+}

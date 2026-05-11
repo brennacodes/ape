@@ -30,10 +30,11 @@ detail, not authoring vocabulary.
 
 from __future__ import annotations
 
+import itertools
 import re
 import sys
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from eval_trace import EvalTrace
@@ -51,6 +52,7 @@ from operators import (  # noqa: E402
     op_eq, op_neq, op_gt, op_gte, op_lt, op_lte,
     op_exists_before, op_exists_after, op_exists_between, op_followed_by,
     op_strictly_precedes, op_strictly_ordered_subset,
+    op_strict_with_legal_redirects,
     op_subset_of, op_only_via, op_each_preceded_by_within_N_steps,
     op_precedes_per_path, op_not_contains, op_regex_not_match,
     op_has_key, op_has_key_any, op_contains, op_contains_count_gte,
@@ -325,14 +327,26 @@ def _path_index_map(trace: Trace, tool_name: str) -> dict[str, list[int]]:
 # Phase detection
 # ---------------------------------------------------------------------------
 
-def _matches_signal(tc: ToolCall, match_str: str, content_match: str | None = None) -> bool:
+def _matches_signal(
+    tc: ToolCall,
+    match_str: str,
+    content_match: str | None = None,
+    not_match: str | None = None,
+) -> bool:
     """Check if a tool call matches a signal filter.
 
-    Two-tier matching:
-    1. Check if the file path (primary arg) contains match_str (existing behavior)
-    2. If not, and content_match is set, check if the tool call's written content
+    Three-tier matching:
+    1. If `not_match` is set and the primary arg matches it as a regex, reject
+       immediately. This is how phase detection distinguishes step commands
+       (e.g. ``cargo test --all-features``) from gate commands that pipe the
+       same binary through a parser (e.g. ``cargo test ... | awk ...``).
+    2. Check if the file path (primary arg) contains match_str (existing behavior)
+    3. If not, and content_match is set, check if the tool call's written content
        contains test markers (for Rust inline tests in src/ files)
     """
+    if not_match:
+        if re.search(not_match, _primary_arg(tc)):
+            return False
     if match_str in _primary_arg(tc):
         return True
     if content_match:
@@ -343,262 +357,1252 @@ def _matches_signal(tc: ToolCall, match_str: str, content_match: str | None = No
     return False
 
 
+@dataclass
+class _RequiredCommand:
+    """One required (or optional) command spec inside a phase mapping."""
+
+    id: str
+    signal: str
+    match: str
+    not_match: Optional[str] = None
+    content_match: Optional[str] = None
+    optional: bool = False
+    requires: list[str] = field(default_factory=list)
+    # Alternate signals (used when migrating legacy schemas with multiple signals).
+    alt_signals: list[str] = field(default_factory=list)
+
+
+@dataclass
+class _PhaseSpec:
+    """Parsed and validated phase mapping."""
+
+    name: str
+    threshold: float
+    proximity_window: int
+    position: str
+    legal_redirect_targets: list[str]
+    repeatable: bool
+    required_commands: list[_RequiredCommand]
+    # True when the phase originated from the legacy `signals + match` schema
+    # (auto-migrated to a single required command). Legacy phases preserve
+    # the legacy behavior of putting ALL matching candidates into phase_events
+    # rather than only the single chosen occurrence; downstream consumers
+    # such as `_count_impl_verify_cycles` and `_resolve_position_boundary`
+    # depend on this aggregate view.
+    legacy_migrated: bool = False
+
+
+@dataclass
+class _UnifiedEvent:
+    """A trace event placed into a unified position space for scoring."""
+
+    kind: str  # "tool_call" or "text"
+    call_index: Optional[int]
+    event_index: int
+    tc: Optional[ToolCall]
+    text: str
+    unified_pos: int = 0
+
+
+_PHASE_SCHEMA_DEFAULTS: dict[str, Any] = {
+    "threshold": 0.8,
+    "proximity_window": 15,
+    "position": "any",
+}
+
+# Allowed signal values per SCORING_SPEC section 2.3.
+_VALID_SIGNALS: frozenset[str] = frozenset({
+    "tool_call.execute_command",
+    "tool_call.file_write",
+    "tool_call.file_edit",
+    "tool_call.file_create",
+    "tool_call.file_read",
+    "tool_call.search",
+    "tool_call.glob",
+    "tool_call.ask_user",
+    "tool_call.skill",
+    "tool_call.subagent_dispatch",
+    "assistant_text",
+})
+
+# Boundary phases are scored before non-boundary phases. `specification` is
+# scored first so its claimed positions can be excluded from
+# `implementation`'s candidates (see the Pass C comment in `_detect_phases`
+# for why this swaps the order from SCORING_SPEC section 3.3).
+# `implementation`'s position constraint is forced to `any` during scoring
+# to break self-reference. The remaining boundary phases follow.
+_BOUNDARY_ORDER: tuple[str, ...] = ("specification", "implementation", "linting", "testing")
+
+# Cap on the number of (required-command, candidate) assignment combinations
+# scored exhaustively for one phase. Above this, the scorer falls back to a
+# greedy heuristic.
+_ASSIGNMENT_CAP = 10000
+
+# Pollution per illegal cross-phase signal between two chosen required commands.
+_POLLUTION_COEFFICIENT = 0.2
+
+
+def _migrate_legacy_phase(name: str, legacy: dict[str, Any]) -> dict[str, Any]:
+    """Translate the legacy `signals + match + ...` schema to required_commands.
+
+    Single-signal entries become a single required command with R = 1. Multi-
+    signal entries become a single required command whose `alt_signals` lists
+    the additional signals (any of which may produce a candidate).
+    """
+    signals = list(legacy.get("signals", []))
+    if not signals:
+        signals = [""]
+    primary = signals[0]
+    alt = signals[1:]
+    return {
+        "threshold": legacy.get("threshold", _PHASE_SCHEMA_DEFAULTS["threshold"]),
+        "proximity_window": legacy.get("proximity_window", _PHASE_SCHEMA_DEFAULTS["proximity_window"]),
+        "position": legacy.get("position", _PHASE_SCHEMA_DEFAULTS["position"]),
+        "legal_redirect_targets": legacy.get("legal_redirect_targets", []),
+        "repeatable": legacy.get("repeatable", False),
+        "required_commands": [
+            {
+                "id": name,
+                "signal": primary,
+                "match": legacy.get("match") or ".*",
+                "not_match": legacy.get("not_match"),
+                "content_match": legacy.get("content_match"),
+                "optional": False,
+                "requires": [],
+                "alt_signals": alt,
+            }
+        ],
+    }
+
+
+def _parse_phase_spec(name: str, raw: dict[str, Any], known_phase_names: set[str]) -> _PhaseSpec:
+    """Parse one phase entry. Auto-migrates legacy schema."""
+    legacy_migrated = "required_commands" not in raw
+    if legacy_migrated:
+        raw = _migrate_legacy_phase(name, raw)
+
+    threshold = float(raw.get("threshold", _PHASE_SCHEMA_DEFAULTS["threshold"]))
+    if not (0 < threshold <= 1):
+        raise ValueError(f"phase {name!r}: threshold must be in (0, 1], got {threshold}")
+    proximity_window = int(raw.get("proximity_window", _PHASE_SCHEMA_DEFAULTS["proximity_window"]))
+    if proximity_window < 1:
+        raise ValueError(f"phase {name!r}: proximity_window must be >= 1, got {proximity_window}")
+    position = raw.get("position", _PHASE_SCHEMA_DEFAULTS["position"])
+    legal_redirect_targets = list(raw.get("legal_redirect_targets", []))
+    repeatable = bool(raw.get("repeatable", False))
+
+    cmds_raw = raw.get("required_commands") or []
+    if not cmds_raw:
+        raise ValueError(f"phase {name!r}: must declare at least one required_command")
+
+    cmds: list[_RequiredCommand] = []
+    seen_ids: set[str] = set()
+    for c in cmds_raw:
+        cmd_id = c.get("id")
+        if not cmd_id:
+            raise ValueError(f"phase {name!r}: required_command missing 'id'")
+        if cmd_id in seen_ids:
+            raise ValueError(f"phase {name!r}: duplicate required_command id {cmd_id!r}")
+        seen_ids.add(cmd_id)
+        signal = c.get("signal")
+        if not signal:
+            raise ValueError(f"phase {name!r}: required_command {cmd_id!r} missing 'signal'")
+        # Allow `signal` to be a list (or comma-joined string) for the common
+        # case where a concept matches either Write or Edit. The first signal
+        # is primary; the rest become `alt_signals`.
+        alt_signals_extra: list[str] = []
+        if isinstance(signal, list):
+            if not signal:
+                raise ValueError(f"phase {name!r}: required_command {cmd_id!r} signal list is empty")
+            alt_signals_extra = list(signal[1:])
+            signal = signal[0]
+        match = c.get("match")
+        if not match:
+            match = ".*"
+        cmds.append(_RequiredCommand(
+            id=cmd_id,
+            signal=signal,
+            match=match,
+            not_match=c.get("not_match"),
+            content_match=c.get("content_match"),
+            optional=bool(c.get("optional", False)),
+            requires=list(c.get("requires") or []),
+            alt_signals=alt_signals_extra + list(c.get("alt_signals") or []),
+        ))
+
+    if not any(not c.optional for c in cmds):
+        raise ValueError(f"phase {name!r}: at least one non-optional required_command is required")
+
+    for c in cmds:
+        for req in c.requires:
+            if req not in seen_ids:
+                raise ValueError(
+                    f"phase {name!r}: required_command {c.id!r} requires unknown id {req!r}"
+                )
+
+    for target in legal_redirect_targets:
+        if target not in known_phase_names:
+            raise ValueError(
+                f"phase {name!r}: legal_redirect_targets references unknown phase {target!r}"
+            )
+
+    return _PhaseSpec(
+        name=name,
+        threshold=threshold,
+        proximity_window=proximity_window,
+        position=position,
+        legal_redirect_targets=legal_redirect_targets,
+        repeatable=repeatable,
+        required_commands=cmds,
+        legacy_migrated=legacy_migrated,
+    )
+
+
+def _unified_events(trace: Trace) -> list[_UnifiedEvent]:
+    """Build the unified ordering of tool calls and assistant text blocks."""
+    events: list[_UnifiedEvent] = []
+    for ev in trace.events:
+        if ev.text_blocks and ev.type == "assistant":
+            events.append(_UnifiedEvent(
+                kind="text",
+                call_index=None,
+                event_index=ev.index,
+                tc=None,
+                text="\n".join(tb.text for tb in ev.text_blocks),
+            ))
+        for tc in ev.tool_calls:
+            events.append(_UnifiedEvent(
+                kind="tool_call",
+                call_index=tc.call_index,
+                event_index=ev.index,
+                tc=tc,
+                text="",
+            ))
+    # Tool calls within the same event keep their relative order via call_index.
+    # Text blocks come first within the same event (so a "Working on:" preamble
+    # lands at the same logical position as the calls that follow it).
+    events.sort(key=lambda u: (u.event_index, 0 if u.kind == "text" else 1, u.call_index or 0))
+    for pos, u in enumerate(events):
+        u.unified_pos = pos
+    return events
+
+
+def _signal_haystack(cmd_signal: str, u: _UnifiedEvent) -> Optional[str]:
+    """Return the search string for a candidate match, or None if signal mismatched."""
+    if cmd_signal == "assistant_text":
+        if u.kind != "text":
+            return None
+        return u.text
+    if u.kind != "tool_call":
+        return None
+    expected = TOOL_NAME_MAP.get(cmd_signal)
+    if expected is None:
+        return None
+    if u.tc is None or u.tc.name != expected:
+        return None
+    return _primary_arg(u.tc)
+
+
+def _candidates_for(cmd: _RequiredCommand, unified: list[_UnifiedEvent]) -> list[_UnifiedEvent]:
+    """Return all unified events matching a single required-command spec."""
+    matches: list[_UnifiedEvent] = []
+    signals = [cmd.signal] + list(cmd.alt_signals)
+    for u in unified:
+        haystack: Optional[str] = None
+        for s in signals:
+            haystack = _signal_haystack(s, u)
+            if haystack is not None:
+                break
+        if haystack is None:
+            continue
+        if cmd.not_match and re.search(cmd.not_match, haystack):
+            continue
+        if re.search(cmd.match, haystack):
+            matches.append(u)
+            continue
+        # Optional content fallback for file-write/edit signals.
+        if cmd.content_match and cmd.signal in ("tool_call.file_write", "tool_call.file_edit", "tool_call.file_create") and u.tc is not None:
+            content = u.tc.input.get("content", "") or u.tc.input.get("new_string", "")
+            if content and re.search(cmd.content_match, content):
+                matches.append(u)
+    return matches
+
+
+def _proximity_factor(u_i: _UnifiedEvent, others: list[_UnifiedEvent], window: int) -> float:
+    """Linear-decay proximity: 1.0 at distance 0, 0.0 at distance >= window."""
+    if not others:
+        return 1.0
+    min_dist = min(abs(u_i.unified_pos - u_j.unified_pos) for u_j in others)
+    return max(0.0, 1.0 - min_dist / window)
+
+
+def _merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    if not intervals:
+        return []
+    intervals = sorted(intervals)
+    merged: list[tuple[int, int]] = [intervals[0]]
+    for lo, hi in intervals[1:]:
+        last_lo, last_hi = merged[-1]
+        if lo <= last_hi:
+            merged[-1] = (last_lo, max(last_hi, hi))
+        else:
+            merged.append((lo, hi))
+    return merged
+
+
+def _cross_phase_factor(
+    u_i: _UnifiedEvent,
+    others: list[_UnifiedEvent],
+    other_phase_candidates: dict[str, list[_UnifiedEvent]],
+    self_phase: str,
+    legal_redirect_targets: set[str],
+) -> float:
+    """Penalize illegal cross-phase signals lying strictly inside cluster intervals."""
+    if not others:
+        return 1.0
+    intervals = []
+    for u_j in others:
+        lo, hi = sorted([u_i.unified_pos, u_j.unified_pos])
+        intervals.append((lo, hi))
+    covered = _merge_intervals(intervals)
+    if not covered:
+        return 1.0
+
+    # Skip the cluster's own anchor positions: a chosen contribution of THIS
+    # phase should not pollute itself even if it also matches another phase's
+    # signal.
+    cluster_positions = {u_i.unified_pos} | {u.unified_pos for u in others}
+
+    counted: set[int] = set()
+    illegal = 0
+    for other_phase, cands in other_phase_candidates.items():
+        if other_phase == self_phase:
+            continue
+        if other_phase in legal_redirect_targets:
+            continue
+        for u in cands:
+            pos = u.unified_pos
+            if pos in counted or pos in cluster_positions:
+                continue
+            for lo, hi in covered:
+                if lo < pos < hi:
+                    illegal += 1
+                    counted.add(pos)
+                    break
+    return max(0.0, 1.0 - _POLLUTION_COEFFICIENT * illegal)
+
+
+def _position_factor(
+    u: _UnifiedEvent,
+    position: str,
+    boundaries: dict[str, Optional[int]],
+) -> float:
+    pos = u.unified_pos
+    if position == "any":
+        return 1.0
+    if position == "before_implementation":
+        b = boundaries.get("implementation")
+        if b is None:
+            return 1.0
+        return 1.0 if pos < b else 0.0
+    if position in ("after_implementation", "after_linting", "after_testing", "after_verification"):
+        boundary_phase = {
+            "after_implementation": "implementation",
+            "after_linting": "linting",
+            "after_testing": "testing",
+            "after_verification": "testing",
+        }[position]
+        b = boundaries.get(boundary_phase)
+        if b is None:
+            return 1.0
+        return 1.0 if pos > b else 0.5
+    if position == "after_specification":
+        lo = boundaries.get("specification_last")
+        hi = boundaries.get("implementation")
+        if lo is not None and pos <= lo:
+            return 0.5
+        if hi is not None and pos >= hi:
+            return 0.0
+        return 1.0
+    if position == "last":
+        preceding = boundaries.get("last_lower_bound")
+        if preceding is None:
+            return 1.0
+        return 1.0 if pos > preceding else 0.0
+    if position == "post_hoc":
+        return 0.0
+    # Unknown positions starting with `after_` are treated as soft dependents
+    # on a named phase: if the referenced phase did not fire, return 0.5
+    # (consistent with `after_implementation` semantics). This preserves
+    # legacy configs that used custom keywords like `after_tdd_specify`.
+    if position.startswith("after_"):
+        ref = position[len("after_"):]
+        b = boundaries.get(ref)
+        if b is None:
+            return 0.5
+        return 1.0 if u.unified_pos > b else 0.5
+    return 1.0
+
+
+def _satisfies_requires(
+    cmd: _RequiredCommand,
+    u_i: _UnifiedEvent,
+    chosen: dict[str, _UnifiedEvent],
+) -> bool:
+    for req_id in cmd.requires:
+        u_req = chosen.get(req_id)
+        if u_req is None:
+            return False
+        if u_req.unified_pos >= u_i.unified_pos:
+            return False
+    return True
+
+
+def _score_assignment(
+    spec: _PhaseSpec,
+    chosen: dict[str, _UnifiedEvent],
+    other_phase_candidates: dict[str, list[_UnifiedEvent]],
+    boundaries: dict[str, Optional[int]],
+    legal_redirect_targets: set[str],
+    required: list[_RequiredCommand],
+    R: int,
+) -> tuple[float, list[dict[str, Any]]]:
+    """Compute the phase score from a chosen assignment of required commands.
+
+    Returns (score, details) where details is a list of per-command
+    contribution records suitable for eval_trace logging.
+    """
+    score = 0.0
+    detail: list[dict[str, Any]] = []
+    for cmd in required:
+        u_i = chosen[cmd.id]
+        others = [chosen[c.id] for c in required if c.id != cmd.id]
+        prox = _proximity_factor(u_i, others, spec.proximity_window)
+        cross = _cross_phase_factor(u_i, others, other_phase_candidates, spec.name, legal_redirect_targets)
+        pos = _position_factor(u_i, spec.position, boundaries)
+        if not _satisfies_requires(cmd, u_i, chosen):
+            contribution = 0.0
+            requires_ok = False
+        else:
+            contribution = (1.0 / R) * prox * cross * pos
+            requires_ok = True
+        score += contribution
+        detail.append({
+            "id": cmd.id,
+            "kind": "required",
+            "unified_pos": u_i.unified_pos,
+            "trace_index": u_i.call_index if u_i.kind == "tool_call" else u_i.event_index,
+            "proximity": prox,
+            "cross_phase": cross,
+            "position": pos,
+            "requires_ok": requires_ok,
+            "contribution": contribution,
+        })
+    return score, detail
+
+
+def _iter_assignments(
+    required: list[_RequiredCommand],
+    candidates_by_id: dict[str, list[_UnifiedEvent]],
+):
+    """Yield all assignments of one DISTINCT event per required command.
+
+    Two required commands MUST NOT be satisfied by the same UnifiedEvent
+    (same `unified_pos`). When a single event matches multiple required
+    regexes (e.g. a chained `cargo fmt && cargo clippy` Bash call matching
+    both linting commands), it can fill at most one slot per assignment.
+    The spec's clustering math (proximity, pollution) assumes distinct
+    cluster events.
+    """
+    if not required:
+        yield {}
+        return
+    cands_lists = [candidates_by_id.get(c.id, []) for c in required]
+    if any(not lst for lst in cands_lists):
+        return
+    for combo in itertools.product(*cands_lists):
+        positions = [u.unified_pos for u in combo]
+        if len(set(positions)) != len(positions):
+            continue
+        yield {c.id: u for c, u in zip(required, combo)}
+
+
+def _greedy_assignment(
+    required: list[_RequiredCommand],
+    candidates_by_id: dict[str, list[_UnifiedEvent]],
+) -> Optional[dict[str, _UnifiedEvent]]:
+    """Pick the earliest distinct candidate per command satisfying hard prereqs."""
+    chosen: dict[str, _UnifiedEvent] = {}
+    # Process commands in an order that satisfies prereqs: a command's prereqs
+    # must already have been chosen. We do this iteratively.
+    pending = list(required)
+    while pending:
+        progressed = False
+        for cmd in list(pending):
+            if all(req in chosen for req in cmd.requires):
+                cands = candidates_by_id.get(cmd.id, [])
+                # Earliest candidate strictly after all chosen prereqs and
+                # not already claimed by another required command (distinct
+                # events; see _iter_assignments for rationale).
+                latest_prereq = max(
+                    (chosen[r].unified_pos for r in cmd.requires),
+                    default=-1,
+                )
+                claimed_positions = {u.unified_pos for u in chosen.values()}
+                feasible = [
+                    u for u in cands
+                    if u.unified_pos > latest_prereq
+                    and u.unified_pos not in claimed_positions
+                ]
+                if not feasible:
+                    return None
+                chosen[cmd.id] = min(feasible, key=lambda u: u.unified_pos)
+                pending.remove(cmd)
+                progressed = True
+        if not progressed:
+            return None
+    return chosen
+
+
+def _select_optional(
+    cmd: _RequiredCommand,
+    candidates: list[_UnifiedEvent],
+    chosen: dict[str, _UnifiedEvent],
+    spec: _PhaseSpec,
+    other_phase_candidates: dict[str, list[_UnifiedEvent]],
+    boundaries: dict[str, Optional[int]],
+    legal_redirect_targets: set[str],
+    R: int,
+) -> tuple[Optional[_UnifiedEvent], float, Optional[_UnifiedEvent]]:
+    """Pick the optional occurrence that maximizes added contribution.
+
+    Returns `(chosen, contribution, best_zero_candidate)`. When all
+    candidates contribute exactly 0 (e.g. out-of-window, polluted),
+    `chosen` is None and the third element is the earliest-by-unified_pos
+    candidate so callers can record it for audit purposes.
+    """
+    best: tuple[Optional[_UnifiedEvent], float] = (None, 0.0)
+    fallback: Optional[_UnifiedEvent] = None
+    others = list(chosen.values())
+    for u in candidates:
+        if fallback is None or u.unified_pos < fallback.unified_pos:
+            fallback = u
+        prox = _proximity_factor(u, others, spec.proximity_window)
+        cross = _cross_phase_factor(u, others, other_phase_candidates, spec.name, legal_redirect_targets)
+        pos = _position_factor(u, spec.position, boundaries)
+        contribution = (1.0 / R) * prox * cross * pos
+        if contribution > best[1]:
+            best = (u, contribution)
+    return best[0], best[1], fallback
+
+
+def _compute_first_occurrence(
+    spec: _PhaseSpec,
+    chosen: dict[str, _UnifiedEvent],
+    optional_chosen: dict[str, _UnifiedEvent],
+    other_phase_candidates: dict[str, list[_UnifiedEvent]],
+    boundaries: dict[str, Optional[int]],
+    legal_redirect_targets: set[str],
+) -> tuple[Optional[int], bool]:
+    """Stream by unified_pos to find the first k where the partial score crosses threshold.
+
+    Returns (trace_index, fallback_used). The trace_index is the call_index
+    (for tool calls) or event_index (for text blocks) of the contributing
+    event whose unified_pos == k.
+    """
+    contributing = list(chosen.values()) + list(optional_chosen.values())
+    if not contributing:
+        return None, False
+
+    required_ids = {c.id for c in spec.required_commands if not c.optional}
+    R = len(required_ids)
+    required = [c for c in spec.required_commands if not c.optional]
+    optional = [c for c in spec.required_commands if c.optional]
+
+    ks = sorted({u.unified_pos for u in contributing})
+    for k in ks:
+        partial_chosen = {cid: u for cid, u in chosen.items() if u.unified_pos <= k}
+        if set(partial_chosen.keys()) != required_ids:
+            continue
+        partial_optional = {cid: u for cid, u in optional_chosen.items() if u.unified_pos <= k}
+
+        score, _ = _score_assignment(
+            spec, partial_chosen, other_phase_candidates, boundaries, legal_redirect_targets, required, R,
+        )
+        for cmd in optional:
+            if cmd.id in partial_optional:
+                u = partial_optional[cmd.id]
+                others = list(partial_chosen.values())
+                prox = _proximity_factor(u, others, spec.proximity_window)
+                cross = _cross_phase_factor(u, others, other_phase_candidates, spec.name, legal_redirect_targets)
+                pos = _position_factor(u, spec.position, boundaries)
+                score += (1.0 / R) * prox * cross * pos
+        score = min(1.0, score)
+        if score >= spec.threshold:
+            anchor = next(u for u in contributing if u.unified_pos == k)
+            return (anchor.call_index if anchor.kind == "tool_call" else anchor.event_index), False
+
+    # Fallback: phase fired on full trace but never crossed by streaming.
+    earliest = min(contributing, key=lambda u: u.unified_pos)
+    return (earliest.call_index if earliest.kind == "tool_call" else earliest.event_index), True
+
+
+def _score_phase(
+    spec: _PhaseSpec,
+    candidates_by_id: dict[str, list[_UnifiedEvent]],
+    other_phase_candidates: dict[str, list[_UnifiedEvent]],
+    boundaries: dict[str, Optional[int]],
+    legal_redirect_targets: set[str],
+    eval_trace: Optional[EvalTrace] = None,
+) -> tuple[float, list[int], Optional[int], Optional[int], dict[str, Any]]:
+    """Score a single phase.
+
+    Returns (score, contributing_trace_indices, first_occurrence_trace_idx,
+    first_occurrence_unified_pos, eval_payload).
+    """
+    required = [c for c in spec.required_commands if not c.optional]
+    optional = [c for c in spec.required_commands if c.optional]
+    R = len(required)
+
+    if any(not candidates_by_id.get(c.id) for c in required):
+        empty_payload = {
+            "phase": spec.name,
+            "score": 0.0,
+            "reason": "missing required command candidates",
+            "missing_required_ids": [c.id for c in required if not candidates_by_id.get(c.id)],
+        }
+        return 0.0, [], None, None, empty_payload
+
+    # Step 1: choose required-command assignment.
+    cap_hit = False
+    if R == 1:
+        cmd = required[0]
+        cands = candidates_by_id[cmd.id]
+        # Pick the earliest in-window candidate; if none qualifies, the single
+        # candidate with the highest position factor (any tie broken by index).
+        best_u: Optional[_UnifiedEvent] = None
+        best_pos_factor = -1.0
+        for u in cands:
+            pos_factor = _position_factor(u, spec.position, boundaries)
+            if pos_factor > best_pos_factor or (
+                pos_factor == best_pos_factor and best_u is not None and u.unified_pos < best_u.unified_pos
+            ):
+                best_u = u
+                best_pos_factor = pos_factor
+        chosen: dict[str, _UnifiedEvent] = {cmd.id: best_u} if best_u is not None else {}
+    else:
+        total_combos = 1
+        for c in required:
+            total_combos *= len(candidates_by_id[c.id])
+        if total_combos > _ASSIGNMENT_CAP:
+            cap_hit = True
+            greedy = _greedy_assignment(required, candidates_by_id)
+            chosen = greedy or {}
+        else:
+            best_score = -1.0
+            best_chosen: dict[str, _UnifiedEvent] = {}
+            best_first_pos = float("inf")
+            best_index_sum = float("inf")
+            for assignment in _iter_assignments(required, candidates_by_id):
+                feasible = True
+                for cmd in required:
+                    if not _satisfies_requires(cmd, assignment[cmd.id], assignment):
+                        feasible = False
+                        break
+                if not feasible:
+                    continue
+                score, _ = _score_assignment(
+                    spec, assignment, other_phase_candidates, boundaries,
+                    legal_redirect_targets, required, R,
+                )
+                first_pos = min(u.unified_pos for u in assignment.values())
+                idx_sum = sum(u.unified_pos for u in assignment.values())
+                if (
+                    score > best_score
+                    or (score == best_score and first_pos < best_first_pos)
+                    or (score == best_score and first_pos == best_first_pos and idx_sum < best_index_sum)
+                ):
+                    best_score = score
+                    best_chosen = dict(assignment)
+                    best_first_pos = first_pos
+                    best_index_sum = idx_sum
+            chosen = best_chosen
+
+    if not chosen:
+        empty_payload = {
+            "phase": spec.name,
+            "score": 0.0,
+            "reason": "no feasible assignment of required commands",
+            "cap_hit": cap_hit,
+        }
+        if eval_trace is not None and cap_hit:
+            eval_trace.log("_detect_phases", "assignment_cap_hit", phase=spec.name)
+        return 0.0, [], None, None, empty_payload
+
+    # Step 2: choose optional commands (greedy max contribution).
+    optional_chosen: dict[str, _UnifiedEvent] = {}
+    optional_details: list[dict[str, Any]] = []
+    for cmd in optional:
+        cands = candidates_by_id.get(cmd.id, [])
+        if not cands:
+            optional_details.append({
+                "id": cmd.id,
+                "kind": "optional",
+                "matched": False,
+                "contribution": 0.0,
+            })
+            continue
+        u, contribution, fallback = _select_optional(
+            cmd, cands, chosen, spec, other_phase_candidates, boundaries, legal_redirect_targets, R,
+        )
+        if u is not None:
+            optional_chosen[cmd.id] = u
+            optional_details.append({
+                "id": cmd.id,
+                "kind": "optional",
+                "matched": True,
+                "unified_pos": u.unified_pos,
+                "trace_index": u.call_index if u.kind == "tool_call" else u.event_index,
+                "contribution": contribution,
+            })
+        else:
+            # All candidates contributed 0; record the earliest considered
+            # candidate (if any) for audit purposes without selecting it.
+            entry: dict[str, Any] = {
+                "id": cmd.id,
+                "kind": "optional",
+                "matched": False,
+                "contribution": 0.0,
+            }
+            if fallback is not None:
+                entry["zero_contribution_candidate"] = {
+                    "unified_pos": fallback.unified_pos,
+                    "trace_index": (
+                        fallback.call_index if fallback.kind == "tool_call"
+                        else fallback.event_index
+                    ),
+                }
+            optional_details.append(entry)
+
+    # Step 3: compute final score.
+    required_score, required_details = _score_assignment(
+        spec, chosen, other_phase_candidates, boundaries, legal_redirect_targets, required, R,
+    )
+    optional_score = sum(d["contribution"] for d in optional_details)
+    final_score = min(1.0, required_score + optional_score)
+
+    payload: dict[str, Any] = {
+        "phase": spec.name,
+        "threshold": spec.threshold,
+        "proximity_window": spec.proximity_window,
+        "position": spec.position,
+        "legal_redirect_targets": sorted(legal_redirect_targets),
+        "R": R,
+        "required": required_details,
+        "optional": optional_details,
+        "score": final_score,
+        "cap_hit": cap_hit,
+    }
+
+    if final_score < spec.threshold:
+        payload["reason"] = f"score {final_score:.3f} below threshold {spec.threshold}"
+        return 0.0, [], None, None, payload
+
+    if spec.legacy_migrated:
+        # Legacy R=1 phases aggregate ALL candidates whose position factor is
+        # non-zero, matching the legacy detector's behavior. Downstream metrics
+        # (cycle count, after_implementation boundary) depend on this aggregate.
+        legacy_seen: set[int] = set()
+        legacy_indices: list[int] = []
+        for u in candidates_by_id.get(required[0].id, []):
+            pf = _position_factor(u, spec.position, boundaries)
+            if pf <= 0.0:
+                continue
+            idx = u.call_index if u.kind == "tool_call" else u.event_index
+            if idx in legacy_seen:
+                continue
+            legacy_seen.add(idx)
+            legacy_indices.append(idx)
+        contributing_trace_indices = sorted(legacy_indices)
+    else:
+        contributing_trace_indices = sorted(
+            (u.call_index if u.kind == "tool_call" else u.event_index)
+            for u in list(chosen.values()) + list(optional_chosen.values())
+        )
+
+    first_idx, fallback_used = _compute_first_occurrence(
+        spec, chosen, optional_chosen, other_phase_candidates, boundaries, legal_redirect_targets,
+    )
+    payload["first_occurrence_trace_index"] = first_idx
+    payload["first_occurrence_fallback_used"] = fallback_used
+
+    first_unified_pos: Optional[int] = None
+    if first_idx is not None:
+        # Find the unified_pos of the contributor whose original index is first_idx.
+        for u in list(chosen.values()) + list(optional_chosen.values()):
+            orig = u.call_index if u.kind == "tool_call" else u.event_index
+            if orig == first_idx:
+                first_unified_pos = u.unified_pos
+                break
+
+    return final_score, contributing_trace_indices, first_idx, first_unified_pos, payload
+
+
+def _compute_last_lower_bound(
+    name: str,
+    ordered: list[str],
+    phase_events: dict[str, list[int]],
+    unified: list[_UnifiedEvent],
+) -> Optional[int]:
+    """Find the unified_pos lower bound for a `last` phase.
+
+    Walks `ordered` backwards from `name` for the most recent fired phase,
+    returning the maximum unified_pos among that phase's events.
+    """
+    if name not in ordered:
+        return None
+    idx = ordered.index(name)
+    for preceding in reversed(ordered[:idx]):
+        evs = phase_events.get(preceding)
+        if evs:
+            preceding_set = set(evs)
+            preceding_positions = [
+                u.unified_pos for u in unified
+                if (u.kind == "tool_call" and u.call_index in preceding_set)
+                or (u.kind == "text" and u.event_index in preceding_set)
+            ]
+            if preceding_positions:
+                return max(preceding_positions)
+    return None
+
+
 def _detect_phases(
     trace: Trace,
     phase_tool_mapping: dict[str, Any],
     phase_classification: dict[str, Any],
     eval_trace: Optional[EvalTrace] = None,
 ) -> tuple[list[str], dict[str, list[int]]]:
-    """
-    Detect which phases occurred in the trace and their execution order.
+    """Detect which phases occurred in the trace and their execution order.
 
-    Uses phase_tool_mapping to match tool calls to phases, applying position
-    constraints to disambiguate shared signals (e.g. file_read in investigation
-    vs verification).
+    Implements the weighted cluster scorer documented in
+    `.claude/local/plans/PHASE_ORDERING_SCORING_SPEC.md`. Each phase declares
+    one or more `required_commands`; the phase fires when its chosen cluster
+    of occurrences scores at or above the configured threshold (default 0.8).
 
-    Two-pass approach: first pass detects phases without dependency constraints,
-    second pass resolves phases that depend on first-pass results (e.g.
-    after_specification depends on specification).
+    Legacy phase entries lacking `required_commands` are auto-migrated to a
+    single required command with R = 1 (SCORING_SPEC section 2.4); their
+    behavior is "fires whenever a candidate exists in-window".
 
     Returns (execution_order, phase_events) where:
-    - execution_order: ordered phase names (floating phases excluded)
-    - phase_events: {phase_name: [event_indices]} for all detected phases
+    - execution_order: ordered phase names by first-occurrence, floating phases excluded
+    - phase_events: {phase_name: [trace_indices]} for all detected phases
     """
-    # Find the implementation boundary (first Write/Edit/Create event that is
-    # NOT a test specification).  This handles two cases:
-    #   1. Dedicated test files: path contains "test" (e.g. tests/foo_test.rs)
-    #   2. Inline tests: content contains test markers (e.g. #[test] in a src/ file)
-    # Without this exclusion, a TDD-first edit that adds tests would set the
-    # implementation boundary, making specification impossible to detect.
-    tdd_mapping = phase_tool_mapping.get("specification", {})
-    tdd_match_str = tdd_mapping.get("match", "")
-    tdd_content_match = tdd_mapping.get("content_match")
-    impl_mapping = phase_tool_mapping.get("implementation", {})
-    impl_signals = impl_mapping.get("signals", [])
-    impl_first_idx = None
-    for sig in impl_signals:
-        tool_name = TOOL_NAME_MAP.get(sig)
-        if tool_name:
-            for tc in trace.all_tool_calls(tool_name):
-                # Skip dedicated test file writes (path contains "test")
-                if tdd_match_str and tdd_match_str in _primary_arg(tc):
-                    continue
-                # Skip edits whose content contains test markers (inline tests).
-                # This lets the implementation boundary advance past TDD edits
-                # to src/ files that add #[test] functions.
-                if tdd_content_match:
-                    content = tc.input.get("content", "") or tc.input.get("new_string", "")
-                    if content and re.search(tdd_content_match, content):
-                        continue
-                if impl_first_idx is None or tc.call_index < impl_first_idx:
-                    impl_first_idx = tc.call_index
-
-    # Find verification boundary (first verification/testing event after implementation).
-    # Look for "verification" first, fall back to "testing" — the test config may
-    # use either name for the same concept.
-    verify_mapping = phase_tool_mapping.get("verification") or phase_tool_mapping.get("testing", {})
-    verify_signals = verify_mapping.get("signals", [])
-    verify_match = verify_mapping.get("match")
-    verify_first_idx = None
-    if impl_first_idx is not None:
-        for sig in verify_signals:
-            tool_name = TOOL_NAME_MAP.get(sig)
-            if tool_name:
-                for tc in trace.all_tool_calls(tool_name):
-                    if tc.call_index > impl_first_idx:
-                        # Apply match filter if present (e.g. "cargo test")
-                        if verify_match and not _matches_signal(tc, verify_match):
-                            continue
-                        if verify_first_idx is None or tc.call_index < verify_first_idx:
-                            verify_first_idx = tc.call_index
-
-    # Positions that depend on other phases being detected first.
-    # "last" is deferred so it can enforce ordering: a "last" phase must come
-    # after the preceding ordered phase (e.g. post-commit must come after commit).
-    _DEFERRED_POSITIONS = {"after_specification", "last"}
-
-    def _collect_phase(
-        phase_name: str,
-        mapping: dict,
-        lower_bound: int | None = None,
-        upper_bound: int | None = None,
-    ) -> list[int]:
-        """Collect matching event indices for a phase, respecting position and match filters."""
-        signals = mapping.get("signals", [])
-        position = mapping.get("position", "any")
-        match_str = mapping.get("match")
-        content_match = mapping.get("content_match")
-
-        # Skip post_hoc phases — they are computed from external data
-        if position == "post_hoc":
-            return []
-
-        indices: list[int] = []
-        candidates_examined: list[dict] = []
-        for signal in signals:
-            tool_name = TOOL_NAME_MAP.get(signal)
-            if tool_name:
-                for tc in trace.all_tool_calls(tool_name):
-                    idx = tc.call_index
-                    rejection_reason = None
-                    accepted = True
-                    # Apply position filter
-                    if position == "before_implementation":
-                        if impl_first_idx is not None and idx >= impl_first_idx:
-                            rejection_reason = f"index {idx} >= impl boundary {impl_first_idx}"
-                            accepted = False
-                    elif position == "after_implementation":
-                        if impl_first_idx is None or idx <= impl_first_idx:
-                            rejection_reason = f"index {idx} <= impl boundary {impl_first_idx}"
-                            accepted = False
-                    elif position == "after_verification":
-                        if verify_first_idx is None or idx <= verify_first_idx:
-                            rejection_reason = f"index {idx} <= verify boundary {verify_first_idx}"
-                            accepted = False
-                    elif position == "after_specification":
-                        if lower_bound is None or idx <= lower_bound:
-                            rejection_reason = f"index {idx} <= specification boundary {lower_bound}"
-                            accepted = False
-                        elif upper_bound is not None and idx >= upper_bound:
-                            rejection_reason = f"index {idx} >= impl boundary {upper_bound} (past TDD prove-fail window)"
-                            accepted = False
-                    elif position == "last":
-                        # Collect all candidates, then keep only the last one
-                        # (done below).  If a lower_bound is set (from the
-                        # preceding ordered phase), reject events before it.
-                        if lower_bound is not None and idx <= lower_bound:
-                            rejection_reason = f"index {idx} <= preceding phase boundary {lower_bound}"
-                            accepted = False
-                    # Apply match filter
-                    if accepted and match_str:
-                        if not _matches_signal(tc, match_str, content_match):
-                            rejection_reason = f"match filter '{match_str}' not found in primary_arg"
-                            accepted = False
-                    if accepted:
-                        indices.append(idx)
-                    if eval_trace is not None:
-                        candidates_examined.append({
-                            "raw": trace.raw_event_pair(tc),
-                            "primary_arg": _primary_arg(tc),
-                            "accepted": accepted,
-                            "rejection_reason": rejection_reason,
-                        })
-            elif signal == "execution.parallel_batch":
-                for ev in trace.events:
-                    if ev.is_parallel_batch:
-                        indices.append(ev.index)
-            elif signal == "response.final_message":
-                # Last assistant text response in the trace
-                for ev in reversed(trace.events):
-                    if ev.type == "assistant" and ev.text_blocks:
-                        indices.append(ev.index)
-                        break
-
-        # For "last" position, keep only the last matching event
-        if position == "last" and indices:
-            indices = [max(indices)]
-
+    if not trace.events:
         if eval_trace is not None:
-            eval_trace.log("_detect_phases", "phase_detection",
-                phase_name=phase_name, signals=signals, position=position,
-                match_filter=match_str,
-                impl_boundary_index=impl_first_idx,
-                verify_boundary_index=verify_first_idx,
-                candidates_examined=candidates_examined,
-                matched_indices=sorted(set(indices)))
+            eval_trace.log("_detect_phases", "execution_order_built",
+                phase_events={}, floating_phases=[], execution_order=[])
+        return [], {}
 
-        return sorted(set(indices))
+    known_phase_names = set(phase_tool_mapping.keys())
+    specs: dict[str, _PhaseSpec] = {}
+    for name, raw in phase_tool_mapping.items():
+        specs[name] = _parse_phase_spec(name, raw, known_phase_names)
 
-    # Pass 1: detect phases that don't depend on other phases
+    unified = _unified_events(trace)
+
+    # Pass A: per-phase candidate sets (static).
+    candidates: dict[str, dict[str, list[_UnifiedEvent]]] = {}
+    for name, spec in specs.items():
+        candidates[name] = {c.id: _candidates_for(c, unified) for c in spec.required_commands}
+
+    # Pass B: union view by phase, used by cross_phase_factor.
+    candidates_union: dict[str, list[_UnifiedEvent]] = {}
+    for name, by_id in candidates.items():
+        seen: set[int] = set()
+        union: list[_UnifiedEvent] = []
+        for lst in by_id.values():
+            for u in lst:
+                if u.unified_pos in seen:
+                    continue
+                seen.add(u.unified_pos)
+                union.append(u)
+        union.sort(key=lambda u: u.unified_pos)
+        candidates_union[name] = union
+
+    # Skip post_hoc phases.
+    active_specs = {n: s for n, s in specs.items() if s.position != "post_hoc"}
+
     phase_events: dict[str, list[int]] = {}
-    deferred: list[tuple[str, dict]] = []
+    # Canonical first-occurrence trace_index for each fired phase. Tracked
+    # separately from `phase_events` because `repeatable: true` phases have
+    # their event lists expanded to the full candidate set so that
+    # `_count_impl_verify_cycles` can see interleaved events; execution-order
+    # ordering must continue to use the cluster-anchor first-occurrence.
+    phase_first_index: dict[str, int] = {}
+    boundaries: dict[str, Optional[int]] = {}
+    eval_per_phase: dict[str, dict[str, Any]] = {}
 
-    for phase_name, mapping in phase_tool_mapping.items():
-        position = mapping.get("position", "any")
-        if position in _DEFERRED_POSITIONS:
-            deferred.append((phase_name, mapping))
+    ordered_phases = list(phase_classification.get("ordered", []))
+
+    def _track_boundary(name: str, first_unified_pos: Optional[int]) -> None:
+        # Track every fired phase's first-occurrence unified_pos so that custom
+        # `after_<phase>` positions (legacy configs) can resolve to the right
+        # boundary. The standard boundary phases (implementation, etc.) get
+        # tracked here too. NOTE: this extends SCORING_SPEC section 3.3, which
+        # only requires boundaries for the four canonical phases listed in
+        # `_BOUNDARY_ORDER`; tracking all fired phases is needed by the legacy
+        # `after_<custom_phase>` lookup branch in `_position_factor`.
+        if first_unified_pos is not None:
+            boundaries[name] = first_unified_pos
+        if name == "specification":
+            # specification_last is the max unified_pos of any chosen contribution.
+            spec_events = phase_events.get("specification", [])
+            if spec_events:
+                preceding_set = set(spec_events)
+                positions = [
+                    u.unified_pos for u in unified
+                    if (u.kind == "tool_call" and u.call_index in preceding_set)
+                    or (u.kind == "text" and u.event_index in preceding_set)
+                ]
+                if positions:
+                    boundaries["specification_last"] = max(positions)
+
+    def _score_one(
+        name: str,
+        force_position_any: bool = False,
+        excluded_unified_positions: Optional[set[int]] = None,
+    ) -> None:
+        spec = active_specs[name]
+        if force_position_any and spec.position != "any":
+            spec = _PhaseSpec(
+                name=spec.name,
+                threshold=spec.threshold,
+                proximity_window=spec.proximity_window,
+                position="any",
+                legal_redirect_targets=spec.legal_redirect_targets,
+                repeatable=spec.repeatable,
+                required_commands=spec.required_commands,
+                legacy_migrated=spec.legacy_migrated,
+            )
+        if excluded_unified_positions:
+            cands = {
+                cid: [u for u in lst if u.unified_pos not in excluded_unified_positions]
+                for cid, lst in candidates[name].items()
+            }
+        else:
+            cands = candidates[name]
+        local_boundaries = dict(boundaries)
+        if spec.position == "last":
+            local_boundaries["last_lower_bound"] = _compute_last_lower_bound(
+                name, ordered_phases, phase_events, unified,
+            )
+        score, idxs, first_idx, first_pos, payload = _score_phase(
+            spec, cands, candidates_union, local_boundaries,
+            set(spec.legal_redirect_targets), eval_trace=eval_trace,
+        )
+        eval_per_phase[name] = payload
+        if score > 0 and idxs:
+            phase_events[name] = sorted(set(idxs))
+            if first_idx is not None:
+                phase_first_index[name] = first_idx
+            _track_boundary(name, first_pos)
+
+    # Pass C0: precompute a static implementation boundary so that
+    # `before_implementation` position scoring works for specification even
+    # though specification scores BEFORE implementation. Walk implementation
+    # candidates, drop any that also look like a specification candidate
+    # (e.g. an inline test edit under src/ whose content matches spec's
+    # `content_match`, or a shared `cargo test` whose primary arg matches
+    # spec's `match`), and take the earliest unified_pos of what remains.
+    # Without this, `boundaries["implementation"]` is None at spec-scoring
+    # time and `_position_factor(..., "before_implementation", ...)` returns
+    # 1.0 vacuously for every spec candidate, letting specification fire on
+    # mid-impl test edits and producing bogus `implementation -> specification`
+    # transitions in the activation timeline. After all boundary phases score,
+    # implementation's actual scored boundary may override this static one
+    # for downstream `after_implementation` consumers.
+    impl_first_idx_static: Optional[int] = None
+    if "implementation" in active_specs and "specification" in active_specs:
+        spec_candidate_positions: set[int] = {
+            u.unified_pos for u in candidates_union.get("specification", [])
+        }
+        impl_non_spec = [
+            u for u in candidates_union.get("implementation", [])
+            if u.unified_pos not in spec_candidate_positions
+        ]
+        if impl_non_spec:
+            impl_first_idx_static = min(u.unified_pos for u in impl_non_spec)
+    if impl_first_idx_static is not None:
+        boundaries["implementation"] = impl_first_idx_static
+
+    # Pass C: boundary phases first.
+    #
+    # Note: this departs from SCORING_SPEC section 3.3 which scores
+    # implementation BEFORE specification. The deviation is deliberate.
+    # Implementation's `match: src/` regex (with `not_match` for `tests/`)
+    # plus its `cargo test` required command can absorb test-content edits
+    # whenever the agent placed inline `#[test]` blocks under src/. Scoring
+    # specification first lets us exclude its chosen positions from
+    # implementation's candidate set, so a test-file edit picked up by
+    # specification cannot silently advance the implementation boundary.
+    # The cleaner alternative (a content-aware `not_match` that inverts the
+    # rustdoc/test content fields) is a larger refactor; the swap here is a
+    # localized fix that preserves legacy detector semantics for the bivvy
+    # mapping. Shared signals (`cargo test`, etc.) are only excluded when
+    # specification actually picked that exact occurrence.
+    # Implementation is then scored with `position=any` to avoid
+    # self-reference. Other boundary phases follow.
+    for name in _BOUNDARY_ORDER:
+        if name not in active_specs:
             continue
-        indices = _collect_phase(phase_name, mapping)
-        if indices:
-            phase_events[phase_name] = indices
+        if name == "implementation" and "specification" in phase_events:
+            spec_event_indices = set(phase_events["specification"])
+            spec_chosen_positions = {
+                u.unified_pos for u in unified
+                if (u.kind == "tool_call" and u.call_index in spec_event_indices)
+                or (u.kind == "text" and u.event_index in spec_event_indices)
+            }
+            _score_one(
+                name,
+                force_position_any=True,
+                excluded_unified_positions=spec_chosen_positions,
+            )
+        else:
+            _score_one(name, force_position_any=(name == "implementation"))
 
-    # Pass 2: detect deferred phases using first-pass results
-    ordered_phases = phase_classification.get("ordered", [])
-    for phase_name, mapping in deferred:
-        position = mapping.get("position", "any")
-        lower_bound = None
-        upper_bound = None
-        if position == "after_specification":
-            specification_indices = phase_events.get("specification", [])
-            if specification_indices:
-                lower_bound = min(specification_indices)
-                # specification should only include events before implementation
-                # starts — after that, test runs are verification, not prove-fail.
-                upper_bound = impl_first_idx
-            else:
-                # No specification detected — cannot satisfy after_specification
-                continue
-        elif position == "last":
-            # "last" phases must come after the preceding ordered phase.
-            # Find the phase that immediately precedes this one in the
-            # ordered classification and use its max event as the lower bound.
-            if phase_name in ordered_phases:
-                idx_in_order = ordered_phases.index(phase_name)
-                # Walk backwards to find the nearest preceding phase that was detected
-                for preceding in reversed(ordered_phases[:idx_in_order]):
-                    if preceding in phase_events and phase_events[preceding]:
-                        lower_bound = max(phase_events[preceding])
-                        break
-        indices = _collect_phase(phase_name, mapping, lower_bound=lower_bound, upper_bound=upper_bound)
-        if indices:
-            phase_events[phase_name] = indices
+    # Pass D: remaining phases.
+    for name in active_specs:
+        if name in _BOUNDARY_ORDER:
+            continue
+        _score_one(name)
 
-    # Deduplicate: events claimed by earlier ordered phases should not also
-    # appear in later phases.  E.g. a test-content edit at index 46 detected
-    # as specification should not also appear in implementation's event list.
-    claimed: set[int] = set()
-    for phase_name in ordered_phases:
-        if phase_name in phase_events:
-            phase_events[phase_name] = [i for i in phase_events[phase_name] if i not in claimed]
-            claimed.update(phase_events[phase_name])
-            # Remove phases that have no events left after dedup
-            if not phase_events[phase_name]:
-                del phase_events[phase_name]
-
-    # Build execution order by first occurrence, excluding floating phases
+    # Pass E: dedup ordered phases. Floating phases bypass dedup.
     floating = set(phase_classification.get("floating", []))
-    phase_first = [(name, min(idxs)) for name, idxs in phase_events.items()]
+    claimed: set[int] = set()
+    dedup_actions: list[dict[str, Any]] = []
+    for name in ordered_phases:
+        if name in phase_events:
+            before = list(phase_events[name])
+            after = [i for i in before if i not in claimed]
+            if before != after:
+                dedup_actions.append({
+                    "phase": name,
+                    "before": before,
+                    "after": after,
+                    "removed": [i for i in before if i in claimed],
+                })
+            claimed.update(after)
+            if not after:
+                del phase_events[name]
+            else:
+                phase_events[name] = after
+
+    # Pass E2: expand repeatable phases' event lists with their candidates
+    # (subject to dedup). Repeatable phases legitimately fire many times in
+    # a trace (impl/test loops); the chosen-cluster pair per phase is far
+    # too thin for the cycle counter, which compares the impl and verify
+    # candidate streams. Expansion adds all non-claimed candidates of THIS
+    # phase's non-optional required commands. Candidates shared between
+    # repeatable phases (e.g. `cargo test`, which both impl and testing
+    # match) follow the dedup outcome - earlier-ordered phases keep them.
+    # The cycle counter compensates for shared signals by looking at the
+    # union of repeatable phases' verify-side candidates separately
+    # (see `_count_impl_verify_cycles`).
+    #
+    # Earlier-ordered phases also have priority over their full candidate
+    # *union* (not just the chosen cluster anchors). Without this, a
+    # repeatable phase like `implementation` would absorb candidates that
+    # legitimately belong to an earlier non-repeatable phase whose cluster
+    # only retained a handful of anchors. For example, an inline `#[test]`
+    # write under src/ matches both `specification`'s test-content edit and
+    # `implementation`'s src_edit; if spec only kept its 2 anchors but the
+    # test-content write sits at a unified_pos in spec's candidate union,
+    # impl must not claim it during expansion - otherwise the activation
+    # timeline can open with `implementation` ahead of `specification` and
+    # produce illegal `implementation -> specification` transitions.
+    repeatable_fired = [
+        n for n in ordered_phases
+        if n in phase_events and active_specs.get(n) is not None and active_specs[n].repeatable
+    ]
+    for name in repeatable_fired:
+        spec = active_specs[name]
+        existing = set(phase_events[name])
+        expanded = list(phase_events[name])
+        forbidden_positions: set[int] = set()
+        for earlier in ordered_phases:
+            if earlier == name:
+                break
+            for u in candidates_union.get(earlier, []):
+                forbidden_positions.add(u.unified_pos)
+        for cmd in spec.required_commands:
+            if cmd.optional:
+                continue
+            for u in candidates[name].get(cmd.id, []):
+                idx = u.call_index if u.kind == "tool_call" else u.event_index
+                if idx in existing or idx in claimed:
+                    continue
+                if u.unified_pos in forbidden_positions:
+                    continue
+                existing.add(idx)
+                claimed.add(idx)
+                expanded.append(idx)
+        phase_events[name] = sorted(expanded)
+
+    # Pass F: build execution order by canonical cluster-anchor first-
+    # occurrence (recorded during scoring), falling back to min trace index
+    # when no canonical anchor is available (e.g. floating phases or legacy
+    # migration). Floating phases are excluded from execution_order.
+    phase_first: list[tuple[str, int]] = []
+    for name, idxs in phase_events.items():
+        if name in floating:
+            continue
+        if name in phase_first_index:
+            anchor = phase_first_index[name]
+        else:
+            anchor = min(idxs)
+        phase_first.append((name, anchor))
     phase_first.sort(key=lambda x: x[1])
-    execution_order = [name for name, _ in phase_first if name not in floating]
+    execution_order = [name for name, _ in phase_first]
 
     if eval_trace is not None:
+        eval_trace.log("_detect_phases", "phase_detection",
+            specs={n: {
+                "threshold": s.threshold,
+                "proximity_window": s.proximity_window,
+                "position": s.position,
+                "legal_redirect_targets": s.legal_redirect_targets,
+                "required_command_ids": [c.id for c in s.required_commands],
+            } for n, s in specs.items()},
+            per_phase=eval_per_phase,
+            boundaries=dict(boundaries),
+            dedup_actions=dedup_actions)
         eval_trace.log("_detect_phases", "execution_order_built",
-            phase_events={k: v for k, v in phase_events.items()},
-            floating_phases=list(floating),
+            phase_events={k: list(v) for k, v in phase_events.items()},
+            floating_phases=sorted(floating),
             execution_order=execution_order)
 
     return execution_order, phase_events
 
 
-def _count_impl_verify_cycles(phase_events: dict[str, list[int]]) -> int:
+def _build_activation_timeline(
+    phase_events: dict[str, list[int]],
+    phase_tool_mapping: dict[str, Any],
+    phase_classification: dict[str, Any],
+    eval_trace: Optional[EvalTrace] = None,
+) -> list[str]:
+    """Build a per-event activation timeline from phase_events.
+
+    Inverts `phase_events` (per-phase trace-index lists) into an
+    event-index -> phase-name map, walks event-indices in order, and
+    collapses consecutive duplicates.
+
+    Tie-breaking rules when the same event index appears in multiple phases:
+    1. Prefer an ordered phase over a floating phase.
+    2. Among ordered phases, prefer the one whose first-occurrence in
+       `phase_events` is earliest (i.e. the canonically earlier phase).
+    3. As a final tiebreaker, prefer the lexicographically smaller phase
+       name (deterministic; rare).
+
+    Floating phases (declared in `phase_classification.floating`) are
+    included in the raw mapping but tie-broken away in favor of any
+    competing ordered phase. They CAN appear in the timeline if no ordered
+    phase claims the same index; callers of the strict ordering operator
+    are responsible for filtering them out.
+    """
+    ordered_phases = list(phase_classification.get("ordered", []))
+    floating_phases = set(phase_classification.get("floating", []))
+    ordered_set = set(ordered_phases)
+
+    first_occurrence: dict[str, int] = {}
+    for name, idxs in phase_events.items():
+        if idxs:
+            first_occurrence[name] = min(idxs)
+
+    def _rank(name: str) -> tuple[int, int, str]:
+        is_floating = 1 if name in floating_phases else 0
+        if name in ordered_set:
+            order_rank = ordered_phases.index(name)
+        else:
+            order_rank = len(ordered_phases) + 1
+        return (is_floating, order_rank, name)
+
+    by_index: dict[int, str] = {}
+    for name, idxs in phase_events.items():
+        for idx in idxs:
+            existing = by_index.get(idx)
+            if existing is None or _rank(name) < _rank(existing):
+                by_index[idx] = name
+
+    raw_timeline: list[str] = [by_index[i] for i in sorted(by_index)]
+
+    collapsed: list[str] = []
+    for p in raw_timeline:
+        if not collapsed or collapsed[-1] != p:
+            collapsed.append(p)
+
+    if eval_trace is not None:
+        eval_trace.log(
+            "_build_activation_timeline", "built",
+            raw_count=len(raw_timeline),
+            timeline=collapsed,
+            ordered=ordered_phases,
+            floating=sorted(floating_phases),
+        )
+
+    return collapsed
+
+
+def _count_impl_verify_cycles(
+    phase_events: dict[str, list[int]],
+    trace: Optional[Trace] = None,
+    phase_tool_mapping: Optional[dict[str, Any]] = None,
+) -> int:
     """
     Count the number of implementation/verification cycles.
 
     A cycle is a transition from implementation activity to verification
     activity. E.g. write-write-test-write-test = 2 cycles.
+
+    When `trace` and `phase_tool_mapping` are provided, this function
+    derives impl and verify event streams DIRECTLY from candidate matching
+    rather than relying on the deduplicated `phase_events`. This is needed
+    because the new phase detector treats both `cargo test` (verify-like)
+    and src-file edits (impl-like) as required commands of the impl phase;
+    a naive `phase_events["implementation"]` would lump both together and
+    obscure interleaved cycles. The trace-aware path computes:
+
+        impl_indices  = candidates of impl required commands whose signal
+                        matches a file-write/edit tool name (the
+                        "impl-like" subset)
+        verify_indices = candidates of testing's required commands whose
+                         signal matches `tool_call.execute_command` (the
+                         "verify-like" subset; e.g. `cargo test`,
+                         `cargo llvm-cov`)
+
+    This decoupling preserves the legacy cycle-counter semantics
+    (write-test interleaving) without requiring schema changes.
     """
-    impl_indices = phase_events.get("implementation", [])
-    verify_indices = phase_events.get("verification", [])
+    if trace is not None and phase_tool_mapping is not None:
+        impl_indices, verify_indices = _impl_verify_streams(
+            trace, phase_tool_mapping,
+        )
+    else:
+        impl_indices = phase_events.get("implementation", [])
+        verify_indices = phase_events.get("verification") or phase_events.get("testing", [])
 
     if not impl_indices or not verify_indices:
         return 0
 
-    # Merge all impl/verify events with labels, sorted by index
-    all_events = (
-        [(idx, "impl") for idx in impl_indices]
-        + [(idx, "verify") for idx in verify_indices]
-    )
-    all_events.sort(key=lambda x: x[0])
+    # Merge all impl/verify events with labels, sorted by index. When the
+    # same trace_index appears on both sides (rare; only for unusual
+    # configurations), the verify label takes precedence so the transition
+    # counts.
+    seen: dict[int, str] = {}
+    for idx in impl_indices:
+        seen.setdefault(idx, "impl")
+    for idx in verify_indices:
+        seen[idx] = "verify"
+    all_events = sorted(seen.items(), key=lambda x: x[0])
 
     # Count transitions: impl -> verify = one cycle
     cycles = 0
@@ -611,6 +1615,61 @@ def _count_impl_verify_cycles(phase_events: dict[str, list[int]]) -> int:
             saw_impl = False  # Reset for next cycle
 
     return cycles
+
+
+def _impl_verify_streams(
+    trace: Trace,
+    phase_tool_mapping: dict[str, Any],
+) -> tuple[list[int], list[int]]:
+    """Compute (impl_trace_indices, verify_trace_indices) from candidate sets.
+
+    impl side: candidates of `implementation` required commands whose
+    signal is a file-write or file-edit tool. Falls back to legacy
+    behavior (`signals` list including Write/Edit) when the new schema is
+    absent.
+
+    verify side: candidates of `testing` (or legacy `verification`)
+    required commands whose signal is `tool_call.execute_command`.
+    """
+    impl_raw = phase_tool_mapping.get("implementation") or {}
+    test_raw = phase_tool_mapping.get("testing") or phase_tool_mapping.get("verification") or {}
+    if not impl_raw or not test_raw:
+        return [], []
+
+    known_phase_names = set(phase_tool_mapping.keys())
+    try:
+        impl_spec = _parse_phase_spec("implementation", impl_raw, known_phase_names)
+        test_name = "testing" if "testing" in phase_tool_mapping else "verification"
+        test_spec = _parse_phase_spec(test_name, test_raw, known_phase_names)
+    except ValueError:
+        return [], []
+    unified = _unified_events(trace)
+    impl_indices: set[int] = set()
+    file_write_signals = {
+        "tool_call.file_write",
+        "tool_call.file_edit",
+        "tool_call.file_create",
+    }
+    for cmd in impl_spec.required_commands:
+        if cmd.optional:
+            continue
+        signals = {cmd.signal} | set(cmd.alt_signals)
+        if not (signals & file_write_signals):
+            continue
+        for u in _candidates_for(cmd, unified):
+            if u.kind == "tool_call" and u.call_index is not None:
+                impl_indices.add(u.call_index)
+    verify_indices: set[int] = set()
+    for cmd in test_spec.required_commands:
+        if cmd.optional:
+            continue
+        signals = {cmd.signal} | set(cmd.alt_signals)
+        if "tool_call.execute_command" not in signals:
+            continue
+        for u in _candidates_for(cmd, unified):
+            if u.kind == "tool_call" and u.call_index is not None:
+                verify_indices.add(u.call_index)
+    return sorted(impl_indices), sorted(verify_indices)
 
 
 # ---------------------------------------------------------------------------
@@ -1053,6 +2112,18 @@ def resolve_metric(
         execution_order, _ = _detect_phases(trace, phase_mapping, phase_class, eval_trace=eval_trace)
         return execution_order
 
+    if name == "phase.activation_timeline":
+        phase_mapping = context.get("phase_tool_mapping", {})
+        phase_class = context.get("phase_classification", {})
+        if not phase_mapping:
+            raise MetricNotResolvable(
+                "phase.activation_timeline requires phase_tool_mapping in context"
+            )
+        _, phase_events = _detect_phases(trace, phase_mapping, phase_class, eval_trace=eval_trace)
+        return _build_activation_timeline(
+            phase_events, phase_mapping, phase_class, eval_trace=eval_trace,
+        )
+
     if name == "phase.cycle_count":
         phase_mapping = context.get("phase_tool_mapping", {})
         phase_class = context.get("phase_classification", {})
@@ -1061,7 +2132,9 @@ def resolve_metric(
                 "phase.cycle_count requires phase_tool_mapping in context"
             )
         _, phase_events = _detect_phases(trace, phase_mapping, phase_class, eval_trace=eval_trace)
-        return _count_impl_verify_cycles(phase_events)
+        return _count_impl_verify_cycles(
+            phase_events, trace=trace, phase_tool_mapping=phase_mapping,
+        )
 
     if name.startswith("phase."):
         raise MetricNotResolvable(f"Unknown phase metric: {name!r}")
@@ -1362,6 +2435,7 @@ _ALL_METRIC_NAMES = set(TOOL_NAME_MAP.keys()) | set(MULTI_TOOL_MAP.keys()) | {
     "tool_call.next",
     "task_completed",
     "phase.execution_order",
+    "phase.activation_timeline",
     "phase.cycle_count",
     "diff.files_changed",
     "diff.scope.permitted_paths",
@@ -1992,6 +3066,13 @@ def evaluate_check(
     if operator == "precedes_per_path":
         return _evaluate_precedes_per_path(check, trace, context, eval_trace=et)
 
+    # strict_with_legal_redirects needs special handling: it consumes both the
+    # detected activation timeline AND the per-phase legal_redirect_targets map
+    # sourced from phase_tool_mapping, which the standard operator dispatch
+    # cannot supply.
+    if operator == "strict_with_legal_redirects":
+        return _evaluate_strict_with_legal_redirects(check, trace, context, eval_trace=et)
+
     # All other operators go through evaluate_condition_with_evidence
     try:
         passed, detail, metric_value, target_value, op = evaluate_condition_with_evidence(
@@ -2145,6 +3226,127 @@ def _evaluate_precedes_per_path(
         metric_value=dict(a_map),
         target_value=dict(b_map),
         operator="precedes_per_path",
+        eval_trace=eval_trace.to_list() if eval_trace else None,
+    )
+
+
+def _evaluate_strict_with_legal_redirects(
+    check: dict[str, Any],
+    trace: Trace,
+    context: dict[str, Any],
+    eval_trace: Optional[EvalTrace] = None,
+) -> CheckResult:
+    """Evaluate a strict_with_legal_redirects phase ordering check.
+
+    Resolves the activation timeline metric, the canonical target list, and
+    the per-phase legal_redirect_targets map (sourced from
+    `context["phase_tool_mapping"]`), then applies
+    :func:`op_strict_with_legal_redirects`. Records the full per-rule audit
+    payload in eval_trace.
+    """
+    check_id = check["id"]
+    phase = check.get("phase", "")
+    description = check.get("description", "")
+    condition = check["condition"]
+    metric_name = condition.get("metric", "phase.activation_timeline")
+    target_raw = condition.get("target")
+    variables = context.get("variables", {})
+
+    try:
+        timeline = resolve_metric(metric_name, trace, context, eval_trace=eval_trace)
+    except MetricNotResolvable as exc:
+        if eval_trace is not None:
+            eval_trace.log(
+                "_evaluate_strict_with_legal_redirects", "metric_unresolvable",
+                metric=metric_name, error=str(exc),
+            )
+        return CheckResult(
+            check_id=check_id, phase=phase, description=description,
+            passed=False, skip_reason=None, detail=str(exc),
+            eval_trace=eval_trace.to_list() if eval_trace else None,
+        )
+
+    target = resolve_target(target_raw, trace, context, eval_trace=eval_trace)
+    if not isinstance(target, list):
+        if eval_trace is not None:
+            eval_trace.log(
+                "_evaluate_strict_with_legal_redirects", "invalid_target",
+                target=target,
+            )
+        return CheckResult(
+            check_id=check_id, phase=phase, description=description,
+            passed=False, skip_reason=None,
+            detail=f"strict_with_legal_redirects target must resolve to a list, got {type(target).__name__}",
+            eval_trace=eval_trace.to_list() if eval_trace else None,
+        )
+
+    phase_mapping = context.get("phase_tool_mapping", {}) or {}
+    legal_redirects: dict[str, list[str]] = {}
+    for pname, raw in phase_mapping.items():
+        if isinstance(raw, dict):
+            legal_redirects[pname] = list(raw.get("legal_redirect_targets", []) or [])
+
+    if eval_trace is not None:
+        eval_trace.log(
+            "_evaluate_strict_with_legal_redirects", "inputs",
+            timeline=list(timeline) if isinstance(timeline, list) else timeline,
+            target=list(target),
+            legal_redirect_targets=legal_redirects,
+        )
+
+    passed, details = op_strict_with_legal_redirects(
+        list(timeline) if isinstance(timeline, list) else [],
+        list(target),
+        legal_redirects,
+    )
+
+    if eval_trace is not None:
+        eval_trace.log(
+            "_evaluate_strict_with_legal_redirects", "rules_evaluated",
+            passed=passed,
+            filtered_timeline=details["filtered_timeline"],
+            coverage_passed=details["coverage"]["passed"],
+            coverage_missing=details["coverage"]["missing"],
+            first_occurrence_passed=details["first_occurrence_order"]["passed"],
+            first_occurrence_actual=details["first_occurrence_order"]["actual"],
+            first_occurrence_expected=details["first_occurrence_order"]["expected"],
+            transitions_passed=details["transitions"]["passed"],
+            transitions_all=details["transitions"]["all"],
+            transitions_illegal=details["transitions"]["illegal"],
+        )
+
+    detail_parts: list[str] = []
+    if not details["coverage"]["passed"]:
+        miss = ", ".join(details["coverage"]["missing"])
+        detail_parts.append(f"missing phases: {miss}")
+    if not details["first_occurrence_order"]["passed"]:
+        actual = details["first_occurrence_order"]["actual"]
+        expected = details["first_occurrence_order"]["expected"]
+        detail_parts.append(
+            f"first-occurrence order {actual} does not match expected {expected}"
+        )
+    if not details["transitions"]["passed"]:
+        ill = details["transitions"]["illegal"]
+        descs = [f"{t['prev']}->{t['curr']}" for t in ill]
+        detail_parts.append(f"illegal transitions: {', '.join(descs)}")
+    if not detail_parts and passed:
+        detail = (
+            f"timeline {details['filtered_timeline']} satisfies coverage, "
+            f"first-occurrence order, and all transitions"
+        )
+    else:
+        detail = "; ".join(detail_parts) if detail_parts else "passed"
+
+    return CheckResult(
+        check_id=check_id,
+        phase=phase,
+        description=description,
+        passed=passed,
+        skip_reason=None,
+        detail=detail,
+        metric_value=timeline,
+        target_value=target,
+        operator="strict_with_legal_redirects",
         eval_trace=eval_trace.to_list() if eval_trace else None,
     )
 
