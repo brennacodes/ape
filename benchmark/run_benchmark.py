@@ -137,7 +137,9 @@ def _build_filters(args: argparse.Namespace) -> dict[str, str]:
 def _summarize_stream_line(line: str) -> str | None:
     """Extract a short human-readable status from a stream-json JSONL line.
 
-    Returns None for lines that don't carry useful progress info.
+    Returns None for lines that don't carry useful progress info. The
+    returned string is guaranteed to be single-line: a multi-line status
+    breaks Live's per-row cursor math and wedges the progress overlay.
     """
     line = line.strip()
     if not line:
@@ -149,6 +151,15 @@ def _summarize_stream_line(line: str) -> str | None:
     if not isinstance(obj, dict):
         return None
 
+    result = _summarize_stream_event(obj)
+    if result is None:
+        return None
+    # Collapse any embedded whitespace (newlines, tabs) to single spaces so
+    # the Live table cell never spans multiple rows.
+    return " ".join(result.split())
+
+
+def _summarize_stream_event(obj: dict) -> str | None:
     msg = obj.get("message", {})
     content = msg.get("content", [])
     if isinstance(content, str):
