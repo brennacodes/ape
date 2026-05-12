@@ -27,20 +27,6 @@ bugs:
     location: src/cache/store.rs
     impact: Corrupted state, requiring manual wipe
 
-untested_code:
-  env_file_parser:
-    description: Environment file parser — custom logic for parsing .env files has edge cases with quotes and escaped characters
-    location: src/config/env_file.rs
-    risk: Misparsing secrets or config values
-  dependency_resolver:
-    description: Dependency resolver — recursive resolution of tool dependencies could infinite loop on circular references
-    location: src/runner/dependency.rs
-    risk: Infinite hangs during setup
-  telemetry_batching:
-    description: Telemetry batching — offline queueing of telemetry events drops events randomly if the file lock is held
-    location: src/runner/telemetry.rs
-    risk: Data loss for analytics
-
 architectural_issues:
   hardcoded_home_dir:
     description: Hardcoded ~/.bivvy paths across many subsystems (state, snapshots, logs, registry, telemetry, trust) instead of routing through the existing sys::data_dir() abstraction or standard XDG paths

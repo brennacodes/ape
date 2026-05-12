@@ -48,15 +48,13 @@ console = Console()
 CATEGORY_ORDER = [
     "architectural_issues",
     "bugs",
-    "new_features",
-    "untested_code",
+    "new_features"
 ]
 
 CATEGORY_LABELS = {
     "architectural_issues": "Architectural Issues",
     "bugs": "Bugs",
-    "new_features": "New Features",
-    "untested_code": "Untested Code",
+    "new_features": "New Features"
 }
 
 FORMAT_ORDER = ["adhoc-xml", "ape", "markdown", "no-workflow", "plain-text"]

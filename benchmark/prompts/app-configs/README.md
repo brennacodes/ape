@@ -37,7 +37,6 @@ Fields serve two purposes — **interpolation** and **documentation**. Which fie
 | Category | Prompt template uses | Remaining fields are documentation |
 |----------|---------------------|------------------------------------|
 | `bugs` | `${presentation}`, `${optional_modifier}` | `description`, `location`, `impact` |
-| `untested_code` | `${description}`, `${location}` | `risk` |
 | `architectural_issues` | `${description}` | `locations`, `risk` |
 | `new_features` | `${feature}` | `impact` |
 
