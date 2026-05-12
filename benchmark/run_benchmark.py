@@ -684,10 +684,10 @@ def run(args: argparse.Namespace) -> int:
                     progress.mark_done(cid, f"pass={s.passed}/{s.total}")
                 _on_result(result)
         else:
-            for i, case in enumerate(cases):
+            for i, case in enumerate(cases, start=1):
                 progress.set_active(case.case_id, run_index=i)
                 run_label = f"#{i} {case.case_id}"
-                logger.info("[%d/%d] [cyan]%s[/cyan] ...", i + 1, len(cases), run_label)
+                logger.info("[%d/%d] [cyan]%s[/cyan] ...", i, len(cases), run_label)
 
                 # Allocate run_id upfront so state can be written incrementally
                 state_cb = None
@@ -711,14 +711,14 @@ def run(args: argparse.Namespace) -> int:
                 progress.mark_done(case.case_id, "")
                 _on_result(result)
                 if result.error:
-                    logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i + 1, len(cases), run_label, result.error)
+                    logger.info("[%d/%d] DONE %s  [red]ERROR[/red]: %s", i, len(cases), run_label, result.error)
                 else:
                     s = result.summary
                     t = _format_duration(result.wall_clock_ms)
                     warn = " [yellow](stale trace)[/yellow]" if result.stale_trace else ""
                     logger.info(
                         "[%d/%d] DONE %s  pass=%d fail=%d skip=%d rate=%.0f%% %s%s",
-                        i + 1, len(cases), run_label,
+                        i, len(cases), run_label,
                         s.passed, s.failed, s.skipped, s.pass_rate * 100, t, warn,
                     )
     finally:
@@ -820,8 +820,7 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(message)s",
         handlers=[RichHandler(
-            console=Console(stderr=True),
-            rich_tracebacks=True, markup=True, show_path=False,
+            console=console, rich_tracebacks=True, markup=True, show_path=False,
         )],
     )
     args.git_sha = capture_git_sha(args.benchmark_root.parent)

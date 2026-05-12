@@ -907,7 +907,7 @@ def run_parallel(
         with ThreadPoolExecutor(max_workers=workers) as pool:
             future_to_idx = {
                 pool.submit(_run_one, case, i): i
-                for i, case in enumerate(cases)
+                for i, case in enumerate(cases, start=1)
             }
             for future in as_completed(future_to_idx):
                 idx = future_to_idx[future]
@@ -921,20 +921,22 @@ def run_parallel(
                         status = f"pass={s.passed}/{s.total} rate={s.pass_rate:.0%}"
                     else:
                         status = "no summary"
-                    done_label = f"#{idx} {cases[idx].case_id}"
+                    case = cases[idx - 1]
+                    done_label = f"#{idx} {case.case_id}"
                     logger.info(
                         "[%d/%d] DONE %s  %s",
                         completed, total, done_label, status,
                     )
                     yield result
                 except Exception as exc:
-                    done_label = f"#{idx} {cases[idx].case_id}"
+                    case = cases[idx - 1]
+                    done_label = f"#{idx} {case.case_id}"
                     logger.exception(
                         "[%d/%d] FAILED %s",
                         completed, total, done_label,
                     )
                     yield CaseResult(
-                        case=cases[idx], summary=None, trace_path=None,
+                        case=case, summary=None, trace_path=None,
                         error=f"Parallel execution error: {exc}",
                     )
     except KeyboardInterrupt:
