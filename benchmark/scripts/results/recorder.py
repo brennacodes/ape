@@ -1,12 +1,17 @@
 """
 Structured result storage with per-run directory hierarchy.
 
-Layout (new):
-    results_dir/{fixture_id}/{format}/{prompt_id}/{run_id:03d}/
-        stream.json              # Raw JSONL stream as valid JSON array
-        state.json               # Workspace state (git log, diffs, files)
-        {check_id}.json          # One file per check outcome
-        summary.json             # Run metadata, grades, file references
+Layout (source-bound formats):
+    results_dir/{source}/{fixture_id}/{format}/{prompt_id}/{run_id:03d}/
+
+Layout (no-workflow baseline — source-agnostic, no extra layer):
+    results_dir/{fixture_id}/no-workflow/{prompt_id}/{run_id:03d}/
+
+Each run directory holds:
+    stream.json              # Raw JSONL stream as valid JSON array
+    state.json               # Workspace state (git log, diffs, files)
+    {check_id}.json          # One file per check outcome
+    summary.json             # Run metadata, grades, file references
 
 Layout (legacy, read-only):
     results_dir/raw/{fixture_id}/{format}/{prompt_id}/{run_id:03d}.json
@@ -141,6 +146,8 @@ class RunRecord:
     format: str = ""
     prompt_id: str = ""
     run_id: int = 0
+    # "claude-md" | "prompt" | "" (no-workflow only)
+    source: str = ""
 
     # Evaluation
     outcomes: list[dict] = field(default_factory=list)
@@ -241,6 +248,7 @@ class RunRecord:
             fixture_id=summary.metadata.fixture_id,
             format=summary.metadata.format,
             prompt_id=summary.metadata.prompt_id,
+            source=summary.metadata.source,
             run_id=run_id,
             outcomes=outcomes,
             total=summary.total,
@@ -277,40 +285,78 @@ class Recorder:
     # Path helpers
     # ------------------------------------------------------------------
 
-    def _run_dir(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Path:
-        """Return the per-run directory path (new format)."""
-        return self.results_dir / fixture_id / fmt / prompt_id / f"{run_id:03d}"
+    def _source_prefix(self, source: str) -> Path:
+        """Return the ``{source}/`` segment to prepend, or empty for no-workflow.
 
-    def _run_path_legacy(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Path:
-        """Return the legacy flat-file path (read-only)."""
+        Source-bound runs land under ``{results_dir}/{source}/...`` so that
+        ``claude-md`` and ``prompt`` runs stay distinct on disk. No-workflow
+        cases (``source==""``) collapse back to today's layout without an
+        extra segment.
+        """
+        if source:
+            return self.results_dir / source
+        return self.results_dir
+
+    def _run_dir(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> Path:
+        """Return the per-run directory path (new format)."""
+        return (
+            self._source_prefix(source)
+            / fixture_id / fmt / prompt_id / f"{run_id:03d}"
+        )
+
+    def _run_path_legacy(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> Path:
+        """Return the legacy flat-file path (read-only).
+
+        Legacy files predate the source dimension. They live under
+        ``results_dir/raw/...`` regardless of source.
+        """
         return self.results_dir / "raw" / fixture_id / fmt / prompt_id / f"{run_id:03d}.json"
 
-    def _log_dir(self, fixture_id: str, fmt: str, prompt_id: str) -> Path:
+    def _log_dir(
+        self, fixture_id: str, fmt: str, prompt_id: str, source: str = "",
+    ) -> Path:
+        if source:
+            return self.results_dir / source / "logs" / fixture_id / fmt / prompt_id
         return self.results_dir / "logs" / fixture_id / fmt / prompt_id
 
-    def _trace_path(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Path:
-        return self._log_dir(fixture_id, fmt, prompt_id) / f"{run_id:03d}.trace.json"
+    def _trace_path(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> Path:
+        return self._log_dir(fixture_id, fmt, prompt_id, source) / f"{run_id:03d}.trace.json"
 
     # ------------------------------------------------------------------
     # Incremental writes
     # ------------------------------------------------------------------
 
-    def init_run_dir(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Path:
+    def init_run_dir(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> Path:
         """Create the run directory early so incremental writes have a destination.
 
         Returns the run directory Path.  Safe to call multiple times.
         """
-        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id)
+        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id, source)
         run_dir.mkdir(parents=True, exist_ok=True)
         return run_dir
 
-    def write_state(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int, state: dict) -> None:
+    def write_state(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        state: dict, source: str = "",
+    ) -> None:
         """Write (or overwrite) state.json in an already-created run directory.
 
         Called incrementally as phases complete — first with setup state,
         then again with the full post-run workspace state.
         """
-        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id)
+        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id, source)
         run_dir.mkdir(parents=True, exist_ok=True)
         with open(run_dir / "state.json", "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2)
@@ -340,7 +386,10 @@ class Recorder:
 
         Returns the run directory Path.
         """
-        run_dir = self._run_dir(record.fixture_id, record.format, record.prompt_id, record.run_id)
+        run_dir = self._run_dir(
+            record.fixture_id, record.format, record.prompt_id, record.run_id,
+            record.source,
+        )
         run_dir.mkdir(parents=True, exist_ok=True)
         dest_stream = run_dir / "stream.json"
 
@@ -412,6 +461,7 @@ class Recorder:
             "format": record.format,
             "prompt_id": record.prompt_id,
             "run_id": record.run_id,
+            "source": record.source,
             "ape_version": record.ape_version,
             "workflow_hash": record.workflow_hash,
             "git_sha": record.git_sha,
@@ -458,20 +508,23 @@ class Recorder:
     # Load
     # ------------------------------------------------------------------
 
-    def load_run(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> RunRecord:
+    def load_run(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> RunRecord:
         """Load a single RunRecord from disk.
 
         Tries the new per-run directory format first, then falls back
         to the legacy flat file under ``raw/``.
         """
-        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id)
+        run_dir = self._run_dir(fixture_id, fmt, prompt_id, run_id, source)
         summary_path = run_dir / "summary.json"
 
         if summary_path.exists():
             return self._load_from_directory(run_dir)
 
         # Legacy fallback
-        legacy_path = self._run_path_legacy(fixture_id, fmt, prompt_id, run_id)
+        legacy_path = self._run_path_legacy(fixture_id, fmt, prompt_id, run_id, source)
         with open(legacy_path, "r", encoding="utf-8") as f:
             return RunRecord.from_dict(json.load(f))
 
@@ -494,6 +547,7 @@ class Recorder:
             fixture_id=summary.get("fixture_id", ""),
             format=summary.get("format", ""),
             prompt_id=summary.get("prompt_id", ""),
+            source=summary.get("source", ""),
             run_id=summary.get("run_id", 0),
             outcomes=outcomes,
             total=summary.get("total", 0),
@@ -536,12 +590,16 @@ class Recorder:
         re-saves so that the stream data is preserved while the summary
         and check files reflect the updated record.
         """
-        run_dir = self._run_dir(record.fixture_id, record.format, record.prompt_id, record.run_id)
+        run_dir = self._run_dir(
+            record.fixture_id, record.format, record.prompt_id, record.run_id,
+            record.source,
+        )
         raw_output = ""
         stream_path = run_dir / "stream.json"
         if stream_path.exists():
             raw_output = self.load_raw_output(
                 record.fixture_id, record.format, record.prompt_id, record.run_id,
+                record.source,
             )
         self.save_run(record, raw_output=raw_output)
 
@@ -551,9 +609,10 @@ class Recorder:
 
     def all_runs(self) -> Iterator[RunRecord]:
         """Iterate over every stored RunRecord (new format then legacy)."""
-        seen: set[tuple[str, str, str, int]] = set()
+        seen: set[tuple[str, str, str, int, str]] = set()
 
-        # New format: scan for summary.json files
+        # New format: scan for summary.json files (rglob already walks the
+        # extra ``{source}/`` layer used by source-bound layouts).
         if self.results_dir.is_dir():
             for summary_path in sorted(self.results_dir.rglob("summary.json")):
                 # Exclude paths under raw/ or logs/ (legacy dirs)
@@ -563,7 +622,7 @@ class Recorder:
                     continue
                 try:
                     record = self._load_from_directory(summary_path.parent)
-                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id)
+                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id, record.source)
                     if key not in seen:
                         seen.add(key)
                         yield record
@@ -577,7 +636,7 @@ class Recorder:
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
                         record = RunRecord.from_dict(json.load(f))
-                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id)
+                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id, record.source)
                     if key not in seen:
                         seen.add(key)
                         yield record
@@ -589,29 +648,74 @@ class Recorder:
         fixture_id: str,
         fmt: Optional[str] = None,
         prompt_id: Optional[str] = None,
+        source: Optional[str] = None,
     ) -> Iterator[RunRecord]:
-        """Iterate over runs matching the given filters."""
-        # New format
-        base = self.results_dir / fixture_id
-        if fmt:
-            base = base / fmt
-        if fmt and prompt_id:
-            base = base / prompt_id
+        """Iterate over runs matching the given filters.
 
-        seen: set[tuple[str, str, str, int]] = set()
+        When *source* is not provided, scans both the source-agnostic
+        ``{fixture_id}/no-workflow/...`` tree and every ``{source}/...``
+        subtree under the results directory.
+        """
+        seen: set[tuple[str, str, str, int, str]] = set()
 
-        if base.is_dir():
+        # Build the list of bases to walk. Each base is a directory whose
+        # rglob("summary.json") yields runs for the requested filters.
+        bases: list[Path] = []
+        if source:
+            # Specific source: source-bound layout only.
+            base = self._source_prefix(source) / fixture_id
+            if fmt:
+                base = base / fmt
+            if fmt and prompt_id:
+                base = base / prompt_id
+            bases.append(base)
+        else:
+            # No-workflow / source-agnostic layout: {fixture_id}/...
+            base = self.results_dir / fixture_id
+            if fmt:
+                base = base / fmt
+            if fmt and prompt_id:
+                base = base / prompt_id
+            bases.append(base)
+
+            # Source-bound subtrees: {source}/{fixture_id}/...
+            if self.results_dir.is_dir():
+                for child in sorted(self.results_dir.iterdir()):
+                    if not child.is_dir():
+                        continue
+                    if child.name in ("raw", "logs", "reports"):
+                        continue
+                    if child.name == fixture_id:
+                        continue
+                    sb = child / fixture_id
+                    if fmt:
+                        sb = sb / fmt
+                    if fmt and prompt_id:
+                        sb = sb / prompt_id
+                    bases.append(sb)
+
+        for base in bases:
+            if not base.is_dir():
+                continue
             for summary_path in sorted(base.rglob("summary.json")):
                 try:
                     record = self._load_from_directory(summary_path.parent)
-                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id)
-                    if key not in seen:
-                        seen.add(key)
-                        yield record
                 except (json.JSONDecodeError, KeyError, OSError):
                     continue
+                if record.fixture_id != fixture_id:
+                    continue
+                if fmt and record.format != fmt:
+                    continue
+                if prompt_id and record.prompt_id != prompt_id:
+                    continue
+                if source and record.source != source:
+                    continue
+                key = (record.fixture_id, record.format, record.prompt_id, record.run_id, record.source)
+                if key not in seen:
+                    seen.add(key)
+                    yield record
 
-        # Legacy fallback
+        # Legacy fallback (source-agnostic only)
         legacy_base = self.results_dir / "raw" / fixture_id
         if fmt:
             legacy_base = legacy_base / fmt
@@ -623,7 +727,7 @@ class Recorder:
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
                         record = RunRecord.from_dict(json.load(f))
-                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id)
+                    key = (record.fixture_id, record.format, record.prompt_id, record.run_id, record.source)
                     if key not in seen:
                         seen.add(key)
                         yield record
@@ -634,26 +738,31 @@ class Recorder:
     # Run ID management
     # ------------------------------------------------------------------
 
-    def next_run_id(self, fixture_id: str, fmt: str, prompt_id: str) -> int:
-        """Return the next available run ID for a fixture/format/prompt triple.
+    def next_run_id(
+        self, fixture_id: str, fmt: str, prompt_id: str, source: str = "",
+    ) -> int:
+        """Return the next available run ID for a (fixture, format, prompt, source) tuple.
 
-        Detects both new-format directories and legacy flat files.
+        Detects both new-format directories and legacy flat files. Legacy
+        files are not source-aware — they only feed run-ID allocation when
+        no source layer applies.
         """
         existing: list[int] = []
 
         # New format: directories with numeric names
-        new_dir = self.results_dir / fixture_id / fmt / prompt_id
+        new_dir = self._source_prefix(source) / fixture_id / fmt / prompt_id
         if new_dir.is_dir():
             for p in new_dir.iterdir():
                 if p.is_dir() and p.name.isdigit():
                     existing.append(int(p.name))
 
-        # Legacy format
-        legacy_dir = self.results_dir / "raw" / fixture_id / fmt / prompt_id
-        if legacy_dir.is_dir():
-            for p in legacy_dir.glob("*.json"):
-                if p.stem.isdigit():
-                    existing.append(int(p.stem))
+        # Legacy format: only consult when not under a source prefix.
+        if not source:
+            legacy_dir = self.results_dir / "raw" / fixture_id / fmt / prompt_id
+            if legacy_dir.is_dir():
+                for p in legacy_dir.glob("*.json"):
+                    if p.stem.isdigit():
+                        existing.append(int(p.stem))
 
         return max(existing) + 1 if existing else 0
 
@@ -661,24 +770,33 @@ class Recorder:
     # Stream / state / raw_output loaders
     # ------------------------------------------------------------------
 
-    def load_stream(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> list[dict]:
+    def load_stream(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> list[dict]:
         """Load stream.json as a list of dicts."""
-        stream_path = self._run_dir(fixture_id, fmt, prompt_id, run_id) / "stream.json"
+        stream_path = self._run_dir(fixture_id, fmt, prompt_id, run_id, source) / "stream.json"
         with open(stream_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def load_state(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> dict:
+    def load_state(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> dict:
         """Load state.json."""
-        state_path = self._run_dir(fixture_id, fmt, prompt_id, run_id) / "state.json"
+        state_path = self._run_dir(fixture_id, fmt, prompt_id, run_id, source) / "state.json"
         with open(state_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def load_raw_output(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> str:
+    def load_raw_output(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> str:
         """Load stream.json and convert back to JSONL string.
 
         For consumers that need the original JSONL format.
         """
-        stream_data = self.load_stream(fixture_id, fmt, prompt_id, run_id)
+        stream_data = self.load_stream(fixture_id, fmt, prompt_id, run_id, source)
         return "\n".join(json.dumps(obj) for obj in stream_data)
 
     # ------------------------------------------------------------------
@@ -690,25 +808,31 @@ class Recorder:
 
         Kept for backward compatibility — writes to the legacy log path.
         """
-        path = self._trace_path(record.fixture_id, record.format, record.prompt_id, record.run_id)
+        path = self._trace_path(
+            record.fixture_id, record.format, record.prompt_id, record.run_id,
+            record.source,
+        )
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(trace_data, f, indent=2)
         return path
 
-    def load_trace(self, fixture_id: str, fmt: str, prompt_id: str, run_id: int) -> Optional[dict]:
+    def load_trace(
+        self, fixture_id: str, fmt: str, prompt_id: str, run_id: int,
+        source: str = "",
+    ) -> Optional[dict]:
         """Deprecated: use load_stream() instead.
 
         Falls back to legacy trace file if stream.json doesn't exist.
         """
         # Try stream.json first
-        stream_path = self._run_dir(fixture_id, fmt, prompt_id, run_id) / "stream.json"
+        stream_path = self._run_dir(fixture_id, fmt, prompt_id, run_id, source) / "stream.json"
         if stream_path.exists():
             with open(stream_path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
         # Legacy fallback
-        path = self._trace_path(fixture_id, fmt, prompt_id, run_id)
+        path = self._trace_path(fixture_id, fmt, prompt_id, run_id, source)
         if not path.exists():
             return None
         with open(path, "r", encoding="utf-8") as f:

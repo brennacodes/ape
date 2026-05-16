@@ -504,7 +504,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "markdown")
+        workspace = env.setup(app, wf, "markdown", "claude-md")
         assert (workspace / "main.py").exists()
         assert (workspace / "CLAUDE.md").exists()
         assert (workspace / ".claude" / "scripts" / "guard.py").exists()
@@ -515,7 +515,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "markdown")
+        workspace = env.setup(app, wf, "markdown", "claude-md")
         assert (workspace / "main.py").exists()
         assert (workspace / "CLAUDE.md").exists()
         env.teardown(workspace)
@@ -525,7 +525,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "markdown")
+        workspace = env.setup(app, wf, "markdown", "claude-md")
         result = subprocess.run(
             ["git", "tag", "-l", "initial-state"],
             cwd=workspace, capture_output=True, text=True,
@@ -538,17 +538,17 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         assert (workspace / "main.py").read_text() == "print('hello')\n"
         assert (workspace / "lib" / "utils.py").exists()
         env.teardown(workspace)
 
-    def test_clone_plain_text_no_claude_md(self, tmp_path):
+    def test_clone_plain_text_prompt_no_claude_md(self, tmp_path):
         app = _make_git_fixture(tmp_path)
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "prompt")
         assert not (workspace / "CLAUDE.md").exists()
         env.teardown(workspace)
 
@@ -557,7 +557,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path, "# My Rules\nBe careful.")
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "markdown")
+        workspace = env.setup(app, wf, "markdown", "claude-md")
         assert (workspace / "CLAUDE.md").exists()
         assert "Be careful." in (workspace / "CLAUDE.md").read_text()
         env.teardown(workspace)
@@ -567,7 +567,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         settings = workspace / ".claude" / "settings.local.json"
         assert settings.exists()
         data = json.loads(settings.read_text())
@@ -580,7 +580,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         assert (workspace / ".claude" / "scripts" / "guard.py").exists()
         assert not (workspace / ".home").exists()
         env.teardown(workspace)
@@ -590,7 +590,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         gitignore = (workspace / ".gitignore").read_text()
         assert "__pycache__/" in gitignore
         assert ".home/" not in gitignore
@@ -601,7 +601,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         result = subprocess.run(
             ["git", "remote", "-v"],
             cwd=workspace, capture_output=True, text=True,
@@ -614,7 +614,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         state = env.capture_state(workspace)
         assert isinstance(state, WorkspaceState)
         assert "Initial commit" in state.git_log
@@ -627,7 +627,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         assert workspace.exists()
         env.teardown(workspace)
         assert not workspace.exists()
@@ -637,7 +637,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         result = subprocess.run(
             ["git", "log", "--oneline", "--all"],
             cwd=workspace, capture_output=True, text=True,
@@ -652,7 +652,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         result = subprocess.run(
             ["git", "reflog", "--all"],
             cwd=workspace, capture_output=True, text=True,
@@ -668,7 +668,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         tags = subprocess.run(
             ["git", "tag", "-l"], cwd=workspace,
             capture_output=True, text=True,
@@ -691,7 +691,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         result = subprocess.run(
             ["git", "remote", "-v"],
             cwd=workspace, capture_output=True, text=True,
@@ -704,7 +704,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         state = env.capture_state(workspace)
         assert state.committed_files == [] or state.committed_files == ()
 
@@ -715,7 +715,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         # Simulate LLM creating a file and committing
         (workspace / "fix.py").write_text("print('fix')\n")
         subprocess.run(
@@ -739,7 +739,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         # Simulate LLM deleting a file
         (workspace / "main.py").unlink()
         subprocess.run(
@@ -760,7 +760,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         snapshot = env.capture_setup_state(workspace)
         assert isinstance(snapshot, SetupSnapshot)
         assert "main.py" in snapshot.file_list
@@ -772,7 +772,7 @@ class TestCloneWorkspace:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         snapshot = env.capture_setup_state(workspace)
         assert snapshot.git_status == "", f"expected clean status, got: {snapshot.git_status!r}"
         env.teardown(workspace)
@@ -785,7 +785,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
 
         # App files should be in workspace root
         assert (workspace / "Cargo.toml").exists()
@@ -799,13 +799,13 @@ class TestWorkspaceIsolation:
         env.teardown(workspace)
         assert not workspace.exists()
 
-    def test_plain_text_not_placed_as_claude_md(self, tmp_path):
+    def test_plain_text_prompt_source_not_placed_as_claude_md(self, tmp_path):
         env = BenchmarkEnvironment(base_dir=tmp_path)
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
         workspace = env.setup(
-            app_path, workflow_path, "plain-text",
+            app_path, workflow_path, "plain-text", "prompt",
             fixture_workflow_files=["CLAUDE.md", ".claude/bivvy-dev-workflow.md"],
         )
         assert not (workspace / "CLAUDE.md").exists()
@@ -819,7 +819,7 @@ class TestWorkspaceIsolation:
         md_workflow = tmp_path / "workflow.md"
         md_workflow.write_text("# Instructions\nDo things carefully.")
 
-        workspace = env.setup(app_path, md_workflow, "markdown")
+        workspace = env.setup(app_path, md_workflow, "markdown", "claude-md")
         assert (workspace / "CLAUDE.md").exists()
         assert "Do things carefully" in (workspace / "CLAUDE.md").read_text()
         env.teardown(workspace)
@@ -829,7 +829,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
         cli_env = env.build_env(workspace)
 
         # HOME should NOT be overridden
@@ -854,7 +854,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
         # Git identity is set via repo-level git config, not .gitconfig file
         result = subprocess.run(
             ["git", "config", "user.name"],
@@ -875,7 +875,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
         cli_env = env.build_env(workspace)
         # TMPDIR should pass through from system, not point into workspace
         if "TMPDIR" in cli_env:
@@ -883,20 +883,27 @@ class TestWorkspaceIsolation:
 
         env.teardown(workspace)
 
-    def test_get_workflow_content_plain_text(self, tmp_path):
+    def test_get_workflow_content_plain_text_prompt(self, tmp_path):
         env = BenchmarkEnvironment(base_dir=tmp_path)
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        content = env.get_workflow_content(workflow_path, "plain-text")
-        assert content is not None
+        injection = env.get_workflow_content(workflow_path, "plain-text", "prompt")
+        assert injection is not None
+        assert injection.divider is True
+        assert injection.preamble
 
-    def test_get_workflow_content_markdown_returns_none(self, tmp_path):
+    def test_get_workflow_content_plain_text_claude_md_returns_none(self, tmp_path):
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
+
+        assert env.get_workflow_content(workflow_path, "plain-text", "claude-md") is None
+
+    def test_get_workflow_content_markdown_claude_md_returns_none(self, tmp_path):
         env = BenchmarkEnvironment(base_dir=tmp_path)
         md_path = tmp_path / "workflow.md"
         md_path.write_text("# Test")
 
-        content = env.get_workflow_content(md_path, "markdown")
-        assert content is None
+        assert env.get_workflow_content(md_path, "markdown", "claude-md") is None
 
     def test_structured_md_placed_as_claude_md(self, tmp_path):
         env = BenchmarkEnvironment(base_dir=tmp_path)
@@ -904,18 +911,17 @@ class TestWorkspaceIsolation:
 
         workflow_path = tmp_path / "structured-workflow.md"
         workflow_path.write_text("# Structured MD\nDo structured things.")
-        workspace = env.setup(app_path, workflow_path, "structured-md")
+        workspace = env.setup(app_path, workflow_path, "structured-md", "claude-md")
         assert (workspace / "CLAUDE.md").exists()
         assert (workspace / "CLAUDE.md").read_text() == workflow_path.read_text()
         env.teardown(workspace)
 
-    def test_get_workflow_content_structured_md_returns_none(self, tmp_path):
+    def test_get_workflow_content_structured_md_claude_md_returns_none(self, tmp_path):
         env = BenchmarkEnvironment(base_dir=tmp_path)
         md_path = tmp_path / "workflow.md"
         md_path.write_text("# Structured MD content")
 
-        content = env.get_workflow_content(md_path, "structured-md")
-        assert content is None
+        assert env.get_workflow_content(md_path, "structured-md", "claude-md") is None
 
     # --- Isolation hooks & memory (audit item 3) --------------------------
 
@@ -925,7 +931,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         data = json.loads((workspace / ".claude" / "settings.local.json").read_text())
         assert "hooks" in data, "settings.local.json must contain hooks"
         hooks = data["hooks"]
@@ -948,7 +954,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
         assert guard.exists(), "guard.py must be written to .claude/scripts/"
         assert os.access(guard, os.X_OK), "guard.py must be executable"
@@ -960,7 +966,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         # Blocked: git log (no limit)
@@ -986,7 +992,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         for cmd in ["git show HEAD", "git reflog"]:
@@ -1004,7 +1010,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
@@ -1029,7 +1035,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
@@ -1052,7 +1058,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         for cmd in ["env", "printenv", "env | grep HOME"]:
@@ -1070,7 +1076,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
@@ -1094,7 +1100,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         cases = [
@@ -1117,7 +1123,7 @@ class TestWorkspaceIsolation:
         wf = _make_workflow_file(tmp_path)
         env = BenchmarkEnvironment(base_dir=tmp_path)
 
-        workspace = env.setup(app, wf, "plain-text")
+        workspace = env.setup(app, wf, "plain-text", "claude-md")
         guard = workspace / ".claude" / "scripts" / "guard.py"
 
         allowed = [
@@ -1150,7 +1156,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
         cli_env = env.build_env(workspace)
         assert cli_env.get("CLAUDE_CODE_DISABLE_AUTO_MEMORY") == "1", \
             "CLAUDE_CODE_DISABLE_AUTO_MEMORY must be set to '1'"
@@ -1162,7 +1168,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
         assert env.check_memory_leak(workspace) == []
         env.teardown(workspace)
 
@@ -1172,7 +1178,7 @@ class TestWorkspaceIsolation:
         app_path = BENCHMARK_ROOT / "fixtures" / "apps" / "bivvy"
         workflow_path = BENCHMARK_ROOT / "fixtures" / "plain-text" / "bivvy.txt"
 
-        workspace = env.setup(app_path, workflow_path, "plain-text")
+        workspace = env.setup(app_path, workflow_path, "plain-text", "claude-md")
 
         # Simulate a memory file being created in workspace .claude/
         mem_dir = workspace / ".claude" / "memory"
@@ -1344,6 +1350,7 @@ class TestEndToEnd:
         # Verify stream.json is a valid JSON array with events
         stream = recorder.load_stream(
             record.fixture_id, record.format, record.prompt_id, record.run_id,
+            record.source,
         )
         assert isinstance(stream, list)
         assert len(stream) > 0

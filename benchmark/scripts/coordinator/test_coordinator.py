@@ -79,6 +79,86 @@ class TestDataTypes:
         )
         assert tc.case_id == "myapp/centminmod/plain-text/bug-fix"
 
+    def test_test_case_id_includes_source(self):
+        tc = TestCase(
+            app=AppFixture(Path("a/myapp"), "myapp"),
+            workflow=WorkflowFixture(Path("f"), "centminmod", "markdown"),
+            test_config=TestConfigPath(Path("c"), "centminmod"),
+            prompt=PromptPath(Path("p"), "bug-fix"),
+            source="prompt",
+        )
+        assert tc.case_id == "myapp/centminmod/markdown/prompt/bug-fix"
+
+    def test_test_case_id_template_includes_source(self):
+        tc = TestCase(
+            app=AppFixture(Path("a/myapp"), "myapp"),
+            workflow=WorkflowFixture(Path("f"), "centminmod", "markdown"),
+            test_config=TestConfigPath(Path("c"), "centminmod"),
+            prompt=PromptPath(Path("p"), "bugs"),
+            category="bugs",
+            item_id="silent_yaml_failure",
+            source="claude-md",
+        )
+        assert tc.case_id == (
+            "myapp/bugs/silent_yaml_failure/markdown/claude-md/centminmod"
+        )
+
+    def test_test_case_id_no_workflow_omits_source(self):
+        tc = TestCase(
+            app=AppFixture(Path("a/myapp"), "myapp"),
+            workflow=WorkflowFixture(Path("f"), "centminmod", "no-workflow"),
+            test_config=TestConfigPath(Path("c"), "centminmod"),
+            prompt=PromptPath(Path("p"), "bugs"),
+            category="bugs",
+            item_id="silent_yaml_failure",
+            source="",
+        )
+        assert tc.case_id == (
+            "myapp/bugs/silent_yaml_failure/no-workflow/centminmod"
+        )
+
+    def test_dimensions_includes_source(self):
+        tc = TestCase(
+            app=AppFixture(Path("a/myapp"), "myapp"),
+            workflow=WorkflowFixture(Path("f"), "centminmod", "ape"),
+            test_config=TestConfigPath(Path("c"), "centminmod"),
+            prompt=PromptPath(Path("p"), "bug-fix"),
+            source="prompt",
+        )
+        assert tc.dimensions["source"] == "prompt"
+
+    def test_matches_filter_source_filter(self):
+        wf = WorkflowFixture(Path("f"), "cm", "markdown")
+        tc_md = TestCase(
+            app=AppFixture(Path("a"), "myapp"), workflow=wf,
+            test_config=TestConfigPath(Path("c"), "cm"),
+            prompt=PromptPath(Path("p"), "bug"),
+            source="claude-md",
+        )
+        tc_pr = TestCase(
+            app=AppFixture(Path("a"), "myapp"), workflow=wf,
+            test_config=TestConfigPath(Path("c"), "cm"),
+            prompt=PromptPath(Path("p"), "bug"),
+            source="prompt",
+        )
+        assert tc_md.matches_filter(source="claude-md")
+        assert not tc_md.matches_filter(source="prompt")
+        assert tc_pr.matches_filter(source="prompt")
+        assert not tc_pr.matches_filter(source="claude-md")
+
+    def test_matches_filter_no_workflow_ignores_source(self):
+        wf = WorkflowFixture(Path("f"), "cm", "no-workflow")
+        tc = TestCase(
+            app=AppFixture(Path("a"), "myapp"), workflow=wf,
+            test_config=TestConfigPath(Path("c"), "cm"),
+            prompt=PromptPath(Path("p"), "bug"),
+            source="",
+        )
+        # no-workflow is the null baseline — appears regardless of filter
+        assert tc.matches_filter(source="prompt")
+        assert tc.matches_filter(source="claude-md")
+        assert tc.matches_filter()
+
     def test_frozen_workflow_fixture(self):
         wf = WorkflowFixture(Path("a"), "b", "c")
         with pytest.raises(AttributeError):
@@ -233,10 +313,13 @@ class TestMatchCases:
         configs = [TestConfigPath(Path("c/cm.yml"), "cm")]
         prompts = [PromptPath(Path("p/bug.yml"), "bug")]
         cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 2
+        # Each format now doubles across the source dimension.
+        assert len(cases) == 4
         case_ids = {c.case_id for c in cases}
-        assert "myapp/cm/plain-text/bug" in case_ids
-        assert "myapp/cm/ape/bug" in case_ids
+        assert "myapp/cm/plain-text/claude-md/bug" in case_ids
+        assert "myapp/cm/plain-text/prompt/bug" in case_ids
+        assert "myapp/cm/ape/claude-md/bug" in case_ids
+        assert "myapp/cm/ape/prompt/bug" in case_ids
 
     def test_cross_product_with_prompts(self):
         apps = [AppFixture(Path("a/myapp"), "myapp")]
@@ -247,7 +330,8 @@ class TestMatchCases:
             PromptPath(Path("p2"), "refactor"),
         ]
         cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 2
+        # 2 prompts × 2 sources
+        assert len(cases) == 4
 
     def test_cross_product_with_apps(self):
         apps = [
@@ -258,7 +342,8 @@ class TestMatchCases:
         configs = [TestConfigPath(Path("c"), "cm")]
         prompts = [PromptPath(Path("p"), "bug")]
         cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 2
+        # 2 apps × 2 sources
+        assert len(cases) == 4
 
     def test_unmatched_workflow_skipped(self):
         apps = [AppFixture(Path("a/myapp"), "myapp")]
@@ -278,7 +363,7 @@ class TestMatchCases:
         ) == []
 
     def test_full_cross_product(self):
-        # 2 apps × 2 workflows × 3 prompts = 12 cases
+        # 2 apps × 2 workflows × 3 prompts × 2 sources = 24 cases
         # (1 config shared across both formats)
         apps = [
             AppFixture(Path("a/app1"), "app1"),
@@ -295,7 +380,43 @@ class TestMatchCases:
             PromptPath(Path("p"), "p3"),
         ]
         cases = match_cases(apps, workflows, configs, prompts)
-        assert len(cases) == 12  # 2 apps × 2 workflows × 3 prompts
+        assert len(cases) == 24
+
+    def test_sources_emitted_for_each_format(self):
+        apps = [AppFixture(Path("a/myapp"), "myapp")]
+        workflows = [WorkflowFixture(Path("f"), "cm", "markdown")]
+        configs = [TestConfigPath(Path("c"), "cm")]
+        prompts = [PromptPath(Path("p"), "bug")]
+        cases = match_cases(apps, workflows, configs, prompts)
+        sources = sorted(c.source for c in cases)
+        assert sources == ["claude-md", "prompt"]
+
+    def test_no_workflow_emitted_once_with_empty_source(self):
+        apps = [AppFixture(Path("a/myapp"), "myapp")]
+        workflows = [WorkflowFixture(Path("f"), "cm", "no-workflow")]
+        configs = [TestConfigPath(Path("c"), "cm")]
+        prompts = [PromptPath(Path("p"), "bug")]
+        cases = match_cases(apps, workflows, configs, prompts)
+        assert len(cases) == 1
+        assert cases[0].source == ""
+
+    def test_source_filter_reduces_correctly(self):
+        apps = [AppFixture(Path("a/myapp"), "myapp")]
+        workflows = [
+            WorkflowFixture(Path("f"), "cm", "markdown"),
+            WorkflowFixture(Path("f"), "cm", "ape"),
+            WorkflowFixture(Path("f"), "cm", "no-workflow"),
+        ]
+        configs = [TestConfigPath(Path("c"), "cm")]
+        prompts = [PromptPath(Path("p"), "bug")]
+        cases = match_cases(apps, workflows, configs, prompts)
+        # 2 format × 2 sources + 1 no-workflow = 5
+        assert len(cases) == 5
+        filtered = [c for c in cases if c.matches_filter(source="prompt")]
+        # markdown/prompt, ape/prompt, plus the no-workflow baseline.
+        assert len(filtered) == 3
+        sources = sorted(c.source for c in filtered)
+        assert sources == ["", "prompt", "prompt"]
 
 
 # ===========================================================================

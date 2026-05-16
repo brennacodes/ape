@@ -1,0 +1,1420 @@
+{
+  "check_id": "test_fail_routes_to_implementation",
+  "phase": "testing",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "After testing failure: routed to 'implementation' (expected 'implementation')",
+  "category": "bugs",
+  "metric_value": "implementation",
+  "target_value": "implementation",
+  "operator": "eq",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 1870055.09128875,
+      "check_id": "test_fail_routes_to_implementation",
+      "phase": "testing",
+      "condition": {
+        "metric": "phase.on_fail_route",
+        "metric_args": "testing",
+        "operator": "eq",
+        "target": "implementation"
+      }
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "phase_routing_started",
+      "timestamp": 1870055.091291875,
+      "phase_name": "testing",
+      "routing_type": "on_fail"
+    },
+    {
+      "function": "_detect_phases",
+      "action": "phase_detection",
+      "timestamp": 1870055.109230666,
+      "specs": {
+        "specification": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "test_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "implementation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "src_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "documentation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "required_command_ids": [
+            "doc_edit",
+            "cargo_doc",
+            "working_on"
+          ]
+        },
+        "linting": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "cargo_fmt",
+            "cargo_clippy",
+            "working_on"
+          ]
+        },
+        "testing": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_linting",
+          "legal_redirect_targets": [
+            "implementation",
+            "build"
+          ],
+          "required_command_ids": [
+            "cargo_llvm_cov",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "build": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "linting",
+            "commit"
+          ],
+          "required_command_ids": [
+            "cargo_build_dev",
+            "cargo_build_release",
+            "working_on"
+          ]
+        },
+        "commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "git_add",
+            "git_commit",
+            "working_on"
+          ]
+        },
+        "post-commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "git_log",
+            "cargo_test",
+            "cargo_build",
+            "working_on"
+          ]
+        },
+        "failure_recovery": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "edit",
+            "command"
+          ]
+        }
+      },
+      "per_phase": {
+        "specification": {
+          "phase": "specification",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "test_edit",
+              "kind": "required",
+              "unified_pos": 190,
+              "trace_index": 145,
+              "proximity": 0.6,
+              "cross_phase": 0.8,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 196,
+              "trace_index": 148,
+              "proximity": 0.6,
+              "cross_phase": 0.8,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 184,
+              "trace_index": 276,
+              "contribution": 0.18
+            }
+          ],
+          "score": 0.18,
+          "cap_hit": false,
+          "reason": "score 0.180 below threshold 0.8"
+        },
+        "implementation": {
+          "phase": "implementation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "src_edit",
+              "kind": "required",
+              "unified_pos": 200,
+              "trace_index": 150,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 201,
+              "trace_index": 151,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 204,
+              "trace_index": 298,
+              "contribution": 0.32000000000000006
+            }
+          ],
+          "score": 1.0,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 151,
+          "first_occurrence_fallback_used": false
+        },
+        "linting": {
+          "phase": "linting",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "cargo_fmt",
+              "kind": "required",
+              "unified_pos": 237,
+              "trace_index": 170,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "cargo_clippy",
+              "kind": "required",
+              "unified_pos": 238,
+              "trace_index": 171,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 232,
+              "trace_index": 328,
+              "contribution": 0.2
+            }
+          ],
+          "score": 1.0,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 171,
+          "first_occurrence_fallback_used": false
+        },
+        "testing": {
+          "phase": "testing",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_llvm_cov"
+          ]
+        },
+        "documentation": {
+          "phase": "documentation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "doc_edit",
+              "kind": "required",
+              "unified_pos": 216,
+              "trace_index": 159,
+              "proximity": 0.06666666666666665,
+              "cross_phase": 0.3999999999999999,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.013333333333333327
+            },
+            {
+              "id": "cargo_doc",
+              "kind": "required",
+              "unified_pos": 230,
+              "trace_index": 166,
+              "proximity": 0.06666666666666665,
+              "cross_phase": 0.3999999999999999,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.013333333333333327
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 229,
+              "trace_index": 324,
+              "contribution": 0.18666666666666662
+            }
+          ],
+          "score": 0.21333333333333326,
+          "cap_hit": false,
+          "reason": "score 0.213 below threshold 0.8"
+        },
+        "build": {
+          "phase": "build",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "commit",
+            "linting"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "cargo_build_dev",
+              "kind": "required",
+              "unified_pos": 242,
+              "trace_index": 173,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "cargo_build_release",
+              "kind": "required",
+              "unified_pos": 243,
+              "trace_index": 174,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 241,
+              "trace_index": 338,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "score": 1.0,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 174,
+          "first_occurrence_fallback_used": false
+        },
+        "commit": {
+          "phase": "commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "git_add",
+              "kind": "required",
+              "unified_pos": 252,
+              "trace_index": 182,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "git_commit",
+              "kind": "required",
+              "unified_pos": 253,
+              "trace_index": 183,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0,
+              "zero_contribution_candidate": {
+                "unified_pos": 244,
+                "trace_index": 342
+              }
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 183,
+          "first_occurrence_fallback_used": false
+        },
+        "post-commit": {
+          "phase": "post-commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 3,
+          "required": [
+            {
+              "id": "git_log",
+              "kind": "required",
+              "unified_pos": 256,
+              "trace_index": 185,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.28888888888888886
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 258,
+              "trace_index": 186,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            },
+            {
+              "id": "cargo_build",
+              "kind": "required",
+              "unified_pos": 259,
+              "trace_index": 187,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": true,
+              "unified_pos": 255,
+              "trace_index": 358,
+              "contribution": 0.3111111111111111
+            }
+          ],
+          "score": 1.0,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 187,
+          "first_occurrence_fallback_used": false
+        },
+        "failure_recovery": {
+          "phase": "failure_recovery",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "edit",
+              "kind": "required",
+              "unified_pos": 200,
+              "trace_index": 150,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "command",
+              "kind": "required",
+              "unified_pos": 201,
+              "trace_index": 151,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 151,
+          "first_occurrence_fallback_used": false
+        }
+      },
+      "boundaries": {
+        "implementation": 201,
+        "linting": 238,
+        "build": 243,
+        "commit": 253,
+        "post-commit": 259,
+        "failure_recovery": 201
+      },
+      "dedup_actions": []
+    },
+    {
+      "function": "_detect_phases",
+      "action": "execution_order_built",
+      "timestamp": 1870055.109232416,
+      "phase_events": {
+        "implementation": [
+          144,
+          150,
+          151,
+          154,
+          155,
+          156,
+          159,
+          160,
+          162,
+          298
+        ],
+        "linting": [
+          170,
+          171,
+          328
+        ],
+        "build": [
+          173,
+          174,
+          338
+        ],
+        "commit": [
+          182,
+          183
+        ],
+        "post-commit": [
+          185,
+          186,
+          187,
+          358
+        ],
+        "failure_recovery": [
+          150,
+          151
+        ]
+      },
+      "floating_phases": [
+        "failure_recovery"
+      ],
+      "execution_order": [
+        "implementation",
+        "linting",
+        "build",
+        "commit",
+        "post-commit"
+      ]
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_failed_commands",
+      "timestamp": 1870055.120731708,
+      "command_pattern": "cargo test",
+      "all_bash_commands": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_015Voc64pYgjxneovNCtcsoq",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XMzeP9bWoumm17vQMTQmr1",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 718,
+                  "cache_read_input_tokens": 130966,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 718
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "78e4cba4-3729-4a5e-93df-e84baaa86367"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XMzeP9bWoumm17vQMTQmr1"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "14b967c0-1a46-4dc6-ba84-0976f36e1e1a",
+              "timestamp": "2026-05-12T19:42:26.551Z",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+          "exit_code": 1,
+          "event_index": 288
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01PGYjAH9TSKUE4xpM4XRsCn",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_012zVNWd4XWkWs2Tbg5BM98w",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 455,
+                  "cache_read_input_tokens": 131684,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 455
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "554d68ce-f165-485b-9975-49deb26dfeaa"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling unicode-ident v1.0.24\n   Compiling quote v1.0.45\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling memchr v2.8.0\n   Compiling serde v1.0.228\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling autocfg v1.5.0\n   Compiling futures-core v0.3.32\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling fs_extra v1.3.0\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling smallvec v1.15.1\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling litemap v0.8.2\n   Compiling slab v0.4.12\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.16.3\n   Compiling writeable v0.6.3\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling icu_normalizer_data v2.2.0\n   Compiling equivalent v1.0.2\n   Compiling bitflags v2.11.1\n   Compiling hashbrown v0.17.0\n   Compiling regex-automata v0.4.14\n   Compiling indexmap v2.14.0\n   Compiling syn v2.0.117\n   Compiling futures-io v0.3.32\n   Compiling httparse v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.32\n   Compiling core-foundation-sys v0.8.7\n   Compiling zmij v1.0.21\n   Compiling utf8parse v0.2.2\n   Compiling errno v0.3.14\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.3\n   Compiling mio v1.2.0\n   Compiling generic-array v0.14.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling cc v1.2.61\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling untrusted v0.9.0\n   Compiling httpdate v1.0.3\n   Compiling anstyle v1.0.14\n   Compiling crossbeam-utils v0.8.21\n   Compiling percent-encoding v2.3.2\n   Compiling atomic-waker v1.1.2\n   Compiling try-lock v0.2.5\n   Compiling unicode-width v0.2.2\n   Compiling serde_json v1.0.149\n   Compiling rustls v0.23.40\n   Compiling tower-service v0.3.3\n   Compiling fnv v1.0.7\n   Compiling want v0.3.1\n   Compiling cmake v0.1.58\n   Compiling regex v1.12.3\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling subtle v2.6.1\n   Compiling rustix v1.1.4\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling aws-lc-sys v0.40.0\n   Compiling hybrid-array v0.4.11\n   Compiling ipnet v2.12.0\n   Compiling synstructure v0.13.2\n   Compiling colorchoice v1.0.5\n   Compiling anstyle-query v1.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling foldhash v0.1.5\n   Compiling anstream v1.0.0\n   Compiling hashbrown v0.15.5\n   Compiling concurrent-queue v2.5.0\n   Compiling console v0.16.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling portable-atomic v1.13.1\n   Compiling fastrand v2.4.1\n   Compiling parking v2.2.1\n   Compiling doc-comment v0.3.4\n   Compiling ref-cast v1.0.25\n   Compiling thiserror v2.0.18\n   Compiling tower-layer v0.3.3\n   Compiling clap_lex v1.1.0\n   Compiling ucd-trie v0.1.7\n   Compiling strsim v0.11.1\n   Compiling clap_builder v4.6.0\n   Compiling pest v2.8.6\n   Compiling tempfile v3.27.0\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling zerofrom v0.1.7\n   Compiling futures-macro v0.3.32\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling ref-cast-impl v1.0.25\n   Compiling futures-util v0.3.32\n   Compiling event-listener v5.4.1\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling security-framework v3.7.0\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling hashlink v0.10.0\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling crypto-common v0.2.1\n   Compiling crypto-common v0.1.7\n   Compiling block-buffer v0.10.4\n   Compiling serde_derive_internals v0.29.1\n   Compiling encoding_rs v0.8.35\n   Compiling lazy_static v1.5.0\n   Compiling const-oid v0.10.2\n   Compiling iri-string v0.7.12\n   Compiling arraydeque v0.5.1\n   Compiling anyhow v1.0.102\n   Compiling sharded-slab v0.1.7\n   Compiling schemars_derive v1.2.1\n   Compiling icu_provider v2.2.0\n   Compiling bytes v1.11.1\n   Compiling icu_properties v2.2.0\n   Compiling icu_normalizer v2.2.0\n   Compiling digest v0.11.2\n   Compiling clap v4.6.1\n   Compiling digest v0.10.7\n   Compiling event-listener-strategy v0.5.4\n   Compiling yaml-rust2 v0.10.4\n   Compiling pest_meta v2.8.6\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling matchers v0.2.0\n   Compiling cpufeatures v0.3.0\n   Compiling cpufeatures v0.2.17\n   Compiling iana-time-zone v0.1.65\n   Compiling include_dir_macros v0.7.4\n   Compiling tracing-log v0.2.0\n   Compiling thread_local v1.1.9\n   Compiling shell-words v1.1.1\n   Compiling pin-utils v0.1.0\n   Compiling unsafe-libyaml v0.2.11\n   Compiling unit-prefix v0.5.2\n   Compiling bitflags v1.3.2\n   Compiling dyn-clone v1.0.20\n   Compiling predicates-core v1.0.10\n   Compiling nu-ansi-term v0.50.3\n   Compiling ryu v1.0.23\n   Compiling schemars v1.2.1\n   Compiling idna_adapter v1.2.2\n   Compiling idna v1.1.0\n   Compiling indicatif v0.18.4\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling tracing-subscriber v0.3.23\n   Compiling headers-core v0.3.0\n   Compiling nix v0.26.4\n   Compiling dialoguer v0.12.0\n   Compiling url v2.5.8\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling include_dir v0.7.4\n   Compiling chrono v0.4.44\n   Compiling sha1 v0.10.6\n   Compiling pest_generator v2.8.6\n   Compiling sha2 v0.11.0\n   Compiling marked-yaml v0.8.0\n   Compiling async-lock v3.4.2\n   Compiling clap_complete v4.6.3\n   Compiling float-cmp v0.10.0\n   Compiling vte_generate_state_changes v0.1.2\n   Compiling mime v0.3.17\n   Compiling normalize-line-endings v0.3.0\n   Compiling termtree v0.5.1\n   Compiling difflib v0.4.0\n   Compiling assert_cmd v2.2.1\n   Compiling hex v0.4.3\n   Compiling arrayvec v0.7.6\n   Compiling similar v2.7.0\n   Compiling predicates v3.1.4\n   Compiling vte v0.11.1\n   Compiling predicates-tree v1.0.13\n   Compiling headers v0.4.1\n   Compiling async-object-pool v0.2.0\n   Compiling pest_derive v2.8.6\n   Compiling serde_regex v1.1.0\n   Compiling assert-json-diff v2.0.2\n   Compiling async-trait v0.1.89\n   Compiling bstr v1.12.1\n   Compiling tabwriter v1.4.1\n   Compiling wait-timeout v0.2.1\n   Compiling path-tree v0.8.3\n   Compiling futures-timer v3.0.3\n   Compiling ptyprocess v0.4.1\n   Compiling unicode-width v0.1.14\n   Compiling stringmetrics v2.2.2\n   Compiling expectrl v0.7.1\n   Compiling insta v1.47.2\n   Compiling vt100 v0.15.2\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.9.0\n   Compiling rustls-webpki v0.103.13\n   Compiling hyper-util v0.1.20\n   Compiling httpmock v0.8.3\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.13.3\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\nerror[E0425]: cannot find value `EOF_CHAR` in this scope\n   --> src/ui/prompts.rs:828:20\n    |\n828 |         assert_eq!(EOF_CHAR, '\\x04', \"Ctrl+D should be 0x04\");\n    |                    ^^^^^^^^ not found in this scope\n\nFor more information about this error, try `rustc --explain E0425`.\nerror: could not compile `bivvy` (lib test) due to 1 previous error",
+                    "is_error": true,
+                    "tool_use_id": "toolu_012zVNWd4XWkWs2Tbg5BM98w"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "e2ba1a8e-cc42-4d2d-8eed-9b5aba6d1a74",
+              "timestamp": "2026-05-12T19:43:31.071Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling unicode-ident v1.0.24\n   Compiling quote v1.0.45\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling memchr v2.8.0\n   Compiling serde v1.0.228\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling autocfg v1.5.0\n   Compiling futures-core v0.3.32\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling fs_extra v1.3.0\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling smallvec v1.15.1\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling litemap v0.8.2\n   Compiling slab v0.4.12\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.16.3\n   Compiling writeable v0.6.3\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling icu_normalizer_data v2.2.0\n   Compiling equivalent v1.0.2\n   Compiling bitflags v2.11.1\n   Compiling hashbrown v0.17.0\n   Compiling regex-automata v0.4.14\n   Compiling indexmap v2.14.0\n   Compiling syn v2.0.117\n   Compiling futures-io v0.3.32\n   Compiling httparse v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.32\n   Compiling core-foundation-sys v0.8.7\n   Compiling zmij v1.0.21\n   Compiling utf8parse v0.2.2\n   Compiling errno v0.3.14\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.3\n   Compiling mio v1.2.0\n   Compiling generic-array v0.14.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling cc v1.2.61\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling untrusted v0.9.0\n   Compiling httpdate v1.0.3\n   Compiling anstyle v1.0.14\n   Compiling crossbeam-utils v0.8.21\n   Compiling percent-encoding v2.3.2\n   Compiling atomic-waker v1.1.2\n   Compiling try-lock v0.2.5\n   Compiling unicode-width v0.2.2\n   Compiling serde_json v1.0.149\n   Compiling rustls v0.23.40\n   Compiling tower-service v0.3.3\n   Compiling fnv v1.0.7\n   Compiling want v0.3.1\n   Compiling cmake v0.1.58\n   Compiling regex v1.12.3\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling subtle v2.6.1\n   Compiling rustix v1.1.4\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling aws-lc-sys v0.40.0\n   Compiling hybrid-array v0.4.11\n   Compiling ipnet v2.12.0\n   Compiling synstructure v0.13.2\n   Compiling colorchoice v1.0.5\n   Compiling anstyle-query v1.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling foldhash v0.1.5\n   Compiling anstream v1.0.0\n   Compiling hashbrown v0.15.5\n   Compiling concurrent-queue v2.5.0\n   Compiling console v0.16.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling portable-atomic v1.13.1\n   Compiling fastrand v2.4.1\n   Compiling parking v2.2.1\n   Compiling doc-comment v0.3.4\n   Compiling ref-cast v1.0.25\n   Compiling thiserror v2.0.18\n   Compiling tower-layer v0.3.3\n   Compiling clap_lex v1.1.0\n   Compiling ucd-trie v0.1.7\n   Compiling strsim v0.11.1\n   Compiling clap_builder v4.6.0\n   Compiling pest v2.8.6\n   Compiling tempfile v3.27.0\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling zerofrom v0.1.7\n   Compiling futures-macro v0.3.32\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling ref-cast-impl v1.0.25\n   Compiling futures-util v0.3.32\n   Compiling event-listener v5.4.1\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling security-framework v3.7.0\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling hashlink v0.10.0\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling crypto-common v0.2.1\n   Compiling crypto-common v0.1.7\n   Compiling block-buffer v0.10.4\n   Compiling serde_derive_internals v0.29.1\n   Compiling encoding_rs v0.8.35\n   Compiling lazy_static v1.5.0\n   Compiling const-oid v0.10.2\n   Compiling iri-string v0.7.12\n   Compiling arraydeque v0.5.1\n   Compiling anyhow v1.0.102\n   Compiling sharded-slab v0.1.7\n   Compiling schemars_derive v1.2.1\n   Compiling icu_provider v2.2.0\n   Compiling bytes v1.11.1\n   Compiling icu_properties v2.2.0\n   Compiling icu_normalizer v2.2.0\n   Compiling digest v0.11.2\n   Compiling clap v4.6.1\n   Compiling digest v0.10.7\n   Compiling event-listener-strategy v0.5.4\n   Compiling yaml-rust2 v0.10.4\n   Compiling pest_meta v2.8.6\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling matchers v0.2.0\n   Compiling cpufeatures v0.3.0\n   Compiling cpufeatures v0.2.17\n   Compiling iana-time-zone v0.1.65\n   Compiling include_dir_macros v0.7.4\n   Compiling tracing-log v0.2.0\n   Compiling thread_local v1.1.9\n   Compiling shell-words v1.1.1\n   Compiling pin-utils v0.1.0\n   Compiling unsafe-libyaml v0.2.11\n   Compiling unit-prefix v0.5.2\n   Compiling bitflags v1.3.2\n   Compiling dyn-clone v1.0.20\n   Compiling predicates-core v1.0.10\n   Compiling nu-ansi-term v0.50.3\n   Compiling ryu v1.0.23\n   Compiling schemars v1.2.1\n   Compiling idna_adapter v1.2.2\n   Compiling idna v1.1.0\n   Compiling indicatif v0.18.4\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling tracing-subscriber v0.3.23\n   Compiling headers-core v0.3.0\n   Compiling nix v0.26.4\n   Compiling dialoguer v0.12.0\n   Compiling url v2.5.8\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling include_dir v0.7.4\n   Compiling chrono v0.4.44\n   Compiling sha1 v0.10.6\n   Compiling pest_generator v2.8.6\n   Compiling sha2 v0.11.0\n   Compiling marked-yaml v0.8.0\n   Compiling async-lock v3.4.2\n   Compiling clap_complete v4.6.3\n   Compiling float-cmp v0.10.0\n   Compiling vte_generate_state_changes v0.1.2\n   Compiling mime v0.3.17\n   Compiling normalize-line-endings v0.3.0\n   Compiling termtree v0.5.1\n   Compiling difflib v0.4.0\n   Compiling assert_cmd v2.2.1\n   Compiling hex v0.4.3\n   Compiling arrayvec v0.7.6\n   Compiling similar v2.7.0\n   Compiling predicates v3.1.4\n   Compiling vte v0.11.1\n   Compiling predicates-tree v1.0.13\n   Compiling headers v0.4.1\n   Compiling async-object-pool v0.2.0\n   Compiling pest_derive v2.8.6\n   Compiling serde_regex v1.1.0\n   Compiling assert-json-diff v2.0.2\n   Compiling async-trait v0.1.89\n   Compiling bstr v1.12.1\n   Compiling tabwriter v1.4.1\n   Compiling wait-timeout v0.2.1\n   Compiling path-tree v0.8.3\n   Compiling futures-timer v3.0.3\n   Compiling ptyprocess v0.4.1\n   Compiling unicode-width v0.1.14\n   Compiling stringmetrics v2.2.2\n   Compiling expectrl v0.7.1\n   Compiling insta v1.47.2\n   Compiling vt100 v0.15.2\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.9.0\n   Compiling rustls-webpki v0.103.13\n   Compiling hyper-util v0.1.20\n   Compiling httpmock v0.8.3\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.13.3\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\nerror[E0425]: cannot find value `EOF_CHAR` in this scope\n   --> src/ui/prompts.rs:828:20\n    |\n828 |         assert_eq!(EOF_CHAR, '\\x04', \"Ctrl+D should be 0x04\");\n    |                    ^^^^^^^^ not found in this scope\n\nFor more information about this error, try `rustc --explain E0425`.\nerror: could not compile `bivvy` (lib test) due to 1 previous error"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 290
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01TYxQBJKvKtEJ1HS73HU5JQ",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XxLWwmmTvpN3EKcz9GA5oZ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 495,
+                  "cache_read_input_tokens": 135909,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 495
+                  },
+                  "output_tokens": 70,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "90486c84-12f1-4efc-ad04-34eb134e2e67"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.41s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2443 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest checks::change::tests::fail_fails_when_changed ... ok\ntest checks::change::tests::compute_file_hash_exceeds_size_limit ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest checks::change::tests::compute_file_hash ... ok\ntest checks::change::tests::fail_passes_when_unchanged ... ok\ntest checks::change::tests::glob_size_limit_not_exceeded ... ok\ntest checks::change::tests::glob_no_size_limit_allows_any_size ... ok\ntest checks::change::tests::compute_glob_hash ... ok\ntest checks::change::tests::hash_file_not_found ... ok\ntest checks::change::tests::glob_size_limit_exceeded ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest checks::change::tests::hash_file_produces_consistent_hash ... ok\ntest checks::change::tests::no_baseline_returns_indeterminate ... ok\ntest checks::change::tests::hash_file_differs_for_different_content ... ok\ntest checks::change::tests::hash_glob_no_matches ... ok\ntest checks::change::tests::hash_glob_changes_when_file_added ... ok\ntest checks::change::tests::proceed_fails_when_unchanged ... ok\ntest checks::change::tests::proceed_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_unchanged ... ok\ntest checks::change::tests::hash_glob_is_deterministic ... ok\ntest checks::change::tests::size_limit_exceeded ... ok\ntest checks::change::tests::size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_glob_hashes_matching_files ... ok\ntest checks::change::tests::size_limit_none_always_passes ... ok\ntest checks::evaluator::tests::evaluator_all_empty_passes ... ok\ntest checks::evaluator::tests::evaluator_all_fails_when_one_fails ... ok\ntest checks::change::tests::compute_command_hash ... ok\ntest checks::evaluator::tests::evaluator_any_empty_fails ... ok\ntest checks::evaluator::tests::evaluator_any_fails_when_all_fail ... ok\ntest checks::change::tests::hash_command_success ... ok\ntest checks::evaluator::tests::evaluator_any_passes_when_one_passes ... ok\ntest checks::change::tests::hash_command_failure ... ok\ntest checks::evaluator::tests::evaluator_change_file_not_found ... ok\ntest checks::evaluator::tests::evaluator_change_glob_with_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_no_baseline_returns_indeterminate ... ok\ntest check\n\n... [20014 characters truncated] ...\n\nt::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::lint::tests::lint_targeted_workflow_does_not_parse_other_workflow_files ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\n      hello\n      computed-output\n      hello\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_dry_run_message_is_styled_in_red_with_blank_lines ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\n      hello\ntest cli::commands::run::tests::execute_real_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_shows_environment_in_header ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\n      hello\n      world\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\n      hello\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::merge_force_directives_cli_force_all_overrides_workflow_default ... ok\ntest cli::commands::run::tests::merge_force_directives_no_workflow_uses_cli_only ... ok\ntest cli::commands::run::tests::merge_force_directives_unions_force_lists ... ok\ntest cli::commands::run::tests::merge_force_directives_workflow_force_all_propagates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\n      hello\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\n      fast\n      hello\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::malformed_sibling_workflow_does_not_break_named_run ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew_bundle ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\n      hello\ntest cli::commands::schema::tests::schema_creates_parent_dirs ... ok\ntest cli::commands::schema::tests::schema_output_is_valid_json_schema ... ok\ntest cli::commands::run::tests::portable_workflow_file_runs_end_to_end ... ok\ntest cli::commands::schema::tests::schema_prints_to_stdout ... ok\ntest cli::commands::schema::tests::schema_to_file_path ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_empty_when_no_changes ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_finds_nested ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\n      hello\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::schema::tests::schema_writes_to_file ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\n      hello-from-vars\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::templates::tests::templates_command_creation ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XxLWwmmTvpN3EKcz9GA5oZ"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "293c1dbf-8279-4f51-b684-a4c0bf696450",
+              "timestamp": "2026-05-12T19:44:07.395Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.41s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2443 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest checks::change::tests::fail_fails_when_changed ... ok\ntest checks::change::tests::compute_file_hash_exceeds_size_limit ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest checks::change::tests::compute_file_hash ... ok\ntest checks::change::tests::fail_passes_when_unchanged ... ok\ntest checks::change::tests::glob_size_limit_not_exceeded ... ok\ntest checks::change::tests::glob_no_size_limit_allows_any_size ... ok\ntest checks::change::tests::compute_glob_hash ... ok\ntest checks::change::tests::hash_file_not_found ... ok\ntest checks::change::tests::glob_size_limit_exceeded ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest checks::change::tests::hash_file_produces_consistent_hash ... ok\ntest checks::change::tests::no_baseline_returns_indeterminate ... ok\ntest checks::change::tests::hash_file_differs_for_different_content ... ok\ntest checks::change::tests::hash_glob_no_matches ... ok\ntest checks::change::tests::hash_glob_changes_when_file_added ... ok\ntest checks::change::tests::proceed_fails_when_unchanged ... ok\ntest checks::change::tests::proceed_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_unchanged ... ok\ntest checks::change::tests::hash_glob_is_deterministic ... ok\ntest checks::change::tests::size_limit_exceeded ... ok\ntest checks::change::tests::size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_glob_hashes_matching_files ... ok\ntest checks::change::tests::size_limit_none_always_passes ... ok\ntest checks::evaluator::tests::evaluator_all_empty_passes ... ok\ntest checks::evaluator::tests::evaluator_all_fails_when_one_fails ... ok\ntest checks::change::tests::compute_command_hash ... ok\ntest checks::evaluator::tests::evaluator_any_empty_fails ... ok\ntest checks::evaluator::tests::evaluator_any_fails_when_all_fail ... ok\ntest checks::change::tests::hash_command_success ... ok\ntest checks::evaluator::tests::evaluator_any_passes_when_one_passes ... ok\ntest checks::change::tests::hash_command_failure ... ok\ntest checks::evaluator::tests::evaluator_change_file_not_found ... ok\ntest checks::evaluator::tests::evaluator_change_glob_with_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_no_baseline_returns_indeterminate ... ok\ntest check\n\n... [20014 characters truncated] ...\n\nt::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::lint::tests::lint_targeted_workflow_does_not_parse_other_workflow_files ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\n      hello\n      computed-output\n      hello\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_dry_run_message_is_styled_in_red_with_blank_lines ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\n      hello\ntest cli::commands::run::tests::execute_real_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_shows_environment_in_header ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\n      hello\n      world\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\n      hello\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::merge_force_directives_cli_force_all_overrides_workflow_default ... ok\ntest cli::commands::run::tests::merge_force_directives_no_workflow_uses_cli_only ... ok\ntest cli::commands::run::tests::merge_force_directives_unions_force_lists ... ok\ntest cli::commands::run::tests::merge_force_directives_workflow_force_all_propagates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\n      hello\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\n      fast\n      hello\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::malformed_sibling_workflow_does_not_break_named_run ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew_bundle ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\n      hello\ntest cli::commands::schema::tests::schema_creates_parent_dirs ... ok\ntest cli::commands::schema::tests::schema_output_is_valid_json_schema ... ok\ntest cli::commands::run::tests::portable_workflow_file_runs_end_to_end ... ok\ntest cli::commands::schema::tests::schema_prints_to_stdout ... ok\ntest cli::commands::schema::tests::schema_to_file_path ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_empty_when_no_changes ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_finds_nested ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\n      hello\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::schema::tests::schema_writes_to_file ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\n      hello-from-vars\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::templates::tests::templates_command_creation ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 294
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01KC89w88znGUz3nT2YyuE7m",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01DEnfX98aWPQVcvU7VsivWH",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:|map_dialoguer_err|user_cancelled)\"",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 3024,
+                  "cache_read_input_tokens": 136404,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 3024
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "4da9b909-b65a-4294-95a9-83395b63c076"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01DEnfX98aWPQVcvU7VsivWH",
+                    "type": "tool_result",
+                    "content": "test error::tests::user_cancelled_displays_message ... ok\ntest ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled ... FAILED\ntest ui::prompts::tests::map_dialoguer_err_preserves_other_io_errors ... ok\n---- ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled stdout ----\nthread 'ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled' (70438713) panicked at src/ui/prompts.rs:805:9:\n    ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled\ntest result: FAILED. 2442 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.95s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "046f338a-1138-445e-9ae2-ecb13220bea9",
+              "timestamp": "2026-05-12T19:44:20.170Z",
+              "tool_use_result": {
+                "stdout": "test error::tests::user_cancelled_displays_message ... ok\ntest ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled ... FAILED\ntest ui::prompts::tests::map_dialoguer_err_preserves_other_io_errors ... ok\n---- ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled stdout ----\nthread 'ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled' (70438713) panicked at src/ui/prompts.rs:805:9:\n    ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled\ntest result: FAILED. 2442 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.95s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:|map_dialoguer_err|user_cancelled)\"",
+          "exit_code": 0,
+          "event_index": 296
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_0133kpuCHx4yLPdRdFtSMEwP",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01QqgUbWmx1Y9vHNay39fHH9",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:|map_dialoguer_err|user_cancelled|map_io_eof|UserCancelled|error\\[)\"",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 177,
+                  "cache_read_input_tokens": 144964,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 177
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": {
+                  "cache_miss_reason": {
+                    "type": "unavailable"
+                  }
+                },
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "22546e37-5234-466a-b86f-37ceda960981"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01QqgUbWmx1Y9vHNay39fHH9",
+                    "type": "tool_result",
+                    "content": "test error::tests::user_cancelled_displays_message ... ok\ntest ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled ... ok\ntest ui::prompts::tests::map_dialoguer_err_preserves_other_io_errors ... ok\ntest result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.91s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.76s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.57s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.46s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.78s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "818bc7c6-f0eb-431e-af22-fa553081f918",
+              "timestamp": "2026-05-12T19:45:58.727Z",
+              "tool_use_result": {
+                "stdout": "test error::tests::user_cancelled_displays_message ... ok\ntest ui::prompts::tests::map_dialoguer_err_converts_unexpected_eof_to_user_cancelled ... ok\ntest ui::prompts::tests::map_dialoguer_err_preserves_other_io_errors ... ok\ntest result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.91s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.76s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.57s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.46s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.78s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:|map_dialoguer_err|user_cancelled|map_io_eof|UserCancelled|error\\[)\"",
+          "exit_code": 0,
+          "event_index": 320
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_019QH1VUYRpysCW2WxPzCwW3",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016AJ9BuVPTvMTj97dNPxBR9",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:)\"",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1655,
+                  "cache_read_input_tokens": 153664,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1655
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "ef0396a1-944b-4fe0-9f84-a2dd62789e85"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_016AJ9BuVPTvMTj97dNPxBR9",
+                    "type": "tool_result",
+                    "content": "test result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.24s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.19s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.47s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.55s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.12s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.09s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "8945d919-5f09-4f09-b846-b6a987e70f20",
+              "timestamp": "2026-05-12T19:47:48.305Z",
+              "tool_use_result": {
+                "stdout": "test result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.24s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.19s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.47s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.55s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.12s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.09s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep -E \"(FAILED|test result:)\"",
+          "exit_code": 0,
+          "event_index": 336
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01CRk4NZaYBUM79GmDMmdvWB",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01HuXM76FVJNnveTTycAav26",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep \"test result:\"",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 632,
+                  "cache_read_input_tokens": 161927,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 632
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "3b3757be-a26f-4a91-a685-5df3f793738c"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01HuXM76FVJNnveTTycAav26",
+                    "type": "tool_result",
+                    "content": "test result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.72s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.93s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.43s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.97s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.45s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "2ba38824-2828-4a1e-b0ee-952e772731f1",
+              "timestamp": "2026-05-12T19:50:21.815Z",
+              "tool_use_result": {
+                "stdout": "test result: ok. 2443 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.72s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.93s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.43s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.97s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.45s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep \"test result:\"",
+          "exit_code": 0,
+          "event_index": 360
+        }
+      ],
+      "failed": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_015Voc64pYgjxneovNCtcsoq",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XMzeP9bWoumm17vQMTQmr1",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 718,
+                  "cache_read_input_tokens": 130966,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 718
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "78e4cba4-3729-4a5e-93df-e84baaa86367"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XMzeP9bWoumm17vQMTQmr1"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "14b967c0-1a46-4dc6-ba84-0976f36e1e1a",
+              "timestamp": "2026-05-12T19:42:26.551Z",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+          "exit_code": 1,
+          "event_index": 288
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01PGYjAH9TSKUE4xpM4XRsCn",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_012zVNWd4XWkWs2Tbg5BM98w",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 455,
+                  "cache_read_input_tokens": 131684,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 455
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "554d68ce-f165-485b-9975-49deb26dfeaa"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling unicode-ident v1.0.24\n   Compiling quote v1.0.45\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling memchr v2.8.0\n   Compiling serde v1.0.228\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling autocfg v1.5.0\n   Compiling futures-core v0.3.32\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling fs_extra v1.3.0\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling smallvec v1.15.1\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling litemap v0.8.2\n   Compiling slab v0.4.12\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.16.3\n   Compiling writeable v0.6.3\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling icu_normalizer_data v2.2.0\n   Compiling equivalent v1.0.2\n   Compiling bitflags v2.11.1\n   Compiling hashbrown v0.17.0\n   Compiling regex-automata v0.4.14\n   Compiling indexmap v2.14.0\n   Compiling syn v2.0.117\n   Compiling futures-io v0.3.32\n   Compiling httparse v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.32\n   Compiling core-foundation-sys v0.8.7\n   Compiling zmij v1.0.21\n   Compiling utf8parse v0.2.2\n   Compiling errno v0.3.14\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.3\n   Compiling mio v1.2.0\n   Compiling generic-array v0.14.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling cc v1.2.61\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling untrusted v0.9.0\n   Compiling httpdate v1.0.3\n   Compiling anstyle v1.0.14\n   Compiling crossbeam-utils v0.8.21\n   Compiling percent-encoding v2.3.2\n   Compiling atomic-waker v1.1.2\n   Compiling try-lock v0.2.5\n   Compiling unicode-width v0.2.2\n   Compiling serde_json v1.0.149\n   Compiling rustls v0.23.40\n   Compiling tower-service v0.3.3\n   Compiling fnv v1.0.7\n   Compiling want v0.3.1\n   Compiling cmake v0.1.58\n   Compiling regex v1.12.3\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling subtle v2.6.1\n   Compiling rustix v1.1.4\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling aws-lc-sys v0.40.0\n   Compiling hybrid-array v0.4.11\n   Compiling ipnet v2.12.0\n   Compiling synstructure v0.13.2\n   Compiling colorchoice v1.0.5\n   Compiling anstyle-query v1.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling foldhash v0.1.5\n   Compiling anstream v1.0.0\n   Compiling hashbrown v0.15.5\n   Compiling concurrent-queue v2.5.0\n   Compiling console v0.16.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling portable-atomic v1.13.1\n   Compiling fastrand v2.4.1\n   Compiling parking v2.2.1\n   Compiling doc-comment v0.3.4\n   Compiling ref-cast v1.0.25\n   Compiling thiserror v2.0.18\n   Compiling tower-layer v0.3.3\n   Compiling clap_lex v1.1.0\n   Compiling ucd-trie v0.1.7\n   Compiling strsim v0.11.1\n   Compiling clap_builder v4.6.0\n   Compiling pest v2.8.6\n   Compiling tempfile v3.27.0\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling zerofrom v0.1.7\n   Compiling futures-macro v0.3.32\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling ref-cast-impl v1.0.25\n   Compiling futures-util v0.3.32\n   Compiling event-listener v5.4.1\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling security-framework v3.7.0\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling hashlink v0.10.0\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling crypto-common v0.2.1\n   Compiling crypto-common v0.1.7\n   Compiling block-buffer v0.10.4\n   Compiling serde_derive_internals v0.29.1\n   Compiling encoding_rs v0.8.35\n   Compiling lazy_static v1.5.0\n   Compiling const-oid v0.10.2\n   Compiling iri-string v0.7.12\n   Compiling arraydeque v0.5.1\n   Compiling anyhow v1.0.102\n   Compiling sharded-slab v0.1.7\n   Compiling schemars_derive v1.2.1\n   Compiling icu_provider v2.2.0\n   Compiling bytes v1.11.1\n   Compiling icu_properties v2.2.0\n   Compiling icu_normalizer v2.2.0\n   Compiling digest v0.11.2\n   Compiling clap v4.6.1\n   Compiling digest v0.10.7\n   Compiling event-listener-strategy v0.5.4\n   Compiling yaml-rust2 v0.10.4\n   Compiling pest_meta v2.8.6\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling matchers v0.2.0\n   Compiling cpufeatures v0.3.0\n   Compiling cpufeatures v0.2.17\n   Compiling iana-time-zone v0.1.65\n   Compiling include_dir_macros v0.7.4\n   Compiling tracing-log v0.2.0\n   Compiling thread_local v1.1.9\n   Compiling shell-words v1.1.1\n   Compiling pin-utils v0.1.0\n   Compiling unsafe-libyaml v0.2.11\n   Compiling unit-prefix v0.5.2\n   Compiling bitflags v1.3.2\n   Compiling dyn-clone v1.0.20\n   Compiling predicates-core v1.0.10\n   Compiling nu-ansi-term v0.50.3\n   Compiling ryu v1.0.23\n   Compiling schemars v1.2.1\n   Compiling idna_adapter v1.2.2\n   Compiling idna v1.1.0\n   Compiling indicatif v0.18.4\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling tracing-subscriber v0.3.23\n   Compiling headers-core v0.3.0\n   Compiling nix v0.26.4\n   Compiling dialoguer v0.12.0\n   Compiling url v2.5.8\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling include_dir v0.7.4\n   Compiling chrono v0.4.44\n   Compiling sha1 v0.10.6\n   Compiling pest_generator v2.8.6\n   Compiling sha2 v0.11.0\n   Compiling marked-yaml v0.8.0\n   Compiling async-lock v3.4.2\n   Compiling clap_complete v4.6.3\n   Compiling float-cmp v0.10.0\n   Compiling vte_generate_state_changes v0.1.2\n   Compiling mime v0.3.17\n   Compiling normalize-line-endings v0.3.0\n   Compiling termtree v0.5.1\n   Compiling difflib v0.4.0\n   Compiling assert_cmd v2.2.1\n   Compiling hex v0.4.3\n   Compiling arrayvec v0.7.6\n   Compiling similar v2.7.0\n   Compiling predicates v3.1.4\n   Compiling vte v0.11.1\n   Compiling predicates-tree v1.0.13\n   Compiling headers v0.4.1\n   Compiling async-object-pool v0.2.0\n   Compiling pest_derive v2.8.6\n   Compiling serde_regex v1.1.0\n   Compiling assert-json-diff v2.0.2\n   Compiling async-trait v0.1.89\n   Compiling bstr v1.12.1\n   Compiling tabwriter v1.4.1\n   Compiling wait-timeout v0.2.1\n   Compiling path-tree v0.8.3\n   Compiling futures-timer v3.0.3\n   Compiling ptyprocess v0.4.1\n   Compiling unicode-width v0.1.14\n   Compiling stringmetrics v2.2.2\n   Compiling expectrl v0.7.1\n   Compiling insta v1.47.2\n   Compiling vt100 v0.15.2\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.9.0\n   Compiling rustls-webpki v0.103.13\n   Compiling hyper-util v0.1.20\n   Compiling httpmock v0.8.3\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.13.3\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\nerror[E0425]: cannot find value `EOF_CHAR` in this scope\n   --> src/ui/prompts.rs:828:20\n    |\n828 |         assert_eq!(EOF_CHAR, '\\x04', \"Ctrl+D should be 0x04\");\n    |                    ^^^^^^^^ not found in this scope\n\nFor more information about this error, try `rustc --explain E0425`.\nerror: could not compile `bivvy` (lib test) due to 1 previous error",
+                    "is_error": true,
+                    "tool_use_id": "toolu_012zVNWd4XWkWs2Tbg5BM98w"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "e2ba1a8e-cc42-4d2d-8eed-9b5aba6d1a74",
+              "timestamp": "2026-05-12T19:43:31.071Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling unicode-ident v1.0.24\n   Compiling quote v1.0.45\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling memchr v2.8.0\n   Compiling serde v1.0.228\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling find-msvc-tools v0.1.9\n   Compiling shlex v1.3.0\n   Compiling autocfg v1.5.0\n   Compiling futures-core v0.3.32\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling fs_extra v1.3.0\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling smallvec v1.15.1\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling litemap v0.8.2\n   Compiling slab v0.4.12\n   Compiling zeroize v1.8.2\n   Compiling aws-lc-rs v1.16.3\n   Compiling writeable v0.6.3\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling icu_normalizer_data v2.2.0\n   Compiling equivalent v1.0.2\n   Compiling bitflags v2.11.1\n   Compiling hashbrown v0.17.0\n   Compiling regex-automata v0.4.14\n   Compiling indexmap v2.14.0\n   Compiling syn v2.0.117\n   Compiling futures-io v0.3.32\n   Compiling httparse v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.32\n   Compiling core-foundation-sys v0.8.7\n   Compiling zmij v1.0.21\n   Compiling utf8parse v0.2.2\n   Compiling errno v0.3.14\n   Compiling jobserver v0.1.34\n   Compiling socket2 v0.6.3\n   Compiling mio v1.2.0\n   Compiling generic-array v0.14.7\n   Compiling signal-hook-registry v1.4.8\n   Compiling cc v1.2.61\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling untrusted v0.9.0\n   Compiling httpdate v1.0.3\n   Compiling anstyle v1.0.14\n   Compiling crossbeam-utils v0.8.21\n   Compiling percent-encoding v2.3.2\n   Compiling atomic-waker v1.1.2\n   Compiling try-lock v0.2.5\n   Compiling unicode-width v0.2.2\n   Compiling serde_json v1.0.149\n   Compiling rustls v0.23.40\n   Compiling tower-service v0.3.3\n   Compiling fnv v1.0.7\n   Compiling want v0.3.1\n   Compiling cmake v0.1.58\n   Compiling regex v1.12.3\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling subtle v2.6.1\n   Compiling rustix v1.1.4\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling aws-lc-sys v0.40.0\n   Compiling hybrid-array v0.4.11\n   Compiling ipnet v2.12.0\n   Compiling synstructure v0.13.2\n   Compiling colorchoice v1.0.5\n   Compiling anstyle-query v1.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling foldhash v0.1.5\n   Compiling anstream v1.0.0\n   Compiling hashbrown v0.15.5\n   Compiling concurrent-queue v2.5.0\n   Compiling console v0.16.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling portable-atomic v1.13.1\n   Compiling fastrand v2.4.1\n   Compiling parking v2.2.1\n   Compiling doc-comment v0.3.4\n   Compiling ref-cast v1.0.25\n   Compiling thiserror v2.0.18\n   Compiling tower-layer v0.3.3\n   Compiling clap_lex v1.1.0\n   Compiling ucd-trie v0.1.7\n   Compiling strsim v0.11.1\n   Compiling clap_builder v4.6.0\n   Compiling pest v2.8.6\n   Compiling tempfile v3.27.0\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling zerofrom v0.1.7\n   Compiling futures-macro v0.3.32\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling ref-cast-impl v1.0.25\n   Compiling futures-util v0.3.32\n   Compiling event-listener v5.4.1\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling security-framework v3.7.0\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling hashlink v0.10.0\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling crypto-common v0.2.1\n   Compiling crypto-common v0.1.7\n   Compiling block-buffer v0.10.4\n   Compiling serde_derive_internals v0.29.1\n   Compiling encoding_rs v0.8.35\n   Compiling lazy_static v1.5.0\n   Compiling const-oid v0.10.2\n   Compiling iri-string v0.7.12\n   Compiling arraydeque v0.5.1\n   Compiling anyhow v1.0.102\n   Compiling sharded-slab v0.1.7\n   Compiling schemars_derive v1.2.1\n   Compiling icu_provider v2.2.0\n   Compiling bytes v1.11.1\n   Compiling icu_properties v2.2.0\n   Compiling icu_normalizer v2.2.0\n   Compiling digest v0.11.2\n   Compiling clap v4.6.1\n   Compiling digest v0.10.7\n   Compiling event-listener-strategy v0.5.4\n   Compiling yaml-rust2 v0.10.4\n   Compiling pest_meta v2.8.6\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling matchers v0.2.0\n   Compiling cpufeatures v0.3.0\n   Compiling cpufeatures v0.2.17\n   Compiling iana-time-zone v0.1.65\n   Compiling include_dir_macros v0.7.4\n   Compiling tracing-log v0.2.0\n   Compiling thread_local v1.1.9\n   Compiling shell-words v1.1.1\n   Compiling pin-utils v0.1.0\n   Compiling unsafe-libyaml v0.2.11\n   Compiling unit-prefix v0.5.2\n   Compiling bitflags v1.3.2\n   Compiling dyn-clone v1.0.20\n   Compiling predicates-core v1.0.10\n   Compiling nu-ansi-term v0.50.3\n   Compiling ryu v1.0.23\n   Compiling schemars v1.2.1\n   Compiling idna_adapter v1.2.2\n   Compiling idna v1.1.0\n   Compiling indicatif v0.18.4\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling tracing-subscriber v0.3.23\n   Compiling headers-core v0.3.0\n   Compiling nix v0.26.4\n   Compiling dialoguer v0.12.0\n   Compiling url v2.5.8\n   Compiling serde_yaml v0.9.34+deprecated\n   Compiling include_dir v0.7.4\n   Compiling chrono v0.4.44\n   Compiling sha1 v0.10.6\n   Compiling pest_generator v2.8.6\n   Compiling sha2 v0.11.0\n   Compiling marked-yaml v0.8.0\n   Compiling async-lock v3.4.2\n   Compiling clap_complete v4.6.3\n   Compiling float-cmp v0.10.0\n   Compiling vte_generate_state_changes v0.1.2\n   Compiling mime v0.3.17\n   Compiling normalize-line-endings v0.3.0\n   Compiling termtree v0.5.1\n   Compiling difflib v0.4.0\n   Compiling assert_cmd v2.2.1\n   Compiling hex v0.4.3\n   Compiling arrayvec v0.7.6\n   Compiling similar v2.7.0\n   Compiling predicates v3.1.4\n   Compiling vte v0.11.1\n   Compiling predicates-tree v1.0.13\n   Compiling headers v0.4.1\n   Compiling async-object-pool v0.2.0\n   Compiling pest_derive v2.8.6\n   Compiling serde_regex v1.1.0\n   Compiling assert-json-diff v2.0.2\n   Compiling async-trait v0.1.89\n   Compiling bstr v1.12.1\n   Compiling tabwriter v1.4.1\n   Compiling wait-timeout v0.2.1\n   Compiling path-tree v0.8.3\n   Compiling futures-timer v3.0.3\n   Compiling ptyprocess v0.4.1\n   Compiling unicode-width v0.1.14\n   Compiling stringmetrics v2.2.2\n   Compiling expectrl v0.7.1\n   Compiling insta v1.47.2\n   Compiling vt100 v0.15.2\n   Compiling tokio-util v0.7.18\n   Compiling tower v0.5.3\n   Compiling tower-http v0.6.8\n   Compiling h2 v0.4.13\n   Compiling hyper v1.9.0\n   Compiling rustls-webpki v0.103.13\n   Compiling hyper-util v0.1.20\n   Compiling httpmock v0.8.3\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.13.3\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\nerror[E0425]: cannot find value `EOF_CHAR` in this scope\n   --> src/ui/prompts.rs:828:20\n    |\n828 |         assert_eq!(EOF_CHAR, '\\x04', \"Ctrl+D should be 0x04\");\n    |                    ^^^^^^^^ not found in this scope\n\nFor more information about this error, try `rustc --explain E0425`.\nerror: could not compile `bivvy` (lib test) due to 1 previous error"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 290
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01TYxQBJKvKtEJ1HS73HU5JQ",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01XxLWwmmTvpN3EKcz9GA5oZ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 180000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 495,
+                  "cache_read_input_tokens": 135909,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 495
+                  },
+                  "output_tokens": 70,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "90486c84-12f1-4efc-ad04-34eb134e2e67"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.41s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2443 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest checks::change::tests::fail_fails_when_changed ... ok\ntest checks::change::tests::compute_file_hash_exceeds_size_limit ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest checks::change::tests::compute_file_hash ... ok\ntest checks::change::tests::fail_passes_when_unchanged ... ok\ntest checks::change::tests::glob_size_limit_not_exceeded ... ok\ntest checks::change::tests::glob_no_size_limit_allows_any_size ... ok\ntest checks::change::tests::compute_glob_hash ... ok\ntest checks::change::tests::hash_file_not_found ... ok\ntest checks::change::tests::glob_size_limit_exceeded ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest checks::change::tests::hash_file_produces_consistent_hash ... ok\ntest checks::change::tests::no_baseline_returns_indeterminate ... ok\ntest checks::change::tests::hash_file_differs_for_different_content ... ok\ntest checks::change::tests::hash_glob_no_matches ... ok\ntest checks::change::tests::hash_glob_changes_when_file_added ... ok\ntest checks::change::tests::proceed_fails_when_unchanged ... ok\ntest checks::change::tests::proceed_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_unchanged ... ok\ntest checks::change::tests::hash_glob_is_deterministic ... ok\ntest checks::change::tests::size_limit_exceeded ... ok\ntest checks::change::tests::size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_glob_hashes_matching_files ... ok\ntest checks::change::tests::size_limit_none_always_passes ... ok\ntest checks::evaluator::tests::evaluator_all_empty_passes ... ok\ntest checks::evaluator::tests::evaluator_all_fails_when_one_fails ... ok\ntest checks::change::tests::compute_command_hash ... ok\ntest checks::evaluator::tests::evaluator_any_empty_fails ... ok\ntest checks::evaluator::tests::evaluator_any_fails_when_all_fail ... ok\ntest checks::change::tests::hash_command_success ... ok\ntest checks::evaluator::tests::evaluator_any_passes_when_one_passes ... ok\ntest checks::change::tests::hash_command_failure ... ok\ntest checks::evaluator::tests::evaluator_change_file_not_found ... ok\ntest checks::evaluator::tests::evaluator_change_glob_with_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_no_baseline_returns_indeterminate ... ok\ntest check\n\n... [20014 characters truncated] ...\n\nt::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::lint::tests::lint_targeted_workflow_does_not_parse_other_workflow_files ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\n      hello\n      computed-output\n      hello\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_dry_run_message_is_styled_in_red_with_blank_lines ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\n      hello\ntest cli::commands::run::tests::execute_real_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_shows_environment_in_header ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\n      hello\n      world\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\n      hello\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::merge_force_directives_cli_force_all_overrides_workflow_default ... ok\ntest cli::commands::run::tests::merge_force_directives_no_workflow_uses_cli_only ... ok\ntest cli::commands::run::tests::merge_force_directives_unions_force_lists ... ok\ntest cli::commands::run::tests::merge_force_directives_workflow_force_all_propagates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\n      hello\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\n      fast\n      hello\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::malformed_sibling_workflow_does_not_break_named_run ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew_bundle ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\n      hello\ntest cli::commands::schema::tests::schema_creates_parent_dirs ... ok\ntest cli::commands::schema::tests::schema_output_is_valid_json_schema ... ok\ntest cli::commands::run::tests::portable_workflow_file_runs_end_to_end ... ok\ntest cli::commands::schema::tests::schema_prints_to_stdout ... ok\ntest cli::commands::schema::tests::schema_to_file_path ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_empty_when_no_changes ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_finds_nested ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\n      hello\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::schema::tests::schema_writes_to_file ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\n      hello-from-vars\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::templates::tests::templates_command_creation ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01XxLWwmmTvpN3EKcz9GA5oZ"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "73822a72-bf97-4589-9d90-59a95be46cb6",
+              "uuid": "293c1dbf-8279-4f51-b684-a4c0bf696450",
+              "timestamp": "2026-05-12T19:44:07.395Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.41s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2443 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest checks::change::tests::fail_fails_when_changed ... ok\ntest checks::change::tests::compute_file_hash_exceeds_size_limit ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest checks::change::tests::compute_file_hash ... ok\ntest checks::change::tests::fail_passes_when_unchanged ... ok\ntest checks::change::tests::glob_size_limit_not_exceeded ... ok\ntest checks::change::tests::glob_no_size_limit_allows_any_size ... ok\ntest checks::change::tests::compute_glob_hash ... ok\ntest checks::change::tests::hash_file_not_found ... ok\ntest checks::change::tests::glob_size_limit_exceeded ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest checks::change::tests::hash_file_produces_consistent_hash ... ok\ntest checks::change::tests::no_baseline_returns_indeterminate ... ok\ntest checks::change::tests::hash_file_differs_for_different_content ... ok\ntest checks::change::tests::hash_glob_no_matches ... ok\ntest checks::change::tests::hash_glob_changes_when_file_added ... ok\ntest checks::change::tests::proceed_fails_when_unchanged ... ok\ntest checks::change::tests::proceed_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_unchanged ... ok\ntest checks::change::tests::hash_glob_is_deterministic ... ok\ntest checks::change::tests::size_limit_exceeded ... ok\ntest checks::change::tests::size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_glob_hashes_matching_files ... ok\ntest checks::change::tests::size_limit_none_always_passes ... ok\ntest checks::evaluator::tests::evaluator_all_empty_passes ... ok\ntest checks::evaluator::tests::evaluator_all_fails_when_one_fails ... ok\ntest checks::change::tests::compute_command_hash ... ok\ntest checks::evaluator::tests::evaluator_any_empty_fails ... ok\ntest checks::evaluator::tests::evaluator_any_fails_when_all_fail ... ok\ntest checks::change::tests::hash_command_success ... ok\ntest checks::evaluator::tests::evaluator_any_passes_when_one_passes ... ok\ntest checks::change::tests::hash_command_failure ... ok\ntest checks::evaluator::tests::evaluator_change_file_not_found ... ok\ntest checks::evaluator::tests::evaluator_change_glob_with_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_no_baseline_returns_indeterminate ... ok\ntest check\n\n... [20014 characters truncated] ...\n\nt::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::lint::tests::lint_targeted_workflow_does_not_parse_other_workflow_files ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\n      hello\n      computed-output\n      hello\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\ntest cli::commands::run::tests::execute_dry_run_message_is_styled_in_red_with_blank_lines ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\n      hello\ntest cli::commands::run::tests::execute_real_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_shows_environment_in_header ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\n      hello\n      world\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\n      hello\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\n      hello\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::merge_force_directives_cli_force_all_overrides_workflow_default ... ok\ntest cli::commands::run::tests::merge_force_directives_no_workflow_uses_cli_only ... ok\ntest cli::commands::run::tests::merge_force_directives_unions_force_lists ... ok\ntest cli::commands::run::tests::merge_force_directives_workflow_force_all_propagates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\n      hello\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\n      fast\n      hello\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::malformed_sibling_workflow_does_not_break_named_run ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew_bundle ... ok\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\n      hello\ntest cli::commands::schema::tests::schema_creates_parent_dirs ... ok\ntest cli::commands::schema::tests::schema_output_is_valid_json_schema ... ok\ntest cli::commands::run::tests::portable_workflow_file_runs_end_to_end ... ok\ntest cli::commands::schema::tests::schema_prints_to_stdout ... ok\ntest cli::commands::schema::tests::schema_to_file_path ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_empty_when_no_changes ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_finds_nested ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\n      hello\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\ntest cli::commands::schema::tests::schema_writes_to_file ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\n      hello-from-vars\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::templates::tests::templates_command_creation ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 294
+        }
+      ],
+      "last_fail_index": 294
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_post_failure_modifications",
+      "timestamp": 1870055.120745625,
+      "after_index": 294,
+      "modifications_found": [
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 300
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 302
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 304
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 310
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 312
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/main.rs",
+          "tool": "Edit",
+          "event_index": 316
+        }
+      ],
+      "src_modifications": [
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 300
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 302
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 304
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 310
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/ui/prompts.rs",
+          "tool": "Edit",
+          "event_index": 312
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-4f64yqo4/src/main.rs",
+          "tool": "Edit",
+          "event_index": 316
+        }
+      ],
+      "conclusion": "implementation"
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "routing_concluded",
+      "timestamp": 1870055.120746541,
+      "detected_route": "implementation",
+      "phase_name": "testing"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 1870055.120750708,
+      "passed": true,
+      "detail": "After testing failure: routed to 'implementation' (expected 'implementation')"
+    }
+  ]
+}

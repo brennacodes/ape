@@ -1,0 +1,80 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -name \"*sys*\" -type f', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src -name \"*.rs\" -exec grep -l \"config\\\\|data\\\\|cache\" {} \\\\;', 'grep -rn \"cache_dir\\\\|data_dir\\\\|feedback\\\\|\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -E \"(cache_dir|data_dir|feedback.*dir|bivvy.*cache|bivvy.*data)\" | head -50', 'grep -rn \"data_dir\\\\|cache_dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src/state --include=\"*.rs\"', 'grep -rn \"\\\\.bivvy/state\\\\|state.*dir\\\\|ProjectIndex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | head -30', 'grep -rn \"\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie --include=\"*.md\" --include=\"*.rs\" | grep -E \"(\\\\.bivvy|bivvy/)\" | head -40', 'grep -rn \"join(\\\\\"\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -v test', 'cargo check 2>&1 | head -50', 'cargo check 2>&1', 'cargo test --lib -- sys::tests 2>&1', 'cargo test --lib -- config::loader::tests config::trust::tests state::store::tests state::index registry::local::tests runner::telemetry::tests 2>&1', 'cargo test --lib -- snapshots::tests state::store::migration_tests state::store::step_state_tests state::store::query_tests updates::auto_update::tests updates::version::tests cli::commands::init::tests cli::commands::update::tests cache::tests feedback::tests config::discovery::tests 2>&1', 'grep -rn \\'home_dir.*\\\\.bivvy\\\\|home\\\\.join.*\\\\.bivvy\\\\|join(\"\\\\.bivvy\")\\' --include=\\'*.rs\\' src/ | grep -v \\'#\\\\[test\\\\]\\' | grep -v \\'mod tests\\' | grep -v \\'//!\\' | grep -v \\'/// \\'  | grep -v \\'//\\' | grep -v \\'test \\'  2>&1', 'cargo test --lib 2>&1', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^failures:|FAILED|panicked|^error\"', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "architectural_issues",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -name \"*sys*\" -type f",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src -name \"*.rs\" -exec grep -l \"config\\|data\\|cache\" {} \\;",
+    "grep -rn \"cache_dir\\|data_dir\\|feedback\\|\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -E \"(cache_dir|data_dir|feedback.*dir|bivvy.*cache|bivvy.*data)\" | head -50",
+    "grep -rn \"data_dir\\|cache_dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src/state --include=\"*.rs\"",
+    "grep -rn \"\\.bivvy/state\\|state.*dir\\|ProjectIndex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | head -30",
+    "grep -rn \"\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie --include=\"*.md\" --include=\"*.rs\" | grep -E \"(\\.bivvy|bivvy/)\" | head -40",
+    "grep -rn \"join(\\\"\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -v test",
+    "cargo check 2>&1 | head -50",
+    "cargo check 2>&1",
+    "cargo test --lib -- sys::tests 2>&1",
+    "cargo test --lib -- config::loader::tests config::trust::tests state::store::tests state::index registry::local::tests runner::telemetry::tests 2>&1",
+    "cargo test --lib -- snapshots::tests state::store::migration_tests state::store::step_state_tests state::store::query_tests updates::auto_update::tests updates::version::tests cli::commands::init::tests cli::commands::update::tests cache::tests feedback::tests config::discovery::tests 2>&1",
+    "grep -rn 'home_dir.*\\.bivvy\\|home\\.join.*\\.bivvy\\|join(\"\\.bivvy\")' --include='*.rs' src/ | grep -v '#\\[test\\]' | grep -v 'mod tests' | grep -v '//!' | grep -v '/// '  | grep -v '//' | grep -v 'test '  2>&1",
+    "cargo test --lib 2>&1",
+    "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^failures:|FAILED|panicked|^error\"",
+    "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"",
+    "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\""
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 1878632.018952958,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 1878632.019155625,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -name \"*sys*\" -type f",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src -name \"*.rs\" -exec grep -l \"config\\|data\\|cache\" {} \\;",
+        "grep -rn \"cache_dir\\|data_dir\\|feedback\\|\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -E \"(cache_dir|data_dir|feedback.*dir|bivvy.*cache|bivvy.*data)\" | head -50",
+        "grep -rn \"data_dir\\|cache_dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src/state --include=\"*.rs\"",
+        "grep -rn \"\\.bivvy/state\\|state.*dir\\|ProjectIndex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | head -30",
+        "grep -rn \"\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie --include=\"*.md\" --include=\"*.rs\" | grep -E \"(\\.bivvy|bivvy/)\" | head -40",
+        "grep -rn \"join(\\\"\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -v test",
+        "cargo check 2>&1 | head -50",
+        "cargo check 2>&1",
+        "cargo test --lib -- sys::tests 2>&1",
+        "cargo test --lib -- config::loader::tests config::trust::tests state::store::tests state::index registry::local::tests runner::telemetry::tests 2>&1",
+        "cargo test --lib -- snapshots::tests state::store::migration_tests state::store::step_state_tests state::store::query_tests updates::auto_update::tests updates::version::tests cli::commands::init::tests cli::commands::update::tests cache::tests feedback::tests config::discovery::tests 2>&1",
+        "grep -rn 'home_dir.*\\.bivvy\\|home\\.join.*\\.bivvy\\|join(\"\\.bivvy\")' --include='*.rs' src/ | grep -v '#\\[test\\]' | grep -v 'mod tests' | grep -v '//!' | grep -v '/// '  | grep -v '//' | grep -v 'test '  2>&1",
+        "cargo test --lib 2>&1",
+        "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^failures:|FAILED|panicked|^error\"",
+        "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"",
+        "cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\""
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 1878632.019179666,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -type f -name \"*.rs\" -o -name \"*.toml\" -o -name \"*.md\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie -name \"*sys*\" -type f', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src -name \"*.rs\" -exec grep -l \"config\\\\|data\\\\|cache\" {} \\\\;', 'grep -rn \"cache_dir\\\\|data_dir\\\\|feedback\\\\|\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -E \"(cache_dir|data_dir|feedback.*dir|bivvy.*cache|bivvy.*data)\" | head -50', 'grep -rn \"data_dir\\\\|cache_dir\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src/state --include=\"*.rs\"', 'grep -rn \"\\\\.bivvy/state\\\\|state.*dir\\\\|ProjectIndex\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | head -30', 'grep -rn \"\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie --include=\"*.md\" --include=\"*.rs\" | grep -E \"(\\\\.bivvy|bivvy/)\" | head -40', 'grep -rn \"join(\\\\\"\\\\.bivvy\" /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-wq5iu7ie/src --include=\"*.rs\" | grep -v test', 'cargo check 2>&1 | head -50', 'cargo check 2>&1', 'cargo test --lib -- sys::tests 2>&1', 'cargo test --lib -- config::loader::tests config::trust::tests state::store::tests state::index registry::local::tests runner::telemetry::tests 2>&1', 'cargo test --lib -- snapshots::tests state::store::migration_tests state::store::step_state_tests state::store::query_tests updates::auto_update::tests updates::version::tests cli::commands::init::tests cli::commands::update::tests cache::tests feedback::tests config::discovery::tests 2>&1', 'grep -rn \\'home_dir.*\\\\.bivvy\\\\|home\\\\.join.*\\\\.bivvy\\\\|join(\"\\\\.bivvy\")\\' --include=\\'*.rs\\' src/ | grep -v \\'#\\\\[test\\\\]\\' | grep -v \\'mod tests\\' | grep -v \\'//!\\' | grep -v \\'/// \\'  | grep -v \\'//\\' | grep -v \\'test \\'  2>&1', 'cargo test --lib 2>&1', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^failures:|FAILED|panicked|^error\"', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"', 'cargo test --lib 2>&1 | grep -E \"^test .* FAILED$|^test result:\"'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

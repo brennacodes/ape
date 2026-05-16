@@ -66,8 +66,9 @@ class RunMetadata:
     """Context about the benchmark run that produced these results."""
 
     fixture_id: str
-    format: str              # "plain-text" | "adhoc-xml" | "ape"
+    format: str              # "plain-text" | "adhoc-xml" | "ape" | ...
     prompt_id: str
+    source: str = ""         # "claude-md" | "prompt" | "" (no-workflow only)
     model: str = ""
     session_id: str = ""
     timestamp: str = ""
@@ -105,7 +106,7 @@ class RunSummary:
 
 @dataclass
 class FormatScore:
-    """One format's scores within a comparison."""
+    """One (format, source) cell's scores within a comparison."""
 
     format: str
     total: int
@@ -115,6 +116,7 @@ class FormatScore:
     disabled: int
     not_applicable: int
     pass_rate: float
+    source: str = ""         # "claude-md" | "prompt" | "" (no-workflow only)
 
 
 @dataclass
@@ -156,6 +158,19 @@ def make_outcome(check_id: str, phase: str, passed: Optional[bool],
 
 
 _DISABLED_SKIP_REASON = "check disabled"
+
+
+def _format_key(meta: "RunMetadata") -> str:
+    """Composite ``(format, source)`` key used in cross-format comparison maps.
+
+    Source-bound rows surface as ``"<format>:<source>"`` so that, e.g.,
+    ``markdown:claude-md`` and ``markdown:prompt`` aren't silently pooled
+    together. No-workflow keeps its bare format name because the source
+    layer doesn't apply.
+    """
+    if meta.source:
+        return f"{meta.format}:{meta.source}"
+    return meta.format
 
 
 def _classify_skip(skip_reason: Optional[str]) -> str:
@@ -266,6 +281,7 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
     for s in summaries:
         formats.append(FormatScore(
             format=s.metadata.format,
+            source=s.metadata.source,
             total=s.total,
             passed=s.passed,
             failed=s.failed,
@@ -275,7 +291,8 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
             pass_rate=s.pass_rate,
         ))
 
-    # Build per-check cross-format view
+    # Build per-check cross-(format, source) view. Same-format runs from
+    # different sources stay distinct via the composite key.
     all_check_ids: list[str] = []
     seen: set[str] = set()
     for s in summaries:
@@ -291,11 +308,11 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
             outcome = next(
                 (o for o in s.outcomes if o.check_id == check_id), None
             )
-            per_check[check_id][s.metadata.format] = (
+            per_check[check_id][_format_key(s.metadata)] = (
                 outcome.passed if outcome else None
             )
 
-    # Build per-category cross-format view
+    # Build per-category cross-(format, source) view
     per_category: dict[str, dict[str, CategoryScore]] = {}
     all_categories: set[str] = set()
     for s in summaries:
@@ -305,7 +322,7 @@ def summarize_comparison(summaries: list[RunSummary]) -> ComparisonSummary:
         per_category[cat] = {}
         for s in summaries:
             if cat in s.category_scores:
-                per_category[cat][s.metadata.format] = s.category_scores[cat]
+                per_category[cat][_format_key(s.metadata)] = s.category_scores[cat]
 
     return ComparisonSummary(
         fixture_id=fixture_id,
@@ -340,11 +357,14 @@ def format_run_summary(summary: RunSummary, record: Any = None) -> str:
     else:
         rate_color = "red"
 
-    lines = [
+    header = (
         f"[bold cyan]{summary.metadata.fixture_id}[/bold cyan] / "
-        f"[cyan]{summary.metadata.format}[/cyan] / "
-        f"[cyan]{summary.metadata.prompt_id}[/cyan]",
-    ]
+        f"[cyan]{summary.metadata.format}[/cyan]"
+    )
+    if summary.metadata.source:
+        header += f" / [cyan]{summary.metadata.source}[/cyan]"
+    header += f" / [cyan]{summary.metadata.prompt_id}[/cyan]"
+    lines = [header]
     if summary.metadata.model:
         lines.append(f"  Model:   [dim]{summary.metadata.model}[/dim]")
     if summary.metadata.session_id:
@@ -425,23 +445,29 @@ def format_run_summary(summary: RunSummary, record: Any = None) -> str:
     return "\n".join(lines)
 
 
+def _format_score_key(score: FormatScore) -> str:
+    if score.source:
+        return f"{score.format}:{score.source}"
+    return score.format
+
+
 def format_comparison(comparison: ComparisonSummary) -> str:
-    """Human-readable comparison table across formats."""
+    """Human-readable comparison table across (format, source) cells."""
     lines = [
         f"Comparison: {comparison.fixture_id} / {comparison.prompt_id}",
         "",
     ]
 
-    # Header
-    fmt_names = [f.format for f in comparison.formats]
-    header = f"  {'Check':<40s}" + "".join(f"  {f:<14s}" for f in fmt_names)
+    # Column keys carry both format and source where applicable.
+    fmt_keys = [_format_score_key(f) for f in comparison.formats]
+    header = f"  {'Check':<40s}" + "".join(f"  {f:<18s}" for f in fmt_keys)
     lines.append(header)
-    lines.append("  " + "-" * (40 + 16 * len(fmt_names)))
+    lines.append("  " + "-" * (40 + 20 * len(fmt_keys)))
 
     # Per-check rows
     for check_id, results in comparison.per_check.items():
         row = f"  {check_id:<40s}"
-        for fmt in fmt_names:
+        for fmt in fmt_keys:
             val = results.get(fmt)
             if val is True:
                 cell = "PASS"
@@ -449,14 +475,14 @@ def format_comparison(comparison: ComparisonSummary) -> str:
                 cell = "FAIL"
             else:
                 cell = "SKIP"
-            row += f"  {cell:<14s}"
+            row += f"  {cell:<18s}"
         lines.append(row)
 
     # Summary row
-    lines.append("  " + "-" * (40 + 16 * len(fmt_names)))
+    lines.append("  " + "-" * (40 + 20 * len(fmt_keys)))
     summary_row = f"  {'Pass rate':<40s}"
     for f in comparison.formats:
-        summary_row += f"  {f.pass_rate:.1%}{'':<10s}"
+        summary_row += f"  {f.pass_rate:.1%}{'':<14s}"
     lines.append(summary_row)
 
     # Category comparison section
@@ -467,7 +493,7 @@ def format_comparison(comparison: ComparisonSummary) -> str:
         for cat_name in sorted(comparison.per_category.keys()):
             cat_results = comparison.per_category[cat_name]
             lines.append(f"  {cat_name}:")
-            for fmt in fmt_names:
+            for fmt in fmt_keys:
                 if fmt in cat_results:
                     score = cat_results[fmt]
                     lines.append(

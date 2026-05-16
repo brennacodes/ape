@@ -389,3 +389,78 @@ class TestCaseResult:
         r = CaseResult(case=case, summary=None, trace_path=None, error="Something went wrong")
         assert r.error == "Something went wrong"
         assert r.summary is None
+
+
+# ===========================================================================
+# Prompt-side workflow injection
+# ===========================================================================
+
+
+def _captured_prompt_execute():
+    """Return (executor, captured) where captured["prompt"] holds -p value."""
+    captured: dict = {}
+
+    def _exec(cmd, timeout, cwd=None, env=None, **kwargs):
+        if "-p" in cmd:
+            captured["prompt"] = cmd[cmd.index("-p") + 1]
+        trace = _make_trace_stdout()
+        _write_stream_file(kwargs.get("stream_path"), trace)
+        return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=trace, stderr="")
+
+    return _exec, captured
+
+
+class TestPromptInjection:
+    def test_plain_text_claude_md_no_preamble(self, tmp_path):
+        case = _make_case(tmp_path)
+        # Plain-text + claude-md should NOT prepend the workflow to the prompt.
+        case_md = TestCase(
+            app=case.app, workflow=case.workflow, test_config=case.test_config,
+            prompt=case.prompt, source="claude-md",
+        )
+        executor, captured = _captured_prompt_execute()
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        result = run_case(case_md, environment=env, _execute=executor)
+        assert result.error is None
+        assert captured["prompt"] == "fix the bug"
+
+    def test_plain_text_prompt_uses_divider(self, tmp_path):
+        case = _make_case(tmp_path)
+        case_pr = TestCase(
+            app=case.app, workflow=case.workflow, test_config=case.test_config,
+            prompt=case.prompt, source="prompt",
+        )
+        executor, captured = _captured_prompt_execute()
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        result = run_case(case_pr, environment=env, _execute=executor)
+        assert result.error is None
+        # Default workflow content from _make_workflow is "WORKFLOW CONTENT".
+        assert captured["prompt"].startswith("WORKFLOW CONTENT")
+        assert "\n\n---\n\nUser task:\nfix the bug" in captured["prompt"]
+
+    def test_adhoc_xml_prompt_uses_hardcoded_preamble_no_divider(self, tmp_path):
+        # Build a fresh case with an adhoc-xml workflow ref.
+        _make_app(tmp_path)
+        config_path = _make_config(tmp_path)
+        prompt_path = _make_prompt(tmp_path)
+        # The fixture's ref path is read only for non-adhoc-xml cases.
+        ref = tmp_path / "ignored.md"
+        ref.write_text("SHOULD NOT BE READ", encoding="utf-8")
+        case = TestCase(
+            app=AppFixture(tmp_path / "apps" / "testapp", "testapp"),
+            workflow=WorkflowFixture(ref, "test", "adhoc-xml"),
+            test_config=TestConfigPath(config_path, "test"),
+            prompt=PromptPath(prompt_path, "test-prompt"),
+            source="prompt",
+        )
+        executor, captured = _captured_prompt_execute()
+        env = BenchmarkEnvironment(base_dir=tmp_path)
+        result = run_case(case, environment=env, _execute=executor)
+        assert result.error is None
+        prompt_sent = captured["prompt"]
+        assert prompt_sent.startswith(
+            "Use @.claude/bivvy-dev-workflow.md while working on the following:"
+        )
+        # No divider — preamble and prompt are separated only by a blank line.
+        assert "\n\n---\n\nUser task:" not in prompt_sent
+        assert "fix the bug" in prompt_sent

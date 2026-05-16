@@ -3,19 +3,34 @@ Workspace isolation for benchmark runs.
 
 Each benchmark run gets an isolated workspace containing:
 - A copy of the app fixture (the codebase Claude works in)
-- The workflow document injected based on format:
-    - no-workflow: no workflow placed or prepended (baseline)
-    - plain-text: not placed in workspace (prepended to prompt by the runner)
-    - markdown, ape: placed as CLAUDE.md in the workspace root
-    - adhoc-xml: fixture's own workflow files are kept untouched
-- Fixture workflow files stripped for formats that need a clean slate
-- A clean git repo with one initial commit
-- A scrubbed environment preventing context leakage
+- The workflow document injected based on (format, source):
+    - no-workflow:                no workflow placed or prepended (baseline,
+                                  source-agnostic — emitted once per case).
+    - {plain-text,markdown,ape} + source="claude-md":
+                                  workflow content placed as ``CLAUDE.md`` in
+                                  the workspace root.
+    - {plain-text,markdown,ape} + source="prompt":
+                                  workflow content prepended to the prompt;
+                                  nothing placed in the workspace.
+    - adhoc-xml + source="claude-md":
+                                  fixture's own ``CLAUDE.md`` and
+                                  ``.claude/bivvy-dev-workflow.md`` are kept
+                                  untouched.
+    - adhoc-xml + source="prompt":
+                                  fixture's ``CLAUDE.md`` is stripped;
+                                  ``.claude/bivvy-dev-workflow.md`` is kept;
+                                  the runner prepends the literal preamble
+                                  ``Use @.claude/bivvy-dev-workflow.md while
+                                  working on the following:`` to the prompt.
+- Fixture workflow files stripped for formats/sources that need a clean slate.
+- A clean git repo with one initial commit.
+- A scrubbed environment preventing context leakage.
 
 Public API
 ----------
 BenchmarkEnvironment  — manages workspace lifecycle and isolation.
 WorkspaceState        — frozen snapshot of workspace after a run.
+PromptInjection       — value object describing prompt-side workflow injection.
 """
 
 from __future__ import annotations
@@ -60,14 +75,72 @@ _EXCLUDED_VARS = {
     "PWD",
 }
 
-# Workflow formats that replace the fixture's CLAUDE.md with a benchmark workflow.
-# plain-text is excluded because it gets prepended to the prompt instead.
-# adhoc-xml is excluded because the fixture's own workflow files are kept as-is.
-_CLAUDE_MD_FORMATS = {"markdown", "structured-md", "ape"}
+# Formats whose workflow content can be placed in CLAUDE.md when
+# source="claude-md". For adhoc-xml, the fixture's own files are kept
+# instead — see _kept_fixture_files() below.
+_CLAUDE_MD_CONTENT_FORMATS = {
+    "plain-text", "markdown", "structured-md", "ape",
+}
 
-# Formats that keep the fixture's own workflow files untouched.
-# All other formats strip fixture workflow files before injecting benchmark files.
-_KEEP_FIXTURE_WORKFLOWS = {"adhoc-xml"}
+# Hardcoded preamble inserted into the prompt for adhoc-xml + source="prompt".
+# The path is hardcoded by design — adhoc-xml's workflow_files entry is just
+# a path reference, not content to read.
+_ADHOC_XML_PROMPT_PREAMBLE = (
+    "Use @.claude/bivvy-dev-workflow.md while working on the following:"
+)
+
+
+def _place_claude_md(workflow_format: str, workflow_source: str) -> bool:
+    """Return True when the runner should write the workflow into ``CLAUDE.md``.
+
+    Source ``"prompt"`` never writes to ``CLAUDE.md`` — the workflow lives in
+    the prompt instead. ``no-workflow`` never writes. ``adhoc-xml`` is special:
+    it keeps the fixture's own ``CLAUDE.md`` rather than overwriting it (see
+    ``_kept_fixture_files``).
+    """
+    if workflow_source != "claude-md":
+        return False
+    return workflow_format in _CLAUDE_MD_CONTENT_FORMATS
+
+
+def _kept_fixture_files(
+    workflow_format: str,
+    workflow_source: str,
+    fixture_workflow_files: list[str] | None,
+) -> list[str]:
+    """Return the subset of fixture workflow files that should be preserved.
+
+    All other fixture workflow files are stripped from the workspace before
+    injection.
+
+    - For ``adhoc-xml`` + ``claude-md``: keep everything (today's behaviour).
+    - For ``adhoc-xml`` + ``prompt``:    keep everything except ``CLAUDE.md``
+                                         (the prompt preamble replaces it).
+    - For every other (format, source):  keep nothing.
+    """
+    if not fixture_workflow_files:
+        return []
+    if workflow_format != "adhoc-xml":
+        return []
+    if workflow_source == "claude-md":
+        return list(fixture_workflow_files)
+    if workflow_source == "prompt":
+        return [p for p in fixture_workflow_files if p != "CLAUDE.md"]
+    return []
+
+
+@dataclass(frozen=True)
+class PromptInjection:
+    """Workflow content destined for the user-facing prompt.
+
+    The runner concatenates ``preamble`` with the user prompt. When
+    ``divider`` is true, the standard ``\\n\\n---\\n\\nUser task:\\n`` divider
+    is inserted between the preamble and the prompt; otherwise the two are
+    joined by a single blank line because the preamble already provides its
+    own framing (used for adhoc-xml + source="prompt").
+    """
+    preamble: str
+    divider: bool
 
 # ---------------------------------------------------------------------------
 # Isolation guard script
@@ -524,6 +597,7 @@ class BenchmarkEnvironment:
         app_path: Path,
         workflow_path: Path,
         workflow_format: str,
+        workflow_source: str,
         fixture_workflow_files: list[str] | None = None,
         *,
         case_id: str = "",
@@ -538,9 +612,9 @@ class BenchmarkEnvironment:
         are not git repos.
 
         *fixture_workflow_files* lists paths (relative to workspace root)
-        that belong to the app fixture's own workflow instructions.  These
-        are stripped for formats that need a clean slate, and kept only for
-        formats in ``_KEEP_FIXTURE_WORKFLOWS``.
+        that belong to the app fixture's own workflow instructions. Which
+        of those files are kept depends on (format, source) — see
+        ``_kept_fixture_files``.
 
         Returns the workspace path.
         """
@@ -549,12 +623,14 @@ class BenchmarkEnvironment:
         if self._is_git_repo(app_path):
             logger.info("%s: setting up workspace via git clone", label)
             workspace = self._setup_via_clone(
-                app_path, workflow_path, workflow_format, fixture_workflow_files,
+                app_path, workflow_path, workflow_format, workflow_source,
+                fixture_workflow_files,
             )
         else:
             logger.info("%s: setting up workspace via copy", label)
             workspace = self._setup_via_copy(
-                app_path, workflow_path, workflow_format, fixture_workflow_files,
+                app_path, workflow_path, workflow_format, workflow_source,
+                fixture_workflow_files,
             )
         logger.info("%s: workspace ready", label)
         return workspace
@@ -571,6 +647,7 @@ class BenchmarkEnvironment:
         app_path: Path,
         workflow_path: Path,
         workflow_format: str,
+        workflow_source: str,
         fixture_workflow_files: list[str] | None = None,
     ) -> Path:
         """Fast path: workspace from ``git clone --local``.
@@ -623,18 +700,24 @@ class BenchmarkEnvironment:
 
         # --- Layer benchmark files before committing ---------------------
         self._inject_benchmark_files(
-            workspace, workflow_path, workflow_format, fixture_workflow_files,
+            workspace, workflow_path, workflow_format, workflow_source,
+            fixture_workflow_files,
         )
 
         # Stage removals of stripped fixture workflow files (must use git rm
         # for tracked files that were deleted from the worktree)
-        if fixture_workflow_files and workflow_format not in _KEEP_FIXTURE_WORKFLOWS:
+        if fixture_workflow_files:
+            kept = set(_kept_fixture_files(
+                workflow_format, workflow_source, fixture_workflow_files,
+            ))
             for rel in fixture_workflow_files:
+                if rel in kept:
+                    continue
                 if not (workspace / rel).exists():
                     self._git(workspace, "rm", "--quiet", "--ignore-unmatch", rel)
 
         staged = []
-        if workflow_format in _CLAUDE_MD_FORMATS:
+        if _place_claude_md(workflow_format, workflow_source):
             staged.append("CLAUDE.md")
         staged.append(".claude/settings.local.json")
         staged.append(".claude/scripts/guard.py")
@@ -660,6 +743,7 @@ class BenchmarkEnvironment:
         app_path: Path,
         workflow_path: Path,
         workflow_format: str,
+        workflow_source: str,
         fixture_workflow_files: list[str] | None = None,
     ) -> Path:
         """Slow fallback: copy the fixture tree and create a fresh repo."""
@@ -679,7 +763,8 @@ class BenchmarkEnvironment:
             shutil.copy2(app_path, workspace / app_path.name)
 
         self._inject_benchmark_files(
-            workspace, workflow_path, workflow_format, fixture_workflow_files,
+            workspace, workflow_path, workflow_format, workflow_source,
+            fixture_workflow_files,
         )
 
         self._git(workspace, "init")
@@ -696,17 +781,22 @@ class BenchmarkEnvironment:
         workspace: Path,
         workflow_path: Path,
         workflow_format: str,
+        workflow_source: str,
         fixture_workflow_files: list[str] | None = None,
     ) -> None:
         """Write workflow, settings, and guard script into *workspace*.
 
-        For formats not in ``_KEEP_FIXTURE_WORKFLOWS``, any files listed in
-        *fixture_workflow_files* are deleted first to prevent the fixture's
-        own workflow instructions from conflicting with the benchmark workflow.
+        Strips any fixture workflow files that the (format, source) pair does
+        not preserve, then optionally writes the workflow content into
+        ``CLAUDE.md``.
         """
-        # Strip fixture workflow files for formats that need a clean slate
-        if fixture_workflow_files and workflow_format not in _KEEP_FIXTURE_WORKFLOWS:
+        kept = set(_kept_fixture_files(
+            workflow_format, workflow_source, fixture_workflow_files,
+        ))
+        if fixture_workflow_files:
             for rel_path in fixture_workflow_files:
+                if rel_path in kept:
+                    continue
                 target = workspace / rel_path
                 if target.is_file():
                     target.unlink()
@@ -715,7 +805,7 @@ class BenchmarkEnvironment:
                     if parent != workspace and parent.is_dir() and not any(parent.iterdir()):
                         parent.rmdir()
 
-        if workflow_format in _CLAUDE_MD_FORMATS:
+        if _place_claude_md(workflow_format, workflow_source):
             workflow_content = workflow_path.read_text(encoding="utf-8")
             (workspace / "CLAUDE.md").write_text(workflow_content, encoding="utf-8")
 
@@ -769,16 +859,37 @@ class BenchmarkEnvironment:
         encoded = str(workspace.resolve()).replace("/", "-").replace(" ", "-")
         return Path.home() / ".claude" / "projects" / encoded
 
-    def get_workflow_content(self, workflow_path: Path, workflow_format: str) -> str | None:
-        """Return workflow content if it should be prepended to the prompt.
+    def get_workflow_content(
+        self,
+        workflow_path: Path,
+        workflow_format: str,
+        workflow_source: str,
+    ) -> PromptInjection | None:
+        """Return prompt-side workflow injection for this (format, source).
 
-        Returns the content for plain-text format, None for formats that
-        are placed as CLAUDE.md in the workspace, use the fixture's own
-        workflow files, or need no workflow at all.
+        Returns ``None`` for ``source="claude-md"`` (workflow lives in
+        ``CLAUDE.md``) and for ``no-workflow`` (baseline, no injection).
+
+        For ``source="prompt"``:
+          - markdown/ape/plain-text/structured-md: returns the fixture
+            workflow content with the standard ``---``/``User task:`` divider.
+          - adhoc-xml: returns the hardcoded preamble that points the agent
+            at ``.claude/bivvy-dev-workflow.md`` (no divider — the preamble
+            already frames the prompt).
         """
-        if workflow_format in ("no-workflow", *_CLAUDE_MD_FORMATS, *_KEEP_FIXTURE_WORKFLOWS):
+        if workflow_format == "no-workflow":
             return None
-        return workflow_path.read_text(encoding="utf-8")
+        if workflow_source != "prompt":
+            return None
+        if workflow_format == "adhoc-xml":
+            return PromptInjection(
+                preamble=_ADHOC_XML_PROMPT_PREAMBLE,
+                divider=False,
+            )
+        return PromptInjection(
+            preamble=workflow_path.read_text(encoding="utf-8"),
+            divider=True,
+        )
 
     def capture_setup_state(self, workspace: Path, *, case_id: str = "", app_name: str = "") -> SetupSnapshot:
         """Capture a snapshot of the workspace after all setup, before the LLM runs.

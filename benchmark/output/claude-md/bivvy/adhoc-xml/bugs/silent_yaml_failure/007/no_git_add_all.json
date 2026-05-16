@@ -1,0 +1,66 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw/src -type f -name \"*.rs\" | sort', 'cargo test --all-features 2>&1 | tail -80', 'cargo test --all-features 2>&1', 'grep -E \"^test result:|^(FAILED|error|warning\\\\[)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-x24zv4lw/48c4fbdf-3c80-4d7e-8586-3ef07f56b51e/tool-results/bv4bwlqwj.txt', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo check --all-targets --all-features 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw -type f -name \"*.rs\" | head -20",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw/src -type f -name \"*.rs\" | sort",
+    "cargo test --all-features 2>&1 | tail -80",
+    "cargo test --all-features 2>&1",
+    "grep -E \"^test result:|^(FAILED|error|warning\\[)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-x24zv4lw/48c4fbdf-3c80-4d7e-8586-3ef07f56b51e/tool-results/bv4bwlqwj.txt",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo fmt 2>&1",
+    "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo check --all-targets --all-features 2>&1"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 1870601.073269791,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 1870601.073309916,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw -type f -name \"*.rs\" | head -20",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw/src -type f -name \"*.rs\" | sort",
+        "cargo test --all-features 2>&1 | tail -80",
+        "cargo test --all-features 2>&1",
+        "grep -E \"^test result:|^(FAILED|error|warning\\[)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-x24zv4lw/48c4fbdf-3c80-4d7e-8586-3ef07f56b51e/tool-results/bv4bwlqwj.txt",
+        "cargo fmt -- --check 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo fmt 2>&1",
+        "cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo check --all-targets --all-features 2>&1"
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 1870601.073324708,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw -type f -name \"*.rs\" | head -20', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-x24zv4lw/src -type f -name \"*.rs\" | sort', 'cargo test --all-features 2>&1 | tail -80', 'cargo test --all-features 2>&1', 'grep -E \"^test result:|^(FAILED|error|warning\\\\[)\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-x24zv4lw/48c4fbdf-3c80-4d7e-8586-3ef07f56b51e/tool-results/bv4bwlqwj.txt', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo fmt 2>&1', 'cargo fmt -- --check 2>&1 && cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo check --all-targets --all-features 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

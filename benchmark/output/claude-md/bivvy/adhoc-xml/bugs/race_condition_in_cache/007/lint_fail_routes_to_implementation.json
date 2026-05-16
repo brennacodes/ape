@@ -1,0 +1,658 @@
+{
+  "check_id": "lint_fail_routes_to_implementation",
+  "phase": "linting",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "After linting failure: routed to 'implementation' (expected 'implementation')",
+  "category": "bugs",
+  "metric_value": "implementation",
+  "target_value": "implementation",
+  "operator": "eq",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 1870092.917093416,
+      "check_id": "lint_fail_routes_to_implementation",
+      "phase": "linting",
+      "condition": {
+        "metric": "phase.on_fail_route",
+        "metric_args": "linting",
+        "operator": "eq",
+        "target": "implementation"
+      }
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "phase_routing_started",
+      "timestamp": 1870092.917098333,
+      "phase_name": "linting",
+      "routing_type": "on_fail"
+    },
+    {
+      "function": "_detect_phases",
+      "action": "phase_detection",
+      "timestamp": 1870092.921883375,
+      "specs": {
+        "specification": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "test_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "implementation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "src_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "documentation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "required_command_ids": [
+            "doc_edit",
+            "cargo_doc",
+            "working_on"
+          ]
+        },
+        "linting": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "cargo_fmt",
+            "cargo_clippy",
+            "working_on"
+          ]
+        },
+        "testing": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_linting",
+          "legal_redirect_targets": [
+            "implementation",
+            "build"
+          ],
+          "required_command_ids": [
+            "cargo_llvm_cov",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "build": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "linting",
+            "commit"
+          ],
+          "required_command_ids": [
+            "cargo_build_dev",
+            "cargo_build_release",
+            "working_on"
+          ]
+        },
+        "commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "git_add",
+            "git_commit",
+            "working_on"
+          ]
+        },
+        "post-commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "git_log",
+            "cargo_test",
+            "cargo_build",
+            "working_on"
+          ]
+        },
+        "failure_recovery": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "edit",
+            "command"
+          ]
+        }
+      },
+      "per_phase": {
+        "specification": {
+          "phase": "specification",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "test_edit",
+              "kind": "required",
+              "unified_pos": 49,
+              "trace_index": 40,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 51,
+              "trace_index": 41,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.0,
+          "cap_hit": false,
+          "reason": "score 0.000 below threshold 0.8"
+        },
+        "implementation": {
+          "phase": "implementation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "src_edit",
+              "kind": "required",
+              "unified_pos": 49,
+              "trace_index": 40,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 51,
+              "trace_index": 41,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 41,
+          "first_occurrence_fallback_used": false
+        },
+        "linting": {
+          "phase": "linting",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "cargo_fmt",
+              "kind": "required",
+              "unified_pos": 71,
+              "trace_index": 53,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "cargo_clippy",
+              "kind": "required",
+              "unified_pos": 72,
+              "trace_index": 54,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 54,
+          "first_occurrence_fallback_used": false
+        },
+        "testing": {
+          "phase": "testing",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_llvm_cov"
+          ]
+        },
+        "documentation": {
+          "phase": "documentation",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_doc"
+          ]
+        },
+        "build": {
+          "phase": "build",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_build_dev",
+            "cargo_build_release"
+          ]
+        },
+        "commit": {
+          "phase": "commit",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "git_add",
+            "git_commit"
+          ]
+        },
+        "post-commit": {
+          "phase": "post-commit",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "git_log",
+            "cargo_build"
+          ]
+        },
+        "failure_recovery": {
+          "phase": "failure_recovery",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "edit",
+              "kind": "required",
+              "unified_pos": 49,
+              "trace_index": 40,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "command",
+              "kind": "required",
+              "unified_pos": 51,
+              "trace_index": 41,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 41,
+          "first_occurrence_fallback_used": false
+        }
+      },
+      "boundaries": {
+        "implementation": 51,
+        "linting": 72,
+        "failure_recovery": 51
+      },
+      "dedup_actions": []
+    },
+    {
+      "function": "_detect_phases",
+      "action": "execution_order_built",
+      "timestamp": 1870092.921884708,
+      "phase_events": {
+        "implementation": [
+          35,
+          36,
+          37,
+          40,
+          41,
+          46,
+          47,
+          48
+        ],
+        "linting": [
+          53,
+          54
+        ],
+        "failure_recovery": [
+          40,
+          41
+        ]
+      },
+      "floating_phases": [
+        "failure_recovery"
+      ],
+      "execution_order": [
+        "implementation",
+        "linting"
+      ]
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_failed_commands",
+      "timestamp": 1870092.92314775,
+      "command_pattern": "cargo fmt",
+      "all_bash_commands": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01J6H1jLJPiPEbDef1oQd675",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_018EW3H1K3fUQLd6AifgXVa8",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo fmt -- --check 2>&1",
+                      "timeout": 30000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 495,
+                  "cache_read_input_tokens": 57257,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 495
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "3f7bb863-283c-46df-a775-6f9757d367e0"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 1\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:347:\n         let tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             tmp_files.is_empty(),\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:399:\n         let temp = TempDir::new().unwrap();\n         let store = CacheStore::new(temp.path());\n \n\u001b[32m+        store.store(\"http:test\", \"good\", \"content\", 3600).unwrap();\n\u001b(B\u001b[m         store\n\u001b[31m-            .store(\"http:test\", \"good\", \"content\", 3600)\n\u001b(B\u001b[m\u001b[31m-            .unwrap();\n\u001b(B\u001b[m\u001b[31m-        store\n\u001b(B\u001b[m             .store(\"http:test\", \"will_corrupt\", \"content\", 3600)\n             .unwrap();\n \nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:454:\n         let no_tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             no_tmp_files.is_empty(),",
+                    "is_error": true,
+                    "tool_use_id": "toolu_018EW3H1K3fUQLd6AifgXVa8"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "cb2b5aea-4684-46b8-b80a-bd1e58f011cc",
+              "timestamp": "2026-05-12T19:50:35.165Z",
+              "tool_use_result": "Error: Exit code 1\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:347:\n         let tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             tmp_files.is_empty(),\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:399:\n         let temp = TempDir::new().unwrap();\n         let store = CacheStore::new(temp.path());\n \n\u001b[32m+        store.store(\"http:test\", \"good\", \"content\", 3600).unwrap();\n\u001b(B\u001b[m         store\n\u001b[31m-            .store(\"http:test\", \"good\", \"content\", 3600)\n\u001b(B\u001b[m\u001b[31m-            .unwrap();\n\u001b(B\u001b[m\u001b[31m-        store\n\u001b(B\u001b[m             .store(\"http:test\", \"will_corrupt\", \"content\", 3600)\n             .unwrap();\n \nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:454:\n         let no_tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             no_tmp_files.is_empty(),"
+            }
+          },
+          "command": "cargo fmt -- --check 2>&1",
+          "exit_code": 1,
+          "event_index": 100
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01LUYrCs4Ur2gsXbQtGC2zgG",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_0144Cn37cGVQ3ks9ujUFt2zg",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo fmt 2>&1",
+                      "timeout": 15000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 954,
+                  "cache_read_input_tokens": 57752,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 954
+                  },
+                  "output_tokens": 7,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "09acce1a-4eaa-4b5c-a92c-8b5842bfba2d"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_0144Cn37cGVQ3ks9ujUFt2zg",
+                    "type": "tool_result",
+                    "content": "[This command modified 1 file you've previously read: src/cache/store.rs. Call Read before editing.]",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "0e3f660f-4d5d-4a6f-811f-3ab3013f645a",
+              "timestamp": "2026-05-12T19:50:37.613Z",
+              "tool_use_result": {
+                "stdout": "",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "staleReadFileStateHint": "[This command modified 1 file you've previously read: src/cache/store.rs. Call Read before editing.]"
+              }
+            }
+          },
+          "command": "cargo fmt 2>&1",
+          "exit_code": 0,
+          "event_index": 102
+        }
+      ],
+      "failed": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01J6H1jLJPiPEbDef1oQd675",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_018EW3H1K3fUQLd6AifgXVa8",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo fmt -- --check 2>&1",
+                      "timeout": 30000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 495,
+                  "cache_read_input_tokens": 57257,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 495
+                  },
+                  "output_tokens": 2,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "3f7bb863-283c-46df-a775-6f9757d367e0"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 1\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:347:\n         let tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             tmp_files.is_empty(),\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:399:\n         let temp = TempDir::new().unwrap();\n         let store = CacheStore::new(temp.path());\n \n\u001b[32m+        store.store(\"http:test\", \"good\", \"content\", 3600).unwrap();\n\u001b(B\u001b[m         store\n\u001b[31m-            .store(\"http:test\", \"good\", \"content\", 3600)\n\u001b(B\u001b[m\u001b[31m-            .unwrap();\n\u001b(B\u001b[m\u001b[31m-        store\n\u001b(B\u001b[m             .store(\"http:test\", \"will_corrupt\", \"content\", 3600)\n             .unwrap();\n \nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:454:\n         let no_tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             no_tmp_files.is_empty(),",
+                    "is_error": true,
+                    "tool_use_id": "toolu_018EW3H1K3fUQLd6AifgXVa8"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "5bb15404-346d-4cf0-a1e1-42b5d3181c7b",
+              "uuid": "cb2b5aea-4684-46b8-b80a-bd1e58f011cc",
+              "timestamp": "2026-05-12T19:50:35.165Z",
+              "tool_use_result": "Error: Exit code 1\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:347:\n         let tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             tmp_files.is_empty(),\nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:399:\n         let temp = TempDir::new().unwrap();\n         let store = CacheStore::new(temp.path());\n \n\u001b[32m+        store.store(\"http:test\", \"good\", \"content\", 3600).unwrap();\n\u001b(B\u001b[m         store\n\u001b[31m-            .store(\"http:test\", \"good\", \"content\", 3600)\n\u001b(B\u001b[m\u001b[31m-            .unwrap();\n\u001b(B\u001b[m\u001b[31m-        store\n\u001b(B\u001b[m             .store(\"http:test\", \"will_corrupt\", \"content\", 3600)\n             .unwrap();\n \nDiff in /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-yfa87hob/src/cache/store.rs:454:\n         let no_tmp_files: Vec<_> = fs::read_dir(temp.path())\n             .unwrap()\n             .filter_map(|e| e.ok())\n\u001b[31m-            .filter(|e| {\n\u001b(B\u001b[m\u001b[31m-                e.path()\n\u001b(B\u001b[m\u001b[31m-                    .extension()\n\u001b(B\u001b[m\u001b[31m-                    .is_some_and(|ext| ext == \"tmp\")\n\u001b(B\u001b[m\u001b[31m-            })\n\u001b(B\u001b[m\u001b[32m+            .filter(|e| e.path().extension().is_some_and(|ext| ext == \"tmp\"))\n\u001b(B\u001b[m             .collect();\n         assert!(\n             no_tmp_files.is_empty(),"
+            }
+          },
+          "command": "cargo fmt -- --check 2>&1",
+          "exit_code": 1,
+          "event_index": 100
+        }
+      ],
+      "last_fail_index": 100
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_command_rerun",
+      "timestamp": 1870092.92375375,
+      "after_index": 100,
+      "matched_rerun": true,
+      "rerun_command": "cargo fmt 2>&1",
+      "rerun_exit_code": 0,
+      "rerun_succeeded": true,
+      "conclusion": "implementation"
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "routing_concluded",
+      "timestamp": 1870092.923754625,
+      "detected_route": "implementation",
+      "phase_name": "linting"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 1870092.923762583,
+      "passed": true,
+      "detail": "After linting failure: routed to 'implementation' (expected 'implementation')"
+    }
+  ]
+}

@@ -74,7 +74,7 @@ from results import (  # noqa: E402
     RunMetadata, RunSummary, CheckOutcome,
     make_outcome, summarize_run, write_json,
 )
-from environment import BenchmarkEnvironment, SetupSnapshot  # noqa: E402
+from environment import BenchmarkEnvironment, PromptInjection, SetupSnapshot  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -500,21 +500,23 @@ def _run_in_workspace(
         workspace_state["before"] = before_dict
         on_state(workspace_state)
 
-    # 3. Build command — prepend workflow content for plain-text format
-    workflow_content = env.get_workflow_content(
-        case.workflow.path, case.workflow.format,
+    # 3. Build command — prepend workflow content when source="prompt"
+    injection = env.get_workflow_content(
+        case.workflow.path, case.workflow.format, case.source,
     )
-    if workflow_content:
-        full_prompt = f"{workflow_content}\n\n---\n\nUser task:\n{prompt_text}"
+    if injection is not None:
+        separator = "\n\n---\n\nUser task:\n" if injection.divider else "\n\n"
+        full_prompt = f"{injection.preamble}{separator}{prompt_text}"
         logger.info(
-            "%s: workflow prepended (%d chars) + prompt (%d chars) = %d chars total",
-            label, len(workflow_content), len(prompt_text), len(full_prompt),
+            "%s: workflow prepended (%d chars, divider=%s) + prompt (%d chars) = %d chars total",
+            label, len(injection.preamble), injection.divider,
+            len(prompt_text), len(full_prompt),
         )
     else:
         full_prompt = prompt_text
         logger.info(
-            "%s: workflow placed as CLAUDE.md (format=%s), prompt only (%d chars)",
-            label, case.workflow.format, len(full_prompt),
+            "%s: no prompt-side workflow (format=%s, source=%s), prompt only (%d chars)",
+            label, case.workflow.format, case.source or "-", len(full_prompt),
         )
     command = build_command(full_prompt, model, max_turns=max_turns)
 
@@ -708,6 +710,7 @@ def _run_in_workspace(
         fixture_id=case.app.name,
         format=case.workflow.format,
         prompt_id=effective_prompt_id,
+        source=case.source,
         model=model,
         session_id=trace.session_id,
     )
@@ -810,6 +813,7 @@ def run_case(
             case.app.path,
             case.workflow.path,
             case.workflow.format,
+            case.source,
             fixture_workflow_files=fixture_workflow_files,
             case_id=label,
         )

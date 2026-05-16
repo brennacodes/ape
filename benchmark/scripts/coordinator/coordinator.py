@@ -15,15 +15,20 @@ Directory layout:
     prompts/app-configs/{app}.yaml  # App fixture configs (variables for templates)
 
 Test case dimensions:
-  Every test case is identified by 5 independent dimensions:
+  Every test case is identified by 6 independent dimensions:
     - app:      which app fixture (e.g. "bivvy")
     - category: prompt category matching an app-config section (e.g. "bugs")
     - item:     specific item within the category (e.g. "silent_yaml_failure")
     - format:   workflow format (e.g. "plain-text")
     - workflow:  workflow stem (e.g. "bivvy")
+    - source:   how the workflow is delivered: "claude-md" (placed in
+                CLAUDE.md) or "prompt" (prepended to the user prompt).
+                "no-workflow" cases are source-agnostic and carry source="".
 
   Template prompts expand into one case per app-config item.
   Concrete prompts (no matching app-config category) work as before.
+  Source-bound cases are emitted twice per (app, format, prompt) - once
+  per source value - while no-workflow is emitted exactly once.
 
 Public API
 ----------
@@ -97,6 +102,14 @@ class TestCase:
     For template cases, category and item_id identify which app-config item
     was expanded into this case, and app_config_path points to the source file.
     For concrete (non-template) cases, these fields are empty/None.
+
+    ``source`` describes how the workflow is delivered:
+        - "claude-md" — workflow content is written to ``CLAUDE.md`` in the
+          workspace (or, for ``adhoc-xml``, the fixture's own workflow files
+          are kept untouched).
+        - "prompt"    — workflow content is prepended to the user prompt;
+          no ``CLAUDE.md`` is placed.
+        - ""          — used only for ``no-workflow``, which is source-agnostic.
     """
     __test__ = False
     app: AppFixture
@@ -106,15 +119,22 @@ class TestCase:
     category: str = ""
     item_id: str = ""
     app_config_path: Path | None = None
+    source: str = ""
 
     @property
     def case_id(self) -> str:
         if self.category and self.item_id:
-            return (
+            base = (
                 f"{self.app.name}/{self.category}/{self.item_id}"
-                f"/{self.workflow.format}/{self.workflow.stem}"
+                f"/{self.workflow.format}"
             )
-        return f"{self.app.name}/{self.workflow.stem}/{self.workflow.format}/{self.prompt.prompt_id}"
+            if self.source:
+                base += f"/{self.source}"
+            return f"{base}/{self.workflow.stem}"
+        base = f"{self.app.name}/{self.workflow.stem}/{self.workflow.format}"
+        if self.source:
+            base += f"/{self.source}"
+        return f"{base}/{self.prompt.prompt_id}"
 
     @property
     def dimensions(self) -> dict[str, str]:
@@ -125,16 +145,24 @@ class TestCase:
             "item": self.item_id,
             "format": self.workflow.format,
             "workflow": self.workflow.stem,
+            "source": self.source,
         }
 
     def matches_filter(self, **filters: str) -> bool:
-        """Return True if this case matches all non-empty filter values."""
+        """Return True if this case matches all non-empty filter values.
+
+        The ``source`` filter is a no-op for ``no-workflow`` cases: the
+        baseline appears in every comparison regardless of the value.
+        """
         dims = self.dimensions
-        return all(
-            dims.get(k) == v
-            for k, v in filters.items()
-            if v  # skip empty/None filters
-        )
+        for k, v in filters.items():
+            if not v:
+                continue
+            if k == "source" and self.workflow.format == "no-workflow":
+                continue
+            if dims.get(k) != v:
+                return False
+        return True
 
 
 # ---------------------------------------------------------------------------
@@ -324,34 +352,45 @@ def match_cases(
         if config is None:
             continue
 
+        # no-workflow is the experiment's null baseline: source-agnostic,
+        # emitted once per (app, prompt). Every other format is doubled
+        # across the source dimension.
+        if wf.format == "no-workflow":
+            sources: tuple[str, ...] = ("",)
+        else:
+            sources = ("claude-md", "prompt")
+
         for app in apps:
             ac_entry = ac_index.get(app.name)
             ac_path = ac_entry[0] if ac_entry else None
 
-            # Concrete prompts: cross-product as before
-            for prompt in concrete_prompts:
-                cases.append(TestCase(
-                    app=app, workflow=wf,
-                    test_config=config, prompt=prompt,
-                    app_config_path=ac_path,
-                ))
-
-            # Template prompts: expand per app-config item
-            if ac_entry is None:
-                continue
-            _, _, categories = ac_entry
-            for category, items in categories.items():
-                prompt = template_prompts.get(category)
-                if prompt is None:
-                    continue
-                for item_id in items:
+            for src in sources:
+                # Concrete prompts: cross-product as before
+                for prompt in concrete_prompts:
                     cases.append(TestCase(
                         app=app, workflow=wf,
                         test_config=config, prompt=prompt,
-                        category=category,
-                        item_id=item_id,
                         app_config_path=ac_path,
+                        source=src,
                     ))
+
+                # Template prompts: expand per app-config item
+                if ac_entry is None:
+                    continue
+                _, _, categories = ac_entry
+                for category, items in categories.items():
+                    prompt = template_prompts.get(category)
+                    if prompt is None:
+                        continue
+                    for item_id in items:
+                        cases.append(TestCase(
+                            app=app, workflow=wf,
+                            test_config=config, prompt=prompt,
+                            category=category,
+                            item_id=item_id,
+                            app_config_path=ac_path,
+                            source=src,
+                        ))
 
     return cases
 

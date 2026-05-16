@@ -14,10 +14,12 @@ if _HERE not in sys.path:
 from environment import (
     BaselineMetrics,
     BenchmarkEnvironment,
+    PromptInjection,
     SetupSnapshot,
     _parse_test_count,
     _parse_coverage_pct,
     _truncate,
+    _ADHOC_XML_PROMPT_PREAMBLE,
 )
 
 
@@ -170,3 +172,126 @@ class TestSetupSnapshotBaseline:
         snap = SetupSnapshot(baseline=baseline)
         assert snap.baseline is not None
         assert snap.baseline.test_count == 42
+
+
+# ===========================================================================
+# (format, source) injection semantics
+# ===========================================================================
+
+
+def _write_text(path: Path, content: str = "") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+class TestInjectBenchmarkFiles:
+    def test_plain_text_claude_md_writes_claude_md(self, tmp_path):
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        workflow = tmp_path / "wf.txt"
+        workflow.write_text("PLAIN WORKFLOW", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        env._inject_benchmark_files(workspace, workflow, "plain-text", "claude-md")
+        assert (workspace / "CLAUDE.md").read_text(encoding="utf-8") == "PLAIN WORKFLOW"
+
+    def test_plain_text_prompt_does_not_write_claude_md(self, tmp_path):
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        workflow = tmp_path / "wf.txt"
+        workflow.write_text("PLAIN WORKFLOW", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        env._inject_benchmark_files(workspace, workflow, "plain-text", "prompt")
+        assert not (workspace / "CLAUDE.md").exists()
+
+    def test_markdown_prompt_does_not_write_claude_md(self, tmp_path):
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        workflow = tmp_path / "wf.md"
+        workflow.write_text("# MD WORKFLOW", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        env._inject_benchmark_files(workspace, workflow, "markdown", "prompt")
+        assert not (workspace / "CLAUDE.md").exists()
+
+    def test_adhoc_xml_claude_md_keeps_both_fixture_files(self, tmp_path):
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        _write_text(workspace / "CLAUDE.md", "FIXTURE CLAUDE_MD")
+        _write_text(workspace / ".claude" / "bivvy-dev-workflow.md", "WF")
+        workflow = workspace / "CLAUDE.md"  # adhoc-xml uses fixture ref
+        env = BenchmarkEnvironment()
+        env._inject_benchmark_files(
+            workspace, workflow, "adhoc-xml", "claude-md",
+            fixture_workflow_files=["CLAUDE.md", ".claude/bivvy-dev-workflow.md"],
+        )
+        assert (workspace / "CLAUDE.md").read_text(encoding="utf-8") == "FIXTURE CLAUDE_MD"
+        assert (workspace / ".claude" / "bivvy-dev-workflow.md").is_file()
+
+    def test_adhoc_xml_prompt_strips_claude_md_keeps_workflow(self, tmp_path):
+        workspace = tmp_path / "ws"
+        workspace.mkdir()
+        _write_text(workspace / "CLAUDE.md", "FIXTURE CLAUDE_MD")
+        _write_text(workspace / ".claude" / "bivvy-dev-workflow.md", "WF")
+        workflow = workspace / "CLAUDE.md"  # adhoc-xml ref
+        env = BenchmarkEnvironment()
+        env._inject_benchmark_files(
+            workspace, workflow, "adhoc-xml", "prompt",
+            fixture_workflow_files=["CLAUDE.md", ".claude/bivvy-dev-workflow.md"],
+        )
+        assert not (workspace / "CLAUDE.md").exists()
+        assert (workspace / ".claude" / "bivvy-dev-workflow.md").is_file()
+
+
+class TestGetWorkflowContent:
+    def test_plain_text_claude_md_returns_none(self, tmp_path):
+        workflow = tmp_path / "wf.txt"
+        workflow.write_text("PT", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        assert env.get_workflow_content(workflow, "plain-text", "claude-md") is None
+
+    def test_plain_text_prompt_returns_injection_with_divider(self, tmp_path):
+        workflow = tmp_path / "wf.txt"
+        workflow.write_text("PT BODY", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        injection = env.get_workflow_content(workflow, "plain-text", "prompt")
+        assert isinstance(injection, PromptInjection)
+        assert injection.preamble == "PT BODY"
+        assert injection.divider is True
+
+    def test_markdown_prompt_returns_injection_with_divider(self, tmp_path):
+        workflow = tmp_path / "wf.md"
+        workflow.write_text("# MD", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        injection = env.get_workflow_content(workflow, "markdown", "prompt")
+        assert injection is not None
+        assert injection.preamble == "# MD"
+        assert injection.divider is True
+
+    def test_ape_claude_md_returns_none(self, tmp_path):
+        workflow = tmp_path / "wf.ape"
+        workflow.write_text("<ape />", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        assert env.get_workflow_content(workflow, "ape", "claude-md") is None
+
+    def test_adhoc_xml_prompt_returns_hardcoded_preamble_no_divider(self, tmp_path):
+        # adhoc-xml uses a ref path; the content of the file is NOT read.
+        ref = tmp_path / "ignored.md"
+        ref.write_text("SHOULD NOT BE READ", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        injection = env.get_workflow_content(ref, "adhoc-xml", "prompt")
+        assert injection is not None
+        assert injection.preamble == _ADHOC_XML_PROMPT_PREAMBLE
+        assert injection.divider is False
+
+    def test_adhoc_xml_claude_md_returns_none(self, tmp_path):
+        ref = tmp_path / "ignored.md"
+        ref.write_text("X", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        assert env.get_workflow_content(ref, "adhoc-xml", "claude-md") is None
+
+    def test_no_workflow_returns_none(self, tmp_path):
+        ref = tmp_path / "ignored"
+        ref.write_text("X", encoding="utf-8")
+        env = BenchmarkEnvironment()
+        assert env.get_workflow_content(ref, "no-workflow", "") is None
+        assert env.get_workflow_content(ref, "no-workflow", "prompt") is None
+        assert env.get_workflow_content(ref, "no-workflow", "claude-md") is None

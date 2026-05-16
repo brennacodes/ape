@@ -107,6 +107,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--item", default=None, help="Filter by app-config item ID.")
     parser.add_argument("--format-filter", default=None, help="Filter by workflow format (e.g. plain-text).")
     parser.add_argument("--workflow", default=None, help="Filter by workflow stem (e.g. centminmod).")
+    parser.add_argument(
+        "--source", default=None, choices=("claude-md", "prompt"),
+        help=(
+            "Filter by workflow source: 'claude-md' (workflow placed as "
+            "CLAUDE.md) or 'prompt' (prepended to the prompt). "
+            "Both run if omitted. no-workflow cases ignore this filter."
+        ),
+    )
 
     return parser.parse_args(argv)
 
@@ -131,6 +139,8 @@ def _build_filters(args: argparse.Namespace) -> dict[str, str]:
         filters["format"] = args.format_filter
     if args.workflow:
         filters["workflow"] = args.workflow
+    if args.source:
+        filters["source"] = args.source
     return filters
 
 
@@ -365,6 +375,21 @@ def dry_run(args: argparse.Namespace) -> int:
     if filters:
         filter_line = f"\n  Filters:    {', '.join(f'{k}={v}' for k, v in filters.items())}"
 
+    # Per-source breakdown of cases (claude-md / prompt / none for no-workflow).
+    source_counts: dict[str, int] = {}
+    for c in cases:
+        key = c.source or "(no-workflow)"
+        source_counts[key] = source_counts.get(key, 0) + 1
+    if source_counts:
+        ordered = ["claude-md", "prompt", "(no-workflow)"]
+        seen = [k for k in ordered if k in source_counts]
+        seen += [k for k in source_counts if k not in ordered]
+        sources_line = "\n  By source:  " + ", ".join(
+            f"{k}={source_counts[k]}" for k in seen
+        )
+    else:
+        sources_line = ""
+
     console.print(Panel.fit(
         f"[bold]Benchmark Discovery[/bold]\n"
         f"  Root:       {args.benchmark_root}\n"
@@ -373,7 +398,7 @@ def dry_run(args: argparse.Namespace) -> int:
         f"  Configs:    {len(configs)}\n"
         f"  Prompts:    {len(prompts)}\n"
         f"  App configs:{len(app_configs)}\n"
-        f"  Cases:      {len(cases)}{filter_line}",
+        f"  Cases:      {len(cases)}{sources_line}{filter_line}",
         title="bench",
         border_style="blue",
     ))
@@ -408,21 +433,25 @@ def dry_run(args: argparse.Namespace) -> int:
     return 0
 
 
-def _case_identity(case) -> tuple[str, str, str]:
-    """Return (fixture_id, format, prompt_id) for a TestCase."""
+def _case_identity(case) -> tuple[str, str, str, str]:
+    """Return (source, fixture_id, format, prompt_id) for a TestCase.
+
+    ``source`` comes first so callers can build a stable composite key for
+    parallel run-id allocation across both source-bound and no-workflow runs.
+    """
     fixture_id = case.app.name
     fmt = case.workflow.format
     if case.category and case.item_id:
         prompt_id = f"{case.category}/{case.item_id}"
     else:
         prompt_id = case.prompt.prompt_id
-    return fixture_id, fmt, prompt_id
+    return case.source, fixture_id, fmt, prompt_id
 
 
-def _make_state_callback(recorder: Recorder, fixture_id: str, fmt: str, prompt_id: str, run_id: int):
+def _make_state_callback(recorder: Recorder, fixture_id: str, fmt: str, prompt_id: str, run_id: int, source: str = ""):
     """Return an on_state callback that writes state.json incrementally."""
     def _cb(state: dict) -> None:
-        recorder.write_state(fixture_id, fmt, prompt_id, run_id, state)
+        recorder.write_state(fixture_id, fmt, prompt_id, run_id, state, source)
     return _cb
 
 
@@ -433,10 +462,10 @@ def _save_result(
     run_id: int | None = None,
 ) -> RunRecord | None:
     """Persist a single CaseResult to disk immediately. Returns the RunRecord or None."""
-    fixture_id, fmt, prompt_id = _case_identity(result.case)
+    source, fixture_id, fmt, prompt_id = _case_identity(result.case)
 
     if run_id is None:
-        run_id = recorder.next_run_id(fixture_id, fmt, prompt_id)
+        run_id = recorder.next_run_id(fixture_id, fmt, prompt_id, source)
     completed_at = datetime.now().isoformat()
     started_at = getattr(result, "started_at", "") or ""
 
@@ -463,6 +492,7 @@ def _save_result(
             fixture_id=fixture_id,
             format=fmt,
             prompt_id=prompt_id,
+            source=source,
             run_id=run_id,
             error=result.error or "",
             exit_code=result.exit_code,
@@ -658,12 +688,12 @@ def run(args: argparse.Namespace) -> int:
             def _make_state_cb(case):
                 if args.legacy_output:
                     return None
-                fid, fmt, pid = _case_identity(case)
+                src, fid, fmt, pid = _case_identity(case)
                 with _run_id_lock:
-                    rid = recorder.next_run_id(fid, fmt, pid)
+                    rid = recorder.next_run_id(fid, fmt, pid, src)
                     _allocated_run_ids[case.case_id] = rid
-                    recorder.init_run_dir(fid, fmt, pid, rid)
-                return _make_state_callback(recorder, fid, fmt, pid, rid)
+                    recorder.init_run_dir(fid, fmt, pid, rid, src)
+                return _make_state_callback(recorder, fid, fmt, pid, rid, src)
 
             for result in run_parallel(
                 cases,
@@ -692,11 +722,11 @@ def run(args: argparse.Namespace) -> int:
                 # Allocate run_id upfront so state can be written incrementally
                 state_cb = None
                 if not args.legacy_output:
-                    fid, fmt, pid = _case_identity(case)
-                    rid = recorder.next_run_id(fid, fmt, pid)
+                    src, fid, fmt, pid = _case_identity(case)
+                    rid = recorder.next_run_id(fid, fmt, pid, src)
                     _allocated_run_ids[case.case_id] = rid
-                    recorder.init_run_dir(fid, fmt, pid, rid)
-                    state_cb = _make_state_callback(recorder, fid, fmt, pid, rid)
+                    recorder.init_run_dir(fid, fmt, pid, rid, src)
+                    state_cb = _make_state_callback(recorder, fid, fmt, pid, rid, src)
 
                 result = run_case(
                     case,
@@ -727,10 +757,13 @@ def run(args: argparse.Namespace) -> int:
     if args.enrich_tokens and records and not args.legacy_output:
         _enrich_with_tokens(recorder, records)
 
-    # Print results
+    # Print results — composite key keeps same-format different-source runs distinct.
+    def _record_key(fixture_id: str, fmt: str, prompt_id: str, source: str) -> str:
+        return f"{fixture_id}/{fmt}/{source or '-'}/{prompt_id}"
+
     record_by_case = {}
     for rec in records:
-        record_by_case[f"{rec.fixture_id}/{rec.format}/{rec.prompt_id}"] = rec
+        record_by_case[_record_key(rec.fixture_id, rec.format, rec.prompt_id, rec.source)] = rec
 
     console.print()
     console.rule("[bold]RESULTS[/bold]", style="blue")
@@ -738,7 +771,8 @@ def run(args: argparse.Namespace) -> int:
 
     for result in results:
         if result.summary:
-            key = f"{result.summary.metadata.fixture_id}/{result.summary.metadata.format}/{result.summary.metadata.prompt_id}"
+            meta = result.summary.metadata
+            key = _record_key(meta.fixture_id, meta.format, meta.prompt_id, meta.source)
             console.print(format_run_summary(result.summary, record=record_by_case.get(key)))
             console.print()
         else:
