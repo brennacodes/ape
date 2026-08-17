@@ -1,0 +1,394 @@
+#!/usr/bin/env python3
+"""Compute turns-per-minute and model-share metrics from benchmark session logs.
+
+Walks `benchmark/output/` (or a directory passed via `--root`), reads each
+session's `summary.json` and `stream.json`, and prints aggregate tables
+showing wall-clock cadence and per-model turn / token distribution.
+
+A "turn" is one assistant API response (an entry with `type == "assistant"`
+in `stream.json`).
+"""
+
+import argparse
+import json
+import re
+import sys
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Iterable
+
+
+@dataclass
+class TurnRecord:
+    model: str
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_creation_tokens: int = 0
+    cache_read_tokens: int = 0
+
+    @property
+    def total_tokens(self) -> int:
+        return (
+            self.input_tokens
+            + self.output_tokens
+            + self.cache_creation_tokens
+            + self.cache_read_tokens
+        )
+
+
+@dataclass
+class Session:
+    path: Path
+    wall_clock_seconds: float
+    succeeded: bool
+    turns: list[TurnRecord] = field(default_factory=list)
+
+
+@dataclass
+class ModelTokenTotals:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cache_creation_tokens: int = 0
+    cache_read_tokens: int = 0
+
+    @property
+    def total(self) -> int:
+        return (
+            self.input_tokens
+            + self.output_tokens
+            + self.cache_creation_tokens
+            + self.cache_read_tokens
+        )
+
+
+@dataclass
+class Aggregate:
+    label: str
+    session_count: int = 0
+    wall_clock_seconds: float = 0.0
+    total_turns: int = 0
+    turns_by_model: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    tokens_by_model: dict[str, ModelTokenTotals] = field(
+        default_factory=lambda: defaultdict(ModelTokenTotals)
+    )
+
+    @property
+    def turns_per_minute(self) -> float:
+        if self.wall_clock_seconds <= 0:
+            return 0.0
+        return self.total_turns / (self.wall_clock_seconds / 60.0)
+
+
+def warn(msg: str) -> None:
+    print(f"warning: {msg}", file=sys.stderr)
+
+
+def discover_sessions(root: Path) -> Iterable[Path]:
+    """Yield directories under `root` that contain both summary.json and stream.json."""
+    for summary_path in root.rglob("summary.json"):
+        session_dir = summary_path.parent
+        if (session_dir / "stream.json").is_file():
+            yield session_dir
+
+
+def _parse_iso(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _wall_clock_from_summary(summary: dict) -> float:
+    ms = summary.get("wall_clock_ms")
+    if isinstance(ms, (int, float)) and ms > 0:
+        return float(ms) / 1000.0
+    started = _parse_iso(summary.get("started_at", ""))
+    completed = _parse_iso(summary.get("completed_at", ""))
+    if started and completed and completed >= started:
+        return (completed - started).total_seconds()
+    return 0.0
+
+
+def _turn_from_assistant_event(event: dict) -> TurnRecord | None:
+    message = event.get("message")
+    if not isinstance(message, dict):
+        return None
+    model = message.get("model") or "unknown"
+    usage = message.get("usage") or {}
+    return TurnRecord(
+        model=model,
+        input_tokens=int(usage.get("input_tokens", 0) or 0),
+        output_tokens=int(usage.get("output_tokens", 0) or 0),
+        cache_creation_tokens=int(usage.get("cache_creation_input_tokens", 0) or 0),
+        cache_read_tokens=int(usage.get("cache_read_input_tokens", 0) or 0),
+    )
+
+
+def load_session(session_dir: Path) -> Session | None:
+    summary_path = session_dir / "summary.json"
+    stream_path = session_dir / "stream.json"
+    try:
+        with summary_path.open() as f:
+            summary = json.load(f)
+        with stream_path.open() as f:
+            stream = json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        warn(f"skipping {session_dir}: {exc}")
+        return None
+    if not isinstance(stream, list):
+        warn(f"skipping {session_dir}: stream.json is not a list")
+        return None
+    turns = [
+        rec
+        for event in stream
+        if isinstance(event, dict) and event.get("type") == "assistant"
+        for rec in [_turn_from_assistant_event(event)]
+        if rec is not None
+    ]
+    return Session(
+        path=session_dir,
+        wall_clock_seconds=_wall_clock_from_summary(summary),
+        succeeded=bool(summary.get("succeeded", False)),
+        turns=turns,
+    )
+
+
+def aggregate(sessions: Iterable[Session], label: str) -> Aggregate:
+    agg = Aggregate(label=label)
+    for session in sessions:
+        agg.session_count += 1
+        agg.wall_clock_seconds += session.wall_clock_seconds
+        agg.total_turns += len(session.turns)
+        for turn in session.turns:
+            display = normalize_model(turn.model)
+            agg.turns_by_model[display] += 1
+            totals = agg.tokens_by_model[display]
+            totals.input_tokens += turn.input_tokens
+            totals.output_tokens += turn.output_tokens
+            totals.cache_creation_tokens += turn.cache_creation_tokens
+            totals.cache_read_tokens += turn.cache_read_tokens
+    return agg
+
+
+_MODEL_PATTERN = re.compile(
+    r"^claude-(?P<family>haiku|sonnet|opus)-(?P<major>\d+)-(?P<minor>\d+)(?:-\d{8})?$",
+    re.IGNORECASE,
+)
+
+
+def normalize_model(model_id: str) -> str:
+    if not model_id:
+        return "unknown"
+    match = _MODEL_PATTERN.match(model_id)
+    if not match:
+        return model_id
+    family = match.group("family").capitalize()
+    return f"{family} {match.group('major')}.{match.group('minor')}"
+
+
+def format_duration(seconds: float) -> str:
+    seconds = int(round(seconds))
+    hours, rem = divmod(seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    if hours:
+        return f"{hours:d}h {minutes:02d}m {secs:02d}s"
+    if minutes:
+        return f"{minutes:d}m {secs:02d}s"
+    return f"{secs:d}s"
+
+
+def _render_table(headers: list[str], rows: list[list[str]]) -> str:
+    if not rows:
+        return "  (no data)"
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            widths[i] = max(widths[i], len(cell))
+    fmt = "  ".join(f"{{:<{w}}}" if i == 0 else f"{{:>{w}}}" for i, w in enumerate(widths))
+    sep = "  ".join("-" * w for w in widths)
+    out = [fmt.format(*headers), sep]
+    for row in rows:
+        out.append(fmt.format(*row))
+    return "\n".join(out)
+
+
+def _pct(part: int, whole: int) -> str:
+    if whole <= 0:
+        return "0.0%"
+    return f"{(part / whole) * 100:.1f}%"
+
+
+def render_cadence_table(aggregates: list[Aggregate]) -> str:
+    headers = ["scope", "sessions", "wall_clock", "turns", "turns/min"]
+    rows = []
+    for agg in aggregates:
+        rows.append(
+            [
+                agg.label,
+                str(agg.session_count),
+                format_duration(agg.wall_clock_seconds),
+                str(agg.total_turns),
+                f"{agg.turns_per_minute:.2f}",
+            ]
+        )
+    return _render_table(headers, rows)
+
+
+def render_turn_share_table(agg: Aggregate) -> str:
+    headers = ["model", "turns", "% of turns"]
+    ordered = sorted(agg.turns_by_model.items(), key=lambda kv: kv[1], reverse=True)
+    rows = [[model, str(count), _pct(count, agg.total_turns)] for model, count in ordered]
+    return _render_table(headers, rows)
+
+
+def render_token_share_table(agg: Aggregate) -> str:
+    headers = ["model", "input", "output", "cache_create", "cache_read", "total", "% of total"]
+    total_all = sum(t.total for t in agg.tokens_by_model.values())
+    ordered = sorted(agg.tokens_by_model.items(), key=lambda kv: kv[1].total, reverse=True)
+    rows = []
+    for model, totals in ordered:
+        rows.append(
+            [
+                model,
+                f"{totals.input_tokens:,}",
+                f"{totals.output_tokens:,}",
+                f"{totals.cache_creation_tokens:,}",
+                f"{totals.cache_read_tokens:,}",
+                f"{totals.total:,}",
+                _pct(totals.total, total_all),
+            ]
+        )
+    return _render_table(headers, rows)
+
+
+def tokens_per_minute(value: int, wall_clock_seconds: float) -> float:
+    if wall_clock_seconds <= 0:
+        return 0.0
+    return value / (wall_clock_seconds / 60.0)
+
+
+def render_token_rate_table(agg: Aggregate) -> str:
+    headers = [
+        "model",
+        "input/min",
+        "output/min",
+        "cache_create/min",
+        "cache_read/min",
+        "total/min",
+    ]
+    ordered = sorted(agg.tokens_by_model.items(), key=lambda kv: kv[1].total, reverse=True)
+    rows = []
+    for model, totals in ordered:
+        rows.append(
+            [
+                model,
+                f"{tokens_per_minute(totals.input_tokens, agg.wall_clock_seconds):,.0f}",
+                f"{tokens_per_minute(totals.output_tokens, agg.wall_clock_seconds):,.0f}",
+                f"{tokens_per_minute(totals.cache_creation_tokens, agg.wall_clock_seconds):,.0f}",
+                f"{tokens_per_minute(totals.cache_read_tokens, agg.wall_clock_seconds):,.0f}",
+                f"{tokens_per_minute(totals.total, agg.wall_clock_seconds):,.0f}",
+            ]
+        )
+    return _render_table(headers, rows)
+
+
+def aggregate_to_dict(agg: Aggregate) -> dict:
+    return {
+        "label": agg.label,
+        "session_count": agg.session_count,
+        "wall_clock_seconds": round(agg.wall_clock_seconds, 3),
+        "total_turns": agg.total_turns,
+        "turns_per_minute": round(agg.turns_per_minute, 4),
+        "turns_by_model": dict(agg.turns_by_model),
+        "tokens_by_model": {
+            model: {
+                "input_tokens": totals.input_tokens,
+                "output_tokens": totals.output_tokens,
+                "cache_creation_tokens": totals.cache_creation_tokens,
+                "cache_read_tokens": totals.cache_read_tokens,
+                "total": totals.total,
+            }
+            for model, totals in agg.tokens_by_model.items()
+        },
+        "tokens_per_minute_by_model": {
+            model: {
+                "input_per_min": round(
+                    tokens_per_minute(totals.input_tokens, agg.wall_clock_seconds), 2
+                ),
+                "output_per_min": round(
+                    tokens_per_minute(totals.output_tokens, agg.wall_clock_seconds), 2
+                ),
+                "cache_creation_per_min": round(
+                    tokens_per_minute(totals.cache_creation_tokens, agg.wall_clock_seconds),
+                    2,
+                ),
+                "cache_read_per_min": round(
+                    tokens_per_minute(totals.cache_read_tokens, agg.wall_clock_seconds), 2
+                ),
+                "total_per_min": round(
+                    tokens_per_minute(totals.total, agg.wall_clock_seconds), 2
+                ),
+            }
+            for model, totals in agg.tokens_by_model.items()
+        },
+    }
+
+
+def run(root: Path) -> tuple[Aggregate, Aggregate]:
+    sessions = [s for s in (load_session(d) for d in discover_sessions(root)) if s is not None]
+    overall = aggregate(sessions, "all sessions")
+    failed = aggregate((s for s in sessions if not s.succeeded), "failed sessions")
+    return overall, failed
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent / "benchmark" / "output",
+        help="Directory to scan for session logs (default: <repo>/benchmark/output).",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit aggregate metrics as JSON instead of printed tables.",
+    )
+    args = parser.parse_args(argv)
+
+    if not args.root.is_dir():
+        print(f"error: root {args.root} is not a directory", file=sys.stderr)
+        return 2
+
+    overall, failed = run(args.root)
+
+    if args.json:
+        payload = {
+            "root": str(args.root),
+            "all_sessions": aggregate_to_dict(overall),
+            "failed_sessions": aggregate_to_dict(failed),
+        }
+        json.dump(payload, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        return 0
+
+    print(f"scanned: {args.root}")
+    print()
+    print("Cadence")
+    print(render_cadence_table([overall, failed]))
+    print()
+    print("Model share by turn count (all sessions)")
+    print(render_turn_share_table(overall))
+    print()
+    print("Model share by token count (all sessions)")
+    print(render_token_share_table(overall))
+    print()
+    print("Token throughput per model (per wall-clock minute, all sessions)")
+    print(render_token_rate_table(overall))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,6 +1,6 @@
 # APE
 
-**Applied Primitive Execution** — an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
+**Applied Primitive Expression** — an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
 
 APE files are self-contained. The document declares what tools to use, when to stop and wait, and what to do on success or failure. Hand it to an agent; it runs.
 
@@ -40,6 +40,8 @@ schema/
 ## Benchmarks
 
 The benchmark suite tests how workflow instructions in different formats perform against real apps with realistic prompts. Each case runs in an isolated workspace with a scrubbed environment.
+
+See [`BENCHMARKS.md`](BENCHMARKS.md) for the methodology and how APE has performed so far against the alternatives.
 
 ### Running
 

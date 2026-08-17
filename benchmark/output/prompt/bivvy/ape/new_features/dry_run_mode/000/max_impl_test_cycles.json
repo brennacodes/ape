@@ -1,0 +1,253 @@
+{
+  "check_id": "max_impl_test_cycles",
+  "phase": "workflow",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "0 <= 3",
+  "category": "new_features",
+  "metric_value": 0,
+  "target_value": 3,
+  "operator": "lte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2171810.289499708,
+      "check_id": "max_impl_test_cycles",
+      "phase": "workflow",
+      "condition": {
+        "metric": "phase.cycle_count",
+        "operator": "lte",
+        "target": 3
+      }
+    },
+    {
+      "function": "_detect_phases",
+      "action": "phase_detection",
+      "timestamp": 2171810.28994675,
+      "specs": {
+        "specification": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "test_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "implementation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "src_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "documentation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "required_command_ids": [
+            "doc_edit",
+            "cargo_doc",
+            "working_on"
+          ]
+        },
+        "linting": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "cargo_fmt",
+            "cargo_clippy",
+            "working_on"
+          ]
+        },
+        "testing": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_linting",
+          "legal_redirect_targets": [
+            "implementation",
+            "build"
+          ],
+          "required_command_ids": [
+            "cargo_llvm_cov",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "build": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "linting",
+            "commit"
+          ],
+          "required_command_ids": [
+            "cargo_build_dev",
+            "cargo_build_release",
+            "working_on"
+          ]
+        },
+        "commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "git_add",
+            "git_commit",
+            "working_on"
+          ]
+        },
+        "post-commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "git_log",
+            "cargo_test",
+            "cargo_build",
+            "working_on"
+          ]
+        },
+        "failure_recovery": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "edit",
+            "command"
+          ]
+        }
+      },
+      "per_phase": {
+        "specification": {
+          "phase": "specification",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "test_edit"
+          ]
+        },
+        "implementation": {
+          "phase": "implementation",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "src_edit"
+          ]
+        },
+        "linting": {
+          "phase": "linting",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_fmt",
+            "cargo_clippy"
+          ]
+        },
+        "testing": {
+          "phase": "testing",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_llvm_cov"
+          ]
+        },
+        "documentation": {
+          "phase": "documentation",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "doc_edit",
+            "cargo_doc"
+          ]
+        },
+        "build": {
+          "phase": "build",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_build_dev",
+            "cargo_build_release"
+          ]
+        },
+        "commit": {
+          "phase": "commit",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "git_add",
+            "git_commit"
+          ]
+        },
+        "post-commit": {
+          "phase": "post-commit",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "git_log",
+            "cargo_build"
+          ]
+        },
+        "failure_recovery": {
+          "phase": "failure_recovery",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "edit"
+          ]
+        }
+      },
+      "boundaries": {},
+      "dedup_actions": []
+    },
+    {
+      "function": "_detect_phases",
+      "action": "execution_order_built",
+      "timestamp": 2171810.289947791,
+      "phase_events": {},
+      "floating_phases": [
+        "failure_recovery"
+      ],
+      "execution_order": []
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2171810.290049208,
+      "operator": "lte",
+      "metric_value": 0,
+      "target_value": 3,
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2171810.290053958,
+      "passed": true,
+      "detail": "0 <= 3"
+    }
+  ]
+}

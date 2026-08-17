@@ -1,0 +1,86 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock 2>/dev/null && head -100 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock', 'grep -A2 \\'name = \"console\"\\' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock && echo \"---\" && grep -A2 \\'name = \"dialoguer\"\\' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock', 'cargo test --all-features 2>&1 | head -100', 'cargo test --all-features 2>&1', 'tail -80 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'cargo test --all-features 2>&1 | grep -E \"test result:|FAILED|error\"', 'git status', 'git diff src/ui/prompts.rs', 'git diff tests/system/helpers.rs', 'git log -3 --oneline', 'git log -1 --oneline', 'git add src/ui/prompts.rs tests/system/helpers.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nHandle Ctrl+D gracefully in interactive prompts\\n\\nThe console/dialoguer crates can panic with an unwrap error when the\\nuser presses Ctrl+D (EOF) during an interactive prompt. This wraps all\\nprompt interactions with panic-catching logic and explicitly handles\\nthe Ctrl+D byte (0x04) in the custom raw-mode prompts.\\n\\n- Add read_key_safe() wrapper that catches panics from console\\'s\\n  Term::read_key() and converts them to IO errors\\n- Add catch_interact() wrapper that catches panics from dialoguer\\'s\\n  interact_on() and converts them to IO errors\\n- Handle Key::Char(\\'\\\\x04\\') in prompt_yes_no and prompt_select_dumb\\n  as an EOF signal, returning an UnexpectedEof error\\n- Add KEY_CTRL_D constant to integration test helpers\\nEOF\\n)\"', 'cargo test --all-features 2>&1 | grep \"test result:\"', 'cargo build 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "bugs",
+  "metric_value": [
+    "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock 2>/dev/null && head -100 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock",
+    "grep -A2 'name = \"console\"' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock && echo \"---\" && grep -A2 'name = \"dialoguer\"' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock",
+    "cargo test --all-features 2>&1 | head -100",
+    "cargo test --all-features 2>&1",
+    "tail -80 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt",
+    "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo fmt -- --check 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo build --all-targets --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"test result:|FAILED|error\"",
+    "git status",
+    "git diff src/ui/prompts.rs",
+    "git diff tests/system/helpers.rs",
+    "git log -3 --oneline",
+    "git log -1 --oneline",
+    "git add src/ui/prompts.rs tests/system/helpers.rs",
+    "git commit -m \"$(cat <<'EOF'\nHandle Ctrl+D gracefully in interactive prompts\n\nThe console/dialoguer crates can panic with an unwrap error when the\nuser presses Ctrl+D (EOF) during an interactive prompt. This wraps all\nprompt interactions with panic-catching logic and explicitly handles\nthe Ctrl+D byte (0x04) in the custom raw-mode prompts.\n\n- Add read_key_safe() wrapper that catches panics from console's\n  Term::read_key() and converts them to IO errors\n- Add catch_interact() wrapper that catches panics from dialoguer's\n  interact_on() and converts them to IO errors\n- Handle Key::Char('\\x04') in prompt_yes_no and prompt_select_dumb\n  as an EOF signal, returning an UnexpectedEof error\n- Add KEY_CTRL_D constant to integration test helpers\nEOF\n)\"",
+    "cargo test --all-features 2>&1 | grep \"test result:\"",
+    "cargo build 2>&1"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2163201.846401958,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2163201.8465735,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock 2>/dev/null && head -100 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock",
+        "grep -A2 'name = \"console\"' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock && echo \"---\" && grep -A2 'name = \"dialoguer\"' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock",
+        "cargo test --all-features 2>&1 | head -100",
+        "cargo test --all-features 2>&1",
+        "tail -80 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt",
+        "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo fmt -- --check 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo build --all-targets --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"test result:|FAILED|error\"",
+        "git status",
+        "git diff src/ui/prompts.rs",
+        "git diff tests/system/helpers.rs",
+        "git log -3 --oneline",
+        "git log -1 --oneline",
+        "git add src/ui/prompts.rs tests/system/helpers.rs",
+        "git commit -m \"$(cat <<'EOF'\nHandle Ctrl+D gracefully in interactive prompts\n\nThe console/dialoguer crates can panic with an unwrap error when the\nuser presses Ctrl+D (EOF) during an interactive prompt. This wraps all\nprompt interactions with panic-catching logic and explicitly handles\nthe Ctrl+D byte (0x04) in the custom raw-mode prompts.\n\n- Add read_key_safe() wrapper that catches panics from console's\n  Term::read_key() and converts them to IO errors\n- Add catch_interact() wrapper that catches panics from dialoguer's\n  interact_on() and converts them to IO errors\n- Handle Key::Char('\\x04') in prompt_yes_no and prompt_select_dumb\n  as an EOF signal, returning an UnexpectedEof error\n- Add KEY_CTRL_D constant to integration test helpers\nEOF\n)\"",
+        "cargo test --all-features 2>&1 | grep \"test result:\"",
+        "cargo build 2>&1"
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2163201.846593125,
+      "passed": true,
+      "detail": "got ['ls /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock 2>/dev/null && head -100 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock', 'grep -A2 \\'name = \"console\"\\' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock && echo \"---\" && grep -A2 \\'name = \"dialoguer\"\\' /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-lnisq4j7/Cargo.lock', 'cargo test --all-features 2>&1 | head -100', 'cargo test --all-features 2>&1', 'tail -80 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-lnisq4j7/00979367-d2d3-48ab-9665-055fdc81a003/tool-results/bjjqbzv35.txt', 'cargo doc --no-deps --all-features 2>&1', 'cargo fmt -- --check 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo build --all-targets --all-features 2>&1', 'cargo build --release 2>&1', 'cargo test --all-features 2>&1 | grep -E \"test result:|FAILED|error\"', 'git status', 'git diff src/ui/prompts.rs', 'git diff tests/system/helpers.rs', 'git log -3 --oneline', 'git log -1 --oneline', 'git add src/ui/prompts.rs tests/system/helpers.rs', 'git commit -m \"$(cat <<\\'EOF\\'\\nHandle Ctrl+D gracefully in interactive prompts\\n\\nThe console/dialoguer crates can panic with an unwrap error when the\\nuser presses Ctrl+D (EOF) during an interactive prompt. This wraps all\\nprompt interactions with panic-catching logic and explicitly handles\\nthe Ctrl+D byte (0x04) in the custom raw-mode prompts.\\n\\n- Add read_key_safe() wrapper that catches panics from console\\'s\\n  Term::read_key() and converts them to IO errors\\n- Add catch_interact() wrapper that catches panics from dialoguer\\'s\\n  interact_on() and converts them to IO errors\\n- Handle Key::Char(\\'\\\\x04\\') in prompt_yes_no and prompt_select_dumb\\n  as an EOF signal, returning an UnexpectedEof error\\n- Add KEY_CTRL_D constant to integration test helpers\\nEOF\\n)\"', 'cargo test --all-features 2>&1 | grep \"test result:\"', 'cargo build 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

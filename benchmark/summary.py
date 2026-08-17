@@ -2,26 +2,35 @@
 """
 Summarise benchmark results with flexible views and filters.
 
+Tables surface each workflow format as one column per source
+(claude-md, prompt). no-workflow has no source layer and shows as a
+single baseline column.
+
 Views (pick one, default is scenario + aggregate):
-  --checks         Per-check pass rates across formats
-  --phase          Per-phase pass rates across formats
-  --timeouts       Show which scenarios/runs timed out per format
+  --checks         Per-check pass rates across (format, source) columns
+  --phase          Per-phase pass rates across (format, source) columns
+  --timeouts      Which scenarios/runs timed out per (format, source) column
 
 Filters (combine with any view):
   --category CAT   Filter to category (comma-separated)
   --format FMT     Show only specific formats (comma-separated)
+  --source SRC     Show only specific sources: claude-md | prompt
+                   (comma-separated). no-workflow always appears as a
+                   baseline regardless of this filter.
   --scenario NAME  Filter to a specific scenario name
   --since WINDOW   Only include runs started within the window
                    (e.g. 15d, 36h, 2026-04-24)
 
 Examples:
     bin/summary                                    # default tables
-    bin/summary --checks                           # which checks pass per format
+    bin/summary --checks                           # which checks pass per column
     bin/summary --checks --category bugs           # check detail for bugs only
     bin/summary --phase                            # phase-level comparison
     bin/summary --timeouts                         # which runs timed out
     bin/summary --category bugs                    # scenario table, bugs only
-    bin/summary --format ape,markdown              # compare two formats
+    bin/summary --format ape,markdown              # compare two formats (both sources)
+    bin/summary --source prompt                    # only prompt-delivered runs
+    bin/summary --format markdown --source claude-md
     bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
     bin/summary --since 15d                        # only runs from the last 15 days
 """
@@ -58,6 +67,7 @@ CATEGORY_LABELS = {
 }
 
 FORMAT_ORDER = ["adhoc-xml", "ape", "markdown", "no-workflow", "plain-text"]
+SOURCE_ORDER = ["claude-md", "prompt"]
 
 PHASE_ORDER = [
     "workflow",
@@ -103,12 +113,45 @@ def load_summaries(results_dir: Path) -> list[dict]:
 
 
 def _summary_label(summary: dict) -> str:
-    """Short identifier for a summary used in --since warning output."""
+    """Short identifier for a summary used in --since warning output.
+
+    For source-bound runs the source segment is inserted after the format
+    (e.g. ``bivvy/ape/claude-md/bugs/silent_yaml_failure/3``). Pre-source
+    summaries with no source field render in the older shape.
+    """
     fixture = summary.get("fixture_id", "?")
     fmt = summary.get("format", "?")
+    src = summary.get("source", "")
     prompt = summary.get("prompt_id", "?")
     run = summary.get("run_id", "?")
+    if src:
+        return f"{fixture}/{fmt}/{src}/{prompt}/{run}"
     return f"{fixture}/{fmt}/{prompt}/{run}"
+
+
+def column_key(summary: dict) -> str:
+    """Composite (format, source) column key used by cross-format tables.
+
+    Source-bound rows surface as ``"<format>:<source>"`` so claude-md and
+    prompt runs of the same format render as separate columns. no-workflow
+    stays as a bare format name because the source layer doesn't apply.
+    """
+    fmt = summary.get("format", "")
+    src = summary.get("source", "")
+    if src:
+        return f"{fmt}:{src}"
+    return fmt
+
+
+def _column_sort_key(key: str) -> tuple[int, int, str, str]:
+    """Sort columns by canonical format order, then source order."""
+    if ":" in key:
+        fmt, src = key.split(":", 1)
+    else:
+        fmt, src = key, ""
+    fmt_idx = FORMAT_ORDER.index(fmt) if fmt in FORMAT_ORDER else len(FORMAT_ORDER)
+    src_idx = SOURCE_ORDER.index(src) if src in SOURCE_ORDER else -1
+    return (fmt_idx, src_idx, fmt, src)
 
 
 def filter_summaries(
@@ -116,8 +159,13 @@ def filter_summaries(
     categories: list[str] | None,
     formats: list[str] | None,
     scenario: str | None,
+    sources: list[str] | None = None,
 ) -> list[dict]:
-    """Apply category, format, and scenario filters to summaries."""
+    """Apply category, format, scenario, and source filters to summaries.
+
+    ``sources`` is ignored for no-workflow runs (source-agnostic baseline -
+    always included regardless of the source filter).
+    """
     result = summaries
     if categories:
         result = [
@@ -133,9 +181,23 @@ def filter_summaries(
             for s in result
             if s.get("prompt_id", "").split("/", 1)[-1] == scenario
         ]
+    if sources:
+        result = [
+            s
+            for s in result
+            if s.get("format") == "no-workflow"
+            or s.get("source", "") in sources
+        ]
     return result
 
 
+def discover_columns(summaries: list[dict]) -> list[str]:
+    """Return composite ``(format[:source])`` column keys in canonical order."""
+    present = {column_key(s) for s in summaries}
+    return sorted(present, key=_column_sort_key)
+
+
+# Back-compat alias: callers that still want format-only discovery.
 def discover_formats(summaries: list[dict]) -> list[str]:
     """Return format names in canonical order, limited to those present."""
     present = {s.get("format") for s in summaries}
@@ -188,15 +250,19 @@ def build_title_suffix(
 def build_scenario_data(
     summaries: list[dict],
 ) -> dict[str, dict[str, list[dict]]]:
-    """Group summaries by (prompt_id, format)."""
+    """Group summaries by (prompt_id, column).
+
+    Column is the composite ``(format, source)`` key — claude-md and
+    prompt runs of the same format stay in separate buckets.
+    """
     data: dict[str, dict[str, list[dict]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for s in summaries:
         prompt_id = s.get("prompt_id", "")
-        fmt = s.get("format", "")
-        if prompt_id and fmt:
-            data[prompt_id][fmt].append(s)
+        col = column_key(s)
+        if prompt_id and col:
+            data[prompt_id][col].append(s)
     return data
 
 
@@ -212,18 +278,22 @@ def scenario_pass_rate(runs: list[dict]) -> tuple[float | None, bool]:
 
 def print_scenario_table(
     scenario_data: dict[str, dict[str, list[dict]]],
-    formats: list[str],
+    columns: list[str],
     title_suffix: str = "",
 ) -> None:
-    """Print the per-scenario pass-rate table."""
+    """Print the per-scenario pass-rate table.
+
+    ``columns`` are composite ``(format[:source])`` keys produced by
+    ``discover_columns``.
+    """
     title = "Per-Scenario Pass Rates"
     if title_suffix:
         title += f" \u2014 {title_suffix}"
 
     table = Table(title=title, title_style="bold", show_lines=True)
     table.add_column("Scenario", style="bold", min_width=30)
-    for fmt in formats:
-        table.add_column(fmt, justify="center", min_width=10)
+    for col in columns:
+        table.add_column(col, justify="center", min_width=10)
 
     scenarios_by_cat: dict[str, list[str]] = defaultdict(list)
     for prompt_id in scenario_data:
@@ -237,13 +307,13 @@ def print_scenario_table(
             continue
         table.add_row(
             Text(CATEGORY_LABELS.get(cat, cat), style="bold italic cyan"),
-            *["" for _ in formats],
+            *["" for _ in columns],
         )
         for prompt_id in scenarios_by_cat[cat]:
             scenario_name = prompt_id.split("/", 1)[1]
             cells = []
-            for fmt in formats:
-                runs = scenario_data[prompt_id].get(fmt, [])
+            for col in columns:
+                runs = scenario_data[prompt_id].get(col, [])
                 if not runs:
                     cells.append(Text("-", style="dim"))
                 else:
@@ -259,7 +329,7 @@ def print_scenario_table(
 
 def print_aggregate_table(
     scenario_data: dict[str, dict[str, list[dict]]],
-    formats: list[str],
+    columns: list[str],
     title_suffix: str = "",
 ) -> None:
     """Print the aggregate summary table."""
@@ -269,13 +339,13 @@ def print_aggregate_table(
 
     table = Table(title=title, title_style="bold", show_lines=True)
     table.add_column("Metric", style="bold", min_width=28)
-    for fmt in formats:
-        table.add_column(fmt, justify="center", min_width=10)
+    for col in columns:
+        table.add_column(col, justify="center", min_width=10)
 
     all_runs: dict[str, list[dict]] = defaultdict(list)
     for prompt_id in scenario_data:
-        for fmt, runs in scenario_data[prompt_id].items():
-            all_runs[fmt].extend(runs)
+        for col, runs in scenario_data[prompt_id].items():
+            all_runs[col].extend(runs)
 
     row_completed: list[str | Text] = []
     row_timeout: list[str | Text] = []
@@ -286,8 +356,8 @@ def print_aggregate_table(
     row_avg_turns: list[str | Text] = []
     row_avg_time: list[str | Text] = []
 
-    for fmt in formats:
-        runs = all_runs.get(fmt, [])
+    for col in columns:
+        runs = all_runs.get(col, [])
         total = len(runs)
         succeeded = [r for r in runs if r.get("succeeded")]
         n_ok = len(succeeded)
@@ -357,10 +427,11 @@ def print_aggregate_table(
 def build_check_data(
     summaries: list[dict],
 ) -> dict[str, dict[str, dict[str, int]]]:
-    """Aggregate per-check pass/fail/skip counts by format.
+    """Aggregate per-check pass/fail/skip counts by column.
 
-    Returns {check_id: {format: {"passed": n, "failed": n, "skipped": n}}}.
-    Only includes successful runs (timed-out runs have empty checks).
+    Returns ``{check_id: {column: {"passed": n, "failed": n, "skipped": n}}}``
+    where ``column`` is the composite ``(format[:source])`` key. Only
+    includes successful runs (timed-out runs have empty checks).
     """
     data: dict[str, dict[str, dict[str, int]]] = defaultdict(
         lambda: defaultdict(lambda: {"passed": 0, "failed": 0, "skipped": 0})
@@ -368,16 +439,16 @@ def build_check_data(
     for s in summaries:
         if not s.get("succeeded"):
             continue
-        fmt = s.get("format", "")
+        col = column_key(s)
         for check in s.get("checks", []):
             cid = check["check_id"]
             passed = check.get("passed")
             if passed is True:
-                data[cid][fmt]["passed"] += 1
+                data[cid][col]["passed"] += 1
             elif passed is False:
-                data[cid][fmt]["failed"] += 1
+                data[cid][col]["failed"] += 1
             else:
-                data[cid][fmt]["skipped"] += 1
+                data[cid][col]["skipped"] += 1
     return data
 
 
@@ -392,10 +463,10 @@ def check_phase_map(summaries: list[dict]) -> dict[str, str]:
 
 def print_checks_table(
     summaries: list[dict],
-    formats: list[str],
+    columns: list[str],
     title_suffix: str = "",
 ) -> None:
-    """Print per-check pass rates across formats."""
+    """Print per-check pass rates across (format, source) columns."""
     check_data = build_check_data(summaries)
     phases = check_phase_map(summaries)
 
@@ -411,8 +482,8 @@ def print_checks_table(
 
     table = Table(title=title, title_style="bold", show_lines=True)
     table.add_column("Check", style="bold", min_width=34)
-    for fmt in formats:
-        table.add_column(fmt, justify="center", min_width=10)
+    for col in columns:
+        table.add_column(col, justify="center", min_width=10)
 
     # Group checks by phase
     checks_by_phase: dict[str, list[str]] = defaultdict(list)
@@ -428,12 +499,12 @@ def print_checks_table(
             continue
         checks = checks_by_phase[phase]
 
-        # Skip phases where every check in every format is skipped
+        # Skip phases where every check in every column is skipped
         any_evaluated = False
         for cid in checks:
-            for fmt in formats:
+            for col in columns:
                 counts = check_data[cid].get(
-                    fmt, {"passed": 0, "failed": 0, "skipped": 0}
+                    col, {"passed": 0, "failed": 0, "skipped": 0}
                 )
                 if counts["passed"] + counts["failed"] > 0:
                     any_evaluated = True
@@ -446,14 +517,14 @@ def print_checks_table(
         # Phase header row
         table.add_row(
             Text(PHASE_LABELS.get(phase, phase), style="bold italic cyan"),
-            *["" for _ in formats],
+            *["" for _ in columns],
         )
 
         for cid in checks:
             cells = []
-            for fmt in formats:
+            for col in columns:
                 counts = check_data[cid].get(
-                    fmt, {"passed": 0, "failed": 0, "skipped": 0}
+                    col, {"passed": 0, "failed": 0, "skipped": 0}
                 )
                 evaluated = counts["passed"] + counts["failed"]
                 if evaluated == 0:
@@ -469,13 +540,13 @@ def print_checks_table(
     completed: dict[str, int] = defaultdict(int)
     total: dict[str, int] = defaultdict(int)
     for s in summaries:
-        fmt = s.get("format", "")
-        if fmt in formats:
-            total[fmt] += 1
+        col = column_key(s)
+        if col in columns:
+            total[col] += 1
             if s.get("succeeded"):
-                completed[fmt] += 1
+                completed[col] += 1
 
-    parts = [f"{fmt}: {completed[fmt]}/{total[fmt]}" for fmt in formats]
+    parts = [f"{col}: {completed[col]}/{total[col]}" for col in columns]
     console.print(f"[dim]Completed runs: {', '.join(parts)}[/dim]")
 
 
@@ -486,10 +557,10 @@ def print_checks_table(
 
 def print_phase_table(
     summaries: list[dict],
-    formats: list[str],
+    columns: list[str],
     title_suffix: str = "",
 ) -> None:
-    """Print per-phase pass rates across formats."""
+    """Print per-phase pass rates across (format, source) columns."""
     check_data = build_check_data(summaries)
     phases = check_phase_map(summaries)
 
@@ -504,8 +575,8 @@ def print_phase_table(
     table = Table(title=title, title_style="bold", show_lines=True)
     table.add_column("Phase", style="bold", min_width=20)
     table.add_column("Checks", justify="right", min_width=6)
-    for fmt in formats:
-        table.add_column(fmt, justify="center", min_width=10)
+    for col in columns:
+        table.add_column(col, justify="center", min_width=10)
 
     for phase in PHASE_ORDER:
         phase_checks = [
@@ -518,12 +589,12 @@ def print_phase_table(
 
         any_evaluated = False
         cells = []
-        for fmt in formats:
+        for col in columns:
             p_total = 0
             f_total = 0
             for cid in phase_checks:
                 counts = check_data[cid].get(
-                    fmt, {"passed": 0, "failed": 0, "skipped": 0}
+                    col, {"passed": 0, "failed": 0, "skipped": 0}
                 )
                 p_total += counts["passed"]
                 f_total += counts["failed"]
@@ -550,13 +621,13 @@ def print_phase_table(
     completed: dict[str, int] = defaultdict(int)
     total: dict[str, int] = defaultdict(int)
     for s in summaries:
-        fmt = s.get("format", "")
-        if fmt in formats:
-            total[fmt] += 1
+        col = column_key(s)
+        if col in columns:
+            total[col] += 1
             if s.get("succeeded"):
-                completed[fmt] += 1
+                completed[col] += 1
 
-    parts = [f"{fmt}: {completed[fmt]}/{total[fmt]}" for fmt in formats]
+    parts = [f"{col}: {completed[col]}/{total[col]}" for col in columns]
     console.print(f"[dim]Completed runs: {', '.join(parts)}[/dim]")
 
 
@@ -567,28 +638,28 @@ def print_phase_table(
 
 def print_timeouts_table(
     summaries: list[dict],
-    formats: list[str],
+    columns: list[str],
     title_suffix: str = "",
 ) -> None:
-    """Print tables showing which scenarios/runs timed out per format."""
-    # Index: (prompt_id, format, run_id) -> timed out?
+    """Print tables showing which scenarios/runs timed out per column."""
+    # Index: (prompt_id, column, run_id) -> timed out?
     timed_out: dict[tuple[str, str, int], bool] = {}
     all_run_ids: set[int] = set()
     for s in summaries:
         prompt_id = s.get("prompt_id", "")
-        fmt = s.get("format", "")
+        col = column_key(s)
         run_id = s.get("run_id", 0)
-        if not prompt_id or not fmt:
+        if not prompt_id or not col:
             continue
-        timed_out[(prompt_id, fmt, run_id)] = not s.get("succeeded")
+        timed_out[(prompt_id, col, run_id)] = not s.get("succeeded")
         all_run_ids.add(run_id)
 
     run_ids = sorted(all_run_ids)
 
     # Only show scenarios that have at least one timeout
     scenario_timeout_counts: dict[str, int] = defaultdict(int)
-    for (pid, fmt, rid), is_timeout in timed_out.items():
-        if is_timeout and fmt in formats:
+    for (pid, col, rid), is_timeout in timed_out.items():
+        if is_timeout and col in columns:
             scenario_timeout_counts[pid] += 1
 
     timed_out_scenarios = sorted(
@@ -598,7 +669,7 @@ def print_timeouts_table(
         console.print("[green]No timeouts found![/green]")
         return
 
-    # -- Per-scenario grids: run# rows x format columns ---------------------
+    # -- Per-scenario grids: run# rows x (format, source) columns ----------
     for prompt_id in timed_out_scenarios:
         scenario_name = prompt_id.split("/", 1)[1]
         n = scenario_timeout_counts[prompt_id]
@@ -608,18 +679,18 @@ def print_timeouts_table(
             show_lines=True,
         )
         table.add_column("Run", justify="center", min_width=5, style="bold")
-        for fmt in formats:
-            table.add_column(fmt, justify="center", min_width=10)
+        for col in columns:
+            table.add_column(col, justify="center", min_width=10)
 
         for rid in run_ids:
-            # Skip run rows where no format has data for this scenario
+            # Skip run rows where no column has data for this scenario
             if not any(
-                (prompt_id, fmt, rid) in timed_out for fmt in formats
+                (prompt_id, col, rid) in timed_out for col in columns
             ):
                 continue
             cells = []
-            for fmt in formats:
-                key = (prompt_id, fmt, rid)
+            for col in columns:
+                key = (prompt_id, col, rid)
                 if key not in timed_out:
                     cells.append(Text("", style="dim"))
                 elif timed_out[key]:
@@ -638,27 +709,27 @@ def print_timeouts_table(
         show_lines=True,
     )
     summary.add_column("Scenario", style="bold", min_width=30)
-    for fmt in formats:
-        summary.add_column(fmt, justify="center", min_width=10)
+    for col in columns:
+        summary.add_column(col, justify="center", min_width=10)
     summary.add_column("Total", justify="center", min_width=7, style="bold")
 
-    fmt_totals: dict[str, int] = defaultdict(int)
+    col_totals: dict[str, int] = defaultdict(int)
     grand_total = 0
 
     for prompt_id in timed_out_scenarios:
         scenario_name = prompt_id.split("/", 1)[1]
         cells = []
         row_total = 0
-        for fmt in formats:
+        for col in columns:
             n = sum(
                 1
                 for rid in run_ids
-                if timed_out.get((prompt_id, fmt, rid))
+                if timed_out.get((prompt_id, col, rid))
             )
             if n:
                 cells.append(Text(str(n), style="red"))
                 row_total += n
-                fmt_totals[fmt] += n
+                col_totals[col] += n
             else:
                 cells.append(Text("-", style="dim"))
         grand_total += row_total
@@ -666,8 +737,8 @@ def print_timeouts_table(
         summary.add_row(scenario_name, *cells)
 
     total_cells = []
-    for fmt in formats:
-        n = fmt_totals.get(fmt, 0)
+    for col in columns:
+        n = col_totals.get(col, 0)
         total_cells.append(
             Text(str(n), style="bold red" if n else "dim")
         )
@@ -693,13 +764,13 @@ def print_timeouts_table(
     for rid in run_ids:
         n_to = sum(
             1
-            for (pid, fmt, r), v in timed_out.items()
-            if r == rid and v and fmt in formats
+            for (pid, col, r), v in timed_out.items()
+            if r == rid and v and col in columns
         )
         n_all = sum(
             1
-            for (pid, fmt, r) in timed_out
-            if r == rid and fmt in formats
+            for (pid, col, r) in timed_out
+            if r == rid and col in columns
         )
         rate = n_to / n_all if n_all else 0
         pct = f"{round(rate * 100)}%"
@@ -724,26 +795,35 @@ def main() -> None:
         description="Summarise benchmark results.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
+columns:
+  Source-bound formats render as one column per source (e.g.
+  "markdown:claude-md", "markdown:prompt"). no-workflow has no source
+  layer and shows as a single baseline column.
+
 views (pick one, default is scenario + aggregate):
-  --checks         Per-check pass rates across formats
-  --phase          Per-phase pass rates across formats
-  --timeouts       Show which scenarios/runs timed out per format
+  --checks         Per-check pass rates across (format, source) columns
+  --phase          Per-phase pass rates across (format, source) columns
+  --timeouts      Which scenarios/runs timed out per (format, source) column
 
 filters (combine with any view):
   --category CAT   Filter to category (comma-separated, e.g. bugs,new_features)
   --format FMT     Show only specific formats (comma-separated)
+  --source SRC     Show only specific sources: claude-md | prompt
+                   (comma-separated). no-workflow appears regardless.
   --scenario NAME  Filter to a specific scenario name
   --since WINDOW   Only include runs started within the window
                    (e.g. 15d, 36h, 2026-04-24, 2026-04-24T12:00:00)
 
 examples:
   bin/summary                                    # default tables
-  bin/summary --checks                           # which checks pass per format
+  bin/summary --checks                           # which checks pass per column
   bin/summary --checks --category bugs           # check detail for bugs only
   bin/summary --phase                            # phase-level comparison
   bin/summary --timeouts                         # which runs timed out
   bin/summary --category bugs                    # scenario table, bugs only
-  bin/summary --format ape,markdown              # compare two formats
+  bin/summary --format ape,markdown              # compare two formats (both sources)
+  bin/summary --source prompt                    # only prompt-delivered runs
+  bin/summary --format markdown --source claude-md
   bin/summary --checks --scenario dry_run_mode   # check detail for one scenario
   bin/summary --since 15d                        # only runs from the last 15 days
   bin/summary --since 2026-04-24                 # only runs on/after 2026-04-24
@@ -782,6 +862,16 @@ examples:
         default=None,
         dest="fmt_filter",
         help="Show only specific formats (comma-separated)",
+    )
+    parser.add_argument(
+        "--source",
+        type=str,
+        default=None,
+        dest="source_filter",
+        help=(
+            "Show only specific workflow sources (claude-md | prompt, "
+            "comma-separated). no-workflow is always shown as a baseline."
+        ),
     )
     parser.add_argument(
         "--scenario",
@@ -848,38 +938,44 @@ examples:
         if args.fmt_filter
         else None
     )
+    source_filter = (
+        [s.strip() for s in args.source_filter.split(",")]
+        if args.source_filter
+        else None
+    )
+    if source_filter:
+        unknown = [s for s in source_filter if s not in SOURCE_ORDER]
+        if unknown:
+            console.print(
+                f"[red]Unknown source(s):[/red] {', '.join(unknown)}. "
+                f"Valid choices: {', '.join(SOURCE_ORDER)}."
+            )
+            sys.exit(1)
 
     filtered = filter_summaries(
-        summaries, categories, fmt_filter, args.scenario
+        summaries, categories, fmt_filter, args.scenario, source_filter,
     )
     if not filtered:
         console.print("[red]No results match the given filters.[/red]")
         sys.exit(1)
 
-    if fmt_filter:
-        formats = [
-            f
-            for f in fmt_filter
-            if f in {s.get("format") for s in filtered}
-        ]
-    else:
-        formats = discover_formats(filtered)
+    columns = discover_columns(filtered)
 
     title_suffix = build_title_suffix(categories, args.scenario)
 
     console.print()
 
     if args.checks:
-        print_checks_table(filtered, formats, title_suffix)
+        print_checks_table(filtered, columns, title_suffix)
     elif args.phase:
-        print_phase_table(filtered, formats, title_suffix)
+        print_phase_table(filtered, columns, title_suffix)
     elif args.timeouts:
-        print_timeouts_table(filtered, formats, title_suffix)
+        print_timeouts_table(filtered, columns, title_suffix)
     else:
         scenario_data = build_scenario_data(filtered)
-        print_scenario_table(scenario_data, formats, title_suffix)
+        print_scenario_table(scenario_data, columns, title_suffix)
         console.print()
-        print_aggregate_table(scenario_data, formats, title_suffix)
+        print_aggregate_table(scenario_data, columns, title_suffix)
 
     console.print()
 

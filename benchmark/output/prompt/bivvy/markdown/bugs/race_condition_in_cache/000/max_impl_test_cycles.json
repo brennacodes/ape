@@ -1,0 +1,590 @@
+{
+  "check_id": "max_impl_test_cycles",
+  "phase": "workflow",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "2 <= 3",
+  "category": "bugs",
+  "metric_value": 2,
+  "target_value": 3,
+  "operator": "lte",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2167351.118118208,
+      "check_id": "max_impl_test_cycles",
+      "phase": "workflow",
+      "condition": {
+        "metric": "phase.cycle_count",
+        "operator": "lte",
+        "target": 3
+      }
+    },
+    {
+      "function": "_detect_phases",
+      "action": "phase_detection",
+      "timestamp": 2167351.121336125,
+      "specs": {
+        "specification": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "test_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "implementation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "src_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "documentation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "required_command_ids": [
+            "doc_edit",
+            "cargo_doc",
+            "working_on"
+          ]
+        },
+        "linting": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "cargo_fmt",
+            "cargo_clippy",
+            "working_on"
+          ]
+        },
+        "testing": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_linting",
+          "legal_redirect_targets": [
+            "implementation",
+            "build"
+          ],
+          "required_command_ids": [
+            "cargo_llvm_cov",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "build": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "linting",
+            "commit"
+          ],
+          "required_command_ids": [
+            "cargo_build_dev",
+            "cargo_build_release",
+            "working_on"
+          ]
+        },
+        "commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "git_add",
+            "git_commit",
+            "working_on"
+          ]
+        },
+        "post-commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "git_log",
+            "cargo_test",
+            "cargo_build",
+            "working_on"
+          ]
+        },
+        "failure_recovery": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "edit",
+            "command"
+          ]
+        }
+      },
+      "per_phase": {
+        "specification": {
+          "phase": "specification",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "test_edit",
+              "kind": "required",
+              "unified_pos": 51,
+              "trace_index": 44,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 53,
+              "trace_index": 45,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 0.0,
+              "requires_ok": true,
+              "contribution": 0.0
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.0,
+          "cap_hit": false,
+          "reason": "score 0.000 below threshold 0.8"
+        },
+        "implementation": {
+          "phase": "implementation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "src_edit",
+              "kind": "required",
+              "unified_pos": 51,
+              "trace_index": 44,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 53,
+              "trace_index": 45,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 45,
+          "first_occurrence_fallback_used": false
+        },
+        "linting": {
+          "phase": "linting",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "cargo_fmt",
+              "kind": "required",
+              "unified_pos": 62,
+              "trace_index": 51,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "cargo_clippy",
+              "kind": "required",
+              "unified_pos": 64,
+              "trace_index": 52,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 52,
+          "first_occurrence_fallback_used": false
+        },
+        "testing": {
+          "phase": "testing",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_llvm_cov"
+          ]
+        },
+        "documentation": {
+          "phase": "documentation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "doc_edit",
+              "kind": "required",
+              "unified_pos": 47,
+              "trace_index": 42,
+              "proximity": 0.2666666666666667,
+              "cross_phase": 0.3999999999999999,
+              "position": 0.5,
+              "requires_ok": true,
+              "contribution": 0.026666666666666665
+            },
+            {
+              "id": "cargo_doc",
+              "kind": "required",
+              "unified_pos": 58,
+              "trace_index": 49,
+              "proximity": 0.2666666666666667,
+              "cross_phase": 0.3999999999999999,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.05333333333333333
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.07999999999999999,
+          "cap_hit": false,
+          "reason": "score 0.080 below threshold 0.8"
+        },
+        "build": {
+          "phase": "build",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "commit",
+            "linting"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "cargo_build_dev",
+              "kind": "required",
+              "unified_pos": 71,
+              "trace_index": 57,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "cargo_build_release",
+              "kind": "required",
+              "unified_pos": 72,
+              "trace_index": 58,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 58,
+          "first_occurrence_fallback_used": false
+        },
+        "commit": {
+          "phase": "commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "git_add",
+              "kind": "required",
+              "unified_pos": 80,
+              "trace_index": 64,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "git_commit",
+              "kind": "required",
+              "unified_pos": 81,
+              "trace_index": 65,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 65,
+          "first_occurrence_fallback_used": false
+        },
+        "post-commit": {
+          "phase": "post-commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 3,
+          "required": [
+            {
+              "id": "git_log",
+              "kind": "required",
+              "unified_pos": 85,
+              "trace_index": 68,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 83,
+              "trace_index": 66,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            },
+            {
+              "id": "cargo_build",
+              "kind": "required",
+              "unified_pos": 84,
+              "trace_index": 67,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 68,
+          "first_occurrence_fallback_used": false
+        },
+        "failure_recovery": {
+          "phase": "failure_recovery",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "edit",
+              "kind": "required",
+              "unified_pos": 66,
+              "trace_index": 54,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "command",
+              "kind": "required",
+              "unified_pos": 67,
+              "trace_index": 55,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 55,
+          "first_occurrence_fallback_used": false
+        }
+      },
+      "boundaries": {
+        "implementation": 53,
+        "linting": 64,
+        "build": 72,
+        "commit": 81,
+        "post-commit": 85,
+        "failure_recovery": 67
+      },
+      "dedup_actions": []
+    },
+    {
+      "function": "_detect_phases",
+      "action": "execution_order_built",
+      "timestamp": 2167351.121338166,
+      "phase_events": {
+        "implementation": [
+          42,
+          44,
+          45,
+          54
+        ],
+        "linting": [
+          51,
+          52
+        ],
+        "build": [
+          57,
+          58
+        ],
+        "commit": [
+          64,
+          65
+        ],
+        "post-commit": [
+          66,
+          67,
+          68
+        ],
+        "failure_recovery": [
+          54,
+          55
+        ]
+      },
+      "floating_phases": [
+        "failure_recovery"
+      ],
+      "execution_order": [
+        "implementation",
+        "linting",
+        "build",
+        "commit",
+        "post-commit"
+      ]
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2167351.121554916,
+      "operator": "lte",
+      "metric_value": 2,
+      "target_value": 3,
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2167351.121559291,
+      "passed": true,
+      "detail": "2 <= 3"
+    }
+  ]
+}

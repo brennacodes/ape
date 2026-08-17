@@ -1,0 +1,90 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq -type f -name \"Cargo.toml\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -type f -name \"*.rs\" | sort', 'head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/http.rs', 'head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/git.rs', \"tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -I 'test*' 2>/dev/null | head -80\", 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src | grep \"^d\"', 'cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1 | tail -20', 'cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1', 'cargo test cache::store::tests --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED\"', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo build --release 2>&1', 'git status 2>&1', 'git diff 2>&1', 'git log --oneline -5 2>&1', 'git log -1 --oneline 2>&1', 'git add src/cache/store.rs && git commit -m \"$(cat <<\\'EOF\\'\\nFix cache corruption from concurrent tool installations\\n\\nThe CacheStore wrote content and metadata files with plain fs::write(),\\nwhich is not atomic. When multiple bivvy processes ran simultaneously\\n(e.g., parallel tool installations), readers could observe partially-\\nwritten files or metadata/content mismatches.\\n\\nTwo changes fix this:\\n- Writes now go through atomic_write() (write to temp file + rename),\\n  so readers never see incomplete data.\\n- load() treats unreadable or unparseable metadata as a cache miss\\n  (returns None) instead of propagating errors, making it resilient\\n  to any leftover corruption from before this fix.\\nEOF\\n)\" 2>&1', 'cargo check --all-features 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "bugs",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq -type f -name \"Cargo.toml\" | head -20",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -type f -name \"*.rs\" | sort",
+    "head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/http.rs",
+    "head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/git.rs",
+    "tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -I 'test*' 2>/dev/null | head -80",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src | grep \"^d\"",
+    "cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1 | tail -20",
+    "cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1",
+    "cargo test cache::store::tests --all-features 2>&1",
+    "cargo test --all-features 2>&1",
+    "cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED\"",
+    "cargo fmt -- --check 2>&1",
+    "cargo fmt 2>&1",
+    "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+    "cargo doc --no-deps --all-features 2>&1",
+    "cargo build --release 2>&1",
+    "git status 2>&1",
+    "git diff 2>&1",
+    "git log --oneline -5 2>&1",
+    "git log -1 --oneline 2>&1",
+    "git add src/cache/store.rs && git commit -m \"$(cat <<'EOF'\nFix cache corruption from concurrent tool installations\n\nThe CacheStore wrote content and metadata files with plain fs::write(),\nwhich is not atomic. When multiple bivvy processes ran simultaneously\n(e.g., parallel tool installations), readers could observe partially-\nwritten files or metadata/content mismatches.\n\nTwo changes fix this:\n- Writes now go through atomic_write() (write to temp file + rename),\n  so readers never see incomplete data.\n- load() treats unreadable or unparseable metadata as a cache miss\n  (returns None) instead of propagating errors, making it resilient\n  to any leftover corruption from before this fix.\nEOF\n)\" 2>&1",
+    "cargo check --all-features 2>&1"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2166029.614820625,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2166029.614872,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq -type f -name \"Cargo.toml\" | head -20",
+        "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -type f -name \"*.rs\" | sort",
+        "head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/http.rs",
+        "head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/git.rs",
+        "tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -I 'test*' 2>/dev/null | head -80",
+        "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src | grep \"^d\"",
+        "cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1 | tail -20",
+        "cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1",
+        "cargo test cache::store::tests --all-features 2>&1",
+        "cargo test --all-features 2>&1",
+        "cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED\"",
+        "cargo fmt -- --check 2>&1",
+        "cargo fmt 2>&1",
+        "cargo clippy --all-targets --all-features -- -D warnings 2>&1",
+        "cargo doc --no-deps --all-features 2>&1",
+        "cargo build --release 2>&1",
+        "git status 2>&1",
+        "git diff 2>&1",
+        "git log --oneline -5 2>&1",
+        "git log -1 --oneline 2>&1",
+        "git add src/cache/store.rs && git commit -m \"$(cat <<'EOF'\nFix cache corruption from concurrent tool installations\n\nThe CacheStore wrote content and metadata files with plain fs::write(),\nwhich is not atomic. When multiple bivvy processes ran simultaneously\n(e.g., parallel tool installations), readers could observe partially-\nwritten files or metadata/content mismatches.\n\nTwo changes fix this:\n- Writes now go through atomic_write() (write to temp file + rename),\n  so readers never see incomplete data.\n- load() treats unreadable or unparseable metadata as a cache miss\n  (returns None) instead of propagating errors, making it resilient\n  to any leftover corruption from before this fix.\nEOF\n)\" 2>&1",
+        "cargo check --all-features 2>&1"
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2166029.61489575,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq -type f -name \"Cargo.toml\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -type f -name \"*.rs\" | sort', 'head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/http.rs', 'head -80 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src/registry/fetch/git.rs', \"tree -L 2 /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src -I 'test*' 2>/dev/null | head -80\", 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-324jiqbq/src | grep \"^d\"', 'cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1 | tail -20', 'cargo test cache::store::tests::load_returns_none_for_corrupted_metadata --all-features 2>&1', 'cargo test cache::store::tests --all-features 2>&1', 'cargo test --all-features 2>&1', 'cargo test --all-features 2>&1 | grep -E \"^test result:|FAILED\"', 'cargo fmt -- --check 2>&1', 'cargo fmt 2>&1', 'cargo clippy --all-targets --all-features -- -D warnings 2>&1', 'cargo doc --no-deps --all-features 2>&1', 'cargo build --release 2>&1', 'git status 2>&1', 'git diff 2>&1', 'git log --oneline -5 2>&1', 'git log -1 --oneline 2>&1', 'git add src/cache/store.rs && git commit -m \"$(cat <<\\'EOF\\'\\nFix cache corruption from concurrent tool installations\\n\\nThe CacheStore wrote content and metadata files with plain fs::write(),\\nwhich is not atomic. When multiple bivvy processes ran simultaneously\\n(e.g., parallel tool installations), readers could observe partially-\\nwritten files or metadata/content mismatches.\\n\\nTwo changes fix this:\\n- Writes now go through atomic_write() (write to temp file + rename),\\n  so readers never see incomplete data.\\n- load() treats unreadable or unparseable metadata as a cache miss\\n  (returns None) instead of propagating errors, making it resilient\\n  to any leftover corruption from before this fix.\\nEOF\\n)\" 2>&1', 'cargo check --all-features 2>&1'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

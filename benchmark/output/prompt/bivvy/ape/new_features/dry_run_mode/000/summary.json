@@ -1,0 +1,265 @@
+{
+  "fixture_id": "bivvy",
+  "format": "ape",
+  "prompt_id": "new_features/dry_run_mode",
+  "run_id": 0,
+  "source": "prompt",
+  "ape_version": "0.4.0",
+  "workflow_hash": "c17010b0b185",
+  "git_sha": "ef7fff08b1ce-dirty",
+  "model": "claude-opus-4-6",
+  "session_id": "37d6e521-3a00-41fa-b69b-6203d8441b72",
+  "started_at": "2026-05-16T19:42:02.734614",
+  "completed_at": "2026-05-16T19:49:27.250103",
+  "wall_clock_ms": 443734.807375,
+  "wall_clock_formatted": "07m 23s",
+  "duration_api_ms": 324709,
+  "api_time_formatted": "05m 24s",
+  "prompt_text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n<IMPORTANT>\nAPE is an executable workflow. You are the runtime. You are being evaluated on your ability to follow this workflow exactly.\n\nYou MUST execute the workflow exactly as written.\nYou MUST process ALL tags and their children in order of appearance unless the workflow explicitly directs otherwise.\nYou MUST treat tag names, attributes, and workflow structure as normative executable directives, not descriptive labels or suggestions.\nYou MUST NOT skip, reinterpret, soften, or invent workflow behavior.\nA step MUST NOT transition to another step except via its declared `<gate>` outcome, unless the step explicitly contains another control-flow directive.\nYou MUST NOT infer criterion truth from inspection if the gate specifies executable checks.\nYou MUST NOT leave a step that contains a `<gate>` until that gate has been evaluated and routed via `<on-pass>` or `<on-fail>`.\nWhen a `<gate>` contains `<run>` children, those runs MUST execute before any criterion is evaluated.\nIf a `<run>` inside a `<gate>` does not execute, does not produce a value for its declared set, or produces an unparsable value required by a criterion, you MUST `<stop>` immediately.\n\n`{{ variable }}`: An evaluated expression that returns a value. Often points to a declared variable or tag ID.\n`<meta>`: contains configuration and declarations for the workflow.\n`<instruction>`: You MUST execute the directives. You MUST NOT interpret the directives for flow control.\n`<gate>`: You MUST evaluate the criteria and route via `<on-fail>` (required) or `<on-pass>`.\n`<conditional>`: You MUST follow the logic defined by the cases and optional default.\n`<run>`: You MUST execute the commands; either those defined inline or referenced by an id in `<approved-commands>` or `<approved-gate-commands>`.\n`<output>`: MUST print to the user.\n`<criterion>`: A required condition that must be evaluated before routing out of a phase.\n\n`ref`: references an id from another tag.\n`set`: sets a variable that can be used in other tags.\n`check`: evaluates a condition and returns true or false.\n`goto`: jumps to a tag by id.\n\n`<approved-gate-commands>` are the ONLY commands that can be executed from within a `<gate>` tag.\nIF you need to evaluate something that isn't in `<approved-gate-commands>`, you MUST follow the gate logic FIRST. Any subsequent execution MUST use `<approved-commands>`.\n</IMPORTANT>\n\n<ape version=\"0.4.0\" xmlns=\"https://ape-lang.dev/schema/0\">\n  <meta>\n    <name>Bivvy Development Workflow</name>\n    <description>Atomic development workflow for building Bivvy. Each commit is code + tests + docs for one logical change.</description>\n\n    <approved-commands>\n      <command id=\"run-tests\">cargo test --all-features</command>\n      <command id=\"build\">cargo build</command>\n      <command id=\"build-dev\">cargo build --all-targets --all-features</command>\n      <command id=\"build-release\">cargo build --release</command>\n      <command id=\"clippy\">cargo clippy --all-targets --all-features -- -D warnings</command>\n      <command id=\"fmt\">cargo fmt -- --check</command>\n      <command id=\"doc\">cargo doc --no-deps --all-features</command>\n      <command id=\"cov\">cargo llvm-cov --all-features</command>\n    </approved-commands>\n\n    <approved-gate-commands>\n      <command id=\"test-failure-count\">cargo test --all-features 2>&amp;1 | awk '/test result:/ { for(i=1;i&lt;=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'</command>\n      <command id=\"build-error-count\">cargo build 2>&amp;1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\"</command>\n      <command id=\"build-dev-error-count\">cargo build --all-targets --all-features 2>&amp;1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\"</command>\n      <command id=\"build-release-error-count\">cargo build --release 2>&amp;1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\"</command>\n      <command id=\"clippy-error-count\">cargo clippy --all-targets --all-features -- -D warnings 2>&amp;1 | grep \"^error\" | grep -Evc \"(aborting|could not compile)\"</command>\n      <command id=\"fmt-error-count\">cargo fmt -- --check 2>&amp;1 | grep -c \"^Diff in\"</command>\n      <command id=\"cov-pct\">cargo llvm-cov --all-features 2>&amp;1 | awk '/TOTAL/ { for(i=1;i&lt;=NF;i++) if($i~/[0-9.]+%/) { gsub(/%/,\"\",$i); print $i+0; found=1; exit } } END { if(!found) print -1 }'</command>\n      <command id=\"doc-errors\">cargo doc --no-deps --all-features 2>&amp;1 | grep -c \"^error\"</command>\n    </approved-gate-commands>\n\n    <var name=\"min_coverage\" type=\"number\" default=\"90\" />\n  </meta>\n\n  <rule>NEVER skip, disable, or modify tests to make them pass.</rule>\n  <rule>NEVER pipe validation, build, test, lint, or diagnostic commands through tail, head, or similar truncation filters.</rule>\n\n  <principle name=\"Small-Steps\">Many small commits over few large ones.</principle>\n\n  <anti-pattern>Creating the full project structure upfront.</anti-pattern>\n  <anti-pattern>Using deprecated APIs without checking dependency versions.</anti-pattern>\n\n  <steps>\n\n    <step number=\"1\" id=\"specification\">\n      <output>Working on: specification</output>\n\n      <instruction>Write or update test files that specify the intended behavior.</instruction>\n\n      <gate>\n        <run ref=\"test-failure-count\" set=\"test_failures\" />\n        <output>Test failures: {{ test_failures }}</output>\n\n        <criterion check=\"{{ test_failures == 0 }}\" />\n\n        <on-fail goto=\"implementation\" />\n        <on-pass goto=\"specification\" />\n      </gate>\n    </step>\n\n    <step number=\"2\" id=\"implementation\">\n      <prerequisite ref=\"specification\" goto=\"specification\" />\n      <output>Working on: implementation</output>\n\n      <instruction>Write the minimum implementation to pass failing tests.</instruction>\n\n      <gate>\n        <run ref=\"test-failure-count\" set=\"test_failures\" />\n        <output>Test failures: {{ test_failures }}</output>\n\n        <criterion check=\"{{ test_failures == 0 }}\" />\n\n        <on-fail retry=\"true\" max=\"3\" then=\"stop\" />\n        <on-pass goto=\"documentation\" />\n      </gate>\n    </step>\n\n    <step number=\"3\" id=\"documentation\">\n      <prerequisite ref=\"implementation\" goto=\"implementation\" />\n      <output>Working on: documentation</output>\n\n      <rule>Developer docs go in source tree (rustdoc + source READMEs), never in `docs/`.</rule>\n      <rule>User-facing docs go in `docs/`, never in source READMEs.</rule>\n\n      <anti-pattern>Documenting \"what\" the code does - the code should show that.</anti-pattern>\n\n      <instructions>\n        <instruction>Add `///` doc comments to all public items (structs, functions, modules).</instruction>\n        <instruction>Document all commands, config options, and user-visible features in docs/. Write for end users - never reference internals.</instruction>\n        <instruction>Maintain README.md in source directories covering subsystem design.</instruction>\n        <instruction>Limit inline comments to non-obvious rationale.</instruction>\n      </instructions>\n\n      <gate>\n        <run ref=\"doc-errors\" set=\"doc_errors\" />\n        <output>Doc errors: {{ doc_errors }}</output>\n\n        <criterion check=\"{{ doc_errors == 0 }}\" />\n\n        <on-fail retry=\"true\" max=\"2\" then=\"stop\" />\n        <on-pass goto=\"linting\" />\n      </gate>\n    </step>\n\n    <step number=\"4\" id=\"linting\">\n      <prerequisite ref=\"documentation\" goto=\"documentation\" />\n      <output>Working on: linting</output>\n\n      <gate>\n        <run ref=\"fmt-error-count\" set=\"fmt_errors\" />\n        <output>Fmt errors: {{ fmt_errors }}</output>\n\n        <run ref=\"clippy-error-count\" set=\"clippy_errors\" />\n        <output>Clippy errors: {{ clippy_errors }}</output>\n\n        <criteria operator=\"and\">\n          <criterion check=\"{{ fmt_errors == 0 }}\" />\n          <criterion check=\"{{ clippy_errors == 0 }}\" />\n        </criteria>\n\n        <on-fail goto=\"implementation\" />\n        <on-pass goto=\"testing\" />\n      </gate>\n    </step>\n\n    <step number=\"5\" id=\"testing\">\n      <prerequisite ref=\"linting\" goto=\"linting\" />\n      <output>Working on: testing</output>\n\n      <gate>\n        <run ref=\"cov-pct\" set=\"coverage_pct\" />\n        <output>Coverage: {{ coverage_pct }}%</output>\n\n        <run ref=\"test-failure-count\" set=\"test_failures\" />\n        <output>Test failures: {{ test_failures }}</output>\n\n        <criteria operator=\"and\">\n          <criterion check=\"{{ test_failures == 0 }}\" />\n          <criterion check=\"{{ coverage_pct >= min_coverage }}\" />\n        </criteria>\n\n        <on-fail goto=\"implementation\" />\n        <on-pass goto=\"build\" />\n      </gate>\n    </step>\n\n    <step number=\"6\" id=\"build\">\n      <prerequisite ref=\"testing\" goto=\"testing\" />\n      <output>Working on: build</output>\n\n      <gate>\n        <run ref=\"build-dev-error-count\" set=\"build_dev_errors\" />\n        <output>Build dev errors: {{ build_dev_errors }}</output>\n\n        <run ref=\"build-release-error-count\" set=\"build_release_errors\" />\n        <output>Build release errors: {{ build_release_errors }}</output>\n\n        <criteria operator=\"and\">\n          <criterion check=\"{{ build_dev_errors == 0 }}\" />\n          <criterion check=\"{{ build_release_errors == 0 }}\" />\n        </criteria>\n\n        <on-fail goto=\"linting\" />\n        <on-pass goto=\"commit\" />\n      </gate>\n    </step>\n\n    <step number=\"7\" id=\"commit\">\n      <prerequisite ref=\"build\" goto=\"build\" />\n      <output>Working on: commit</output>\n\n      <rule>Imperative mood (\"Add feature\" not \"Added feature\").</rule>\n      <rule>50 characters or less for the subject line.</rule>\n      <rule>Capitalize first letter, no period at end.</rule>\n      <rule>No type prefixes (no \"feat:\", \"fix:\", etc.).</rule>\n      <rule>Blank line between subject and body. Body wraps at 72 characters.</rule>\n\n      <instruction>Stage only the files related to this change. Write the commit message explaining WHY, not just WHAT.</instruction>\n\n      <run>git add -p</run>\n      <run>git commit</run>\n\n      <run set=\"staged_count\">git diff --cached --name-only | wc -l</run>\n      <output>Staged files: {{ staged_count }}</output>\n\n      <gate>\n        <criterion check=\"{{ staged_count == 0 }}\" />\n        <on-fail retry=\"true\" max=\"1\" then=\"halt\" />\n      </gate>\n    </step>\n\n    <step number=\"8\" id=\"post-commit\">\n      <prerequisite ref=\"commit\" goto=\"commit\" />\n      <output>Working on: post-commit</output>\n\n      <run>git log -1 --stat</run>\n\n      <gate>\n        <run ref=\"test-failure-count\" set=\"test_failures\" />\n        <output>Test failures: {{ test_failures }}</output>\n\n        <run ref=\"build-error-count\" set=\"build_errors\" />\n        <output>Build errors: {{ build_errors }}</output>\n\n        <criteria operator=\"and\">\n          <criterion check=\"{{ test_failures == 0 }}\" />\n          <criterion check=\"{{ build_errors == 0 }}\" />\n        </criteria>\n\n        <on-fail goto=\"implementation\" />\n        <on-pass>\n          <instruction>Summarize your work to the user</instruction>\n          <stop />\n        </on-pass>\n      </gate>\n    </step>\n\n  </steps>\n</ape>\n\n\n---\n\nUser task:\nPlease implement the following feature: Dry run mode \u2014 add a --dry-run flag that prints what would be installed or changed without actually executing the shell commands.",
+  "exit_code": 0,
+  "error": "",
+  "succeeded": true,
+  "max_turns_configured": 0,
+  "hit_turn_limit": false,
+  "input_tokens": 26,
+  "output_tokens": 13844,
+  "cache_creation_tokens": 104052,
+  "cache_read_tokens": 1917721,
+  "cost_usd": 1.9590775000000002,
+  "num_turns": 30,
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 3587,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.003662,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-6": {
+      "inputTokens": 26,
+      "outputTokens": 13844,
+      "cacheReadInputTokens": 1917721,
+      "cacheCreationInputTokens": 104052,
+      "webSearchRequests": 0,
+      "costUSD": 1.9554155000000002,
+      "contextWindow": 200000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "total": 30,
+  "passed": 15,
+  "failed": 13,
+  "skipped": 2,
+  "disabled": 0,
+  "not_applicable": 2,
+  "pass_rate": 0.5357,
+  "grade": "54%",
+  "checks": [
+    {
+      "check_id": "phase_ordering",
+      "passed": false,
+      "phase": "workflow",
+      "file": "phase_ordering.json"
+    },
+    {
+      "check_id": "max_impl_test_cycles",
+      "passed": true,
+      "phase": "workflow",
+      "file": "max_impl_test_cycles.json"
+    },
+    {
+      "check_id": "tdd_tests_before_implementation",
+      "passed": true,
+      "phase": "specification",
+      "file": "tdd_tests_before_implementation.json"
+    },
+    {
+      "check_id": "tdd_prove_tests_fail",
+      "passed": false,
+      "phase": "specification",
+      "file": "tdd_prove_tests_fail.json"
+    },
+    {
+      "check_id": "scope_to_request",
+      "passed": true,
+      "phase": "implementation",
+      "file": "scope_to_request.json"
+    },
+    {
+      "check_id": "never_modify_tests_to_pass",
+      "passed": true,
+      "phase": "implementation",
+      "file": "never_modify_tests_to_pass.json"
+    },
+    {
+      "check_id": "no_full_project_structure_upfront",
+      "passed": true,
+      "phase": "implementation",
+      "file": "no_full_project_structure_upfront.json"
+    },
+    {
+      "check_id": "no_deprecated_apis",
+      "passed": true,
+      "phase": "implementation",
+      "file": "no_deprecated_apis.json"
+    },
+    {
+      "check_id": "doc_before_linting",
+      "passed": true,
+      "phase": "documentation",
+      "file": "doc_before_linting.json"
+    },
+    {
+      "check_id": "doc_placement_developer",
+      "passed": true,
+      "phase": "documentation",
+      "file": "doc_placement_developer.json"
+    },
+    {
+      "check_id": "doc_placement_user",
+      "passed": true,
+      "phase": "documentation",
+      "file": "doc_placement_user.json"
+    },
+    {
+      "check_id": "run_clippy",
+      "passed": false,
+      "phase": "linting",
+      "file": "run_clippy.json"
+    },
+    {
+      "check_id": "lint_fail_routes_to_implementation",
+      "passed": null,
+      "phase": "linting",
+      "file": "lint_fail_routes_to_implementation.json"
+    },
+    {
+      "check_id": "verify_tests_after_changes",
+      "passed": true,
+      "phase": "testing",
+      "file": "verify_tests_after_changes.json"
+    },
+    {
+      "check_id": "run_coverage",
+      "passed": false,
+      "phase": "testing",
+      "file": "run_coverage.json"
+    },
+    {
+      "check_id": "coverage_threshold",
+      "passed": false,
+      "phase": "testing",
+      "file": "coverage_threshold.json"
+    },
+    {
+      "check_id": "test_fail_routes_to_implementation",
+      "passed": true,
+      "phase": "testing",
+      "file": "test_fail_routes_to_implementation.json"
+    },
+    {
+      "check_id": "build_dev",
+      "passed": false,
+      "phase": "build",
+      "file": "build_dev.json"
+    },
+    {
+      "check_id": "build_release",
+      "passed": false,
+      "phase": "build",
+      "file": "build_release.json"
+    },
+    {
+      "check_id": "build_before_commit",
+      "passed": true,
+      "phase": "build",
+      "file": "build_before_commit.json"
+    },
+    {
+      "check_id": "build_fail_routes_to_linting",
+      "passed": null,
+      "phase": "build",
+      "file": "build_fail_routes_to_linting.json"
+    },
+    {
+      "check_id": "no_git_add_all",
+      "passed": true,
+      "phase": "commit",
+      "file": "no_git_add_all.json"
+    },
+    {
+      "check_id": "commit_msg_imperative_mood",
+      "passed": false,
+      "phase": "commit",
+      "file": "commit_msg_imperative_mood.json"
+    },
+    {
+      "check_id": "commit_msg_subject_length",
+      "passed": false,
+      "phase": "commit",
+      "file": "commit_msg_subject_length.json"
+    },
+    {
+      "check_id": "commit_msg_capitalize_no_period",
+      "passed": false,
+      "phase": "commit",
+      "file": "commit_msg_capitalize_no_period.json"
+    },
+    {
+      "check_id": "commit_msg_no_type_prefix",
+      "passed": false,
+      "phase": "commit",
+      "file": "commit_msg_no_type_prefix.json"
+    },
+    {
+      "check_id": "commit_msg_body_format",
+      "passed": false,
+      "phase": "commit",
+      "file": "commit_msg_body_format.json"
+    },
+    {
+      "check_id": "test_after_commit",
+      "passed": true,
+      "phase": "post-commit",
+      "file": "test_after_commit.json"
+    },
+    {
+      "check_id": "build_after_commit",
+      "passed": true,
+      "phase": "post-commit",
+      "file": "build_after_commit.json"
+    },
+    {
+      "check_id": "rerun_after_fix",
+      "passed": false,
+      "phase": "failure_recovery",
+      "file": "rerun_after_fix.json"
+    }
+  ],
+  "eval_conditions": {
+    "explicit_edit_requested": true,
+    "explicit_feature_requested": true,
+    "involves_codebase_search": true
+  },
+  "eval_variables": {
+    "app_name": "bivvy",
+    "app_description": "Interactive development environment setup automation CLI tool written in Rust",
+    "app_location": "/Users/brenna/Documents/personal/ai-stuff/ape copy/benchmark/fixtures/apps/bivvy",
+    "feature": "Dry run mode \u2014 add a --dry-run flag that prints what would be installed or changed without actually executing the shell commands",
+    "impact": "Safer onboarding for new users",
+    "phase_classification.ordered": [
+      "specification",
+      "implementation",
+      "documentation",
+      "linting",
+      "testing",
+      "build",
+      "commit",
+      "post-commit"
+    ]
+  },
+  "timestamp": "2026-05-16T19:49:27.253057"
+}

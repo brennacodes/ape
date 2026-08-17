@@ -1,0 +1,62 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk -type f -name \"*.toml\" -o -name \"*.rs\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/src -type f -name \"*.rs\" | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/tests -type f -name \"*.rs\" | head -20', 'cargo test --all-features 2>&1 | tail -40', 'cargo test --all-features 2>&1', 'grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n-ao34gk/7b559f08-8c91-4cb3-a9ad-ab8d02456164/tool-results/bkar92l0t.txt', 'cargo build --release 2>&1 | grep -E \"^(error|warning:|   Compiling bivvy|   Finished)\"', \"cd /tmp && rm -rf bivvy-dry-run-test && mkdir bivvy-dry-run-test && cd bivvy-dry-run-test && mkdir -p .bivvy && cat > .bivvy/config.yml << 'EOF'\\napp_name: TestApp\\nsteps:\\n  install_deps:\\n    command: npm install\\n    title: Install dependencies\\n  build:\\n    command: cargo build --release\\n    depends_on: [install_deps]\\n    title: Build project\\n  migrate:\\n    command: rails db:migrate\\n    depends_on: [build]\\n    title: Run migrations\\nworkflows:\\n  default:\\n    steps: [install_deps, build, migrate]\\nEOF\\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/target/release/bivvy run --dry-run --no-color 2>&1\"], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "new_features",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk -type f -name \"*.toml\" -o -name \"*.rs\" | head -20",
+    "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/src -type f -name \"*.rs\" | sort",
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/tests -type f -name \"*.rs\" | head -20",
+    "cargo test --all-features 2>&1 | tail -40",
+    "cargo test --all-features 2>&1",
+    "grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n-ao34gk/7b559f08-8c91-4cb3-a9ad-ab8d02456164/tool-results/bkar92l0t.txt",
+    "cargo build --release 2>&1 | grep -E \"^(error|warning:|   Compiling bivvy|   Finished)\"",
+    "cd /tmp && rm -rf bivvy-dry-run-test && mkdir bivvy-dry-run-test && cd bivvy-dry-run-test && mkdir -p .bivvy && cat > .bivvy/config.yml << 'EOF'\napp_name: TestApp\nsteps:\n  install_deps:\n    command: npm install\n    title: Install dependencies\n  build:\n    command: cargo build --release\n    depends_on: [install_deps]\n    title: Build project\n  migrate:\n    command: rails db:migrate\n    depends_on: [build]\n    title: Run migrations\nworkflows:\n  default:\n    steps: [install_deps, build, migrate]\nEOF\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/target/release/bivvy run --dry-run --no-color 2>&1"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2171751.332492541,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2171751.332613666,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk -type f -name \"*.toml\" -o -name \"*.rs\" | head -20",
+        "ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/src -type f -name \"*.rs\" | sort",
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/tests -type f -name \"*.rs\" | head -20",
+        "cargo test --all-features 2>&1 | tail -40",
+        "cargo test --all-features 2>&1",
+        "grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n-ao34gk/7b559f08-8c91-4cb3-a9ad-ab8d02456164/tool-results/bkar92l0t.txt",
+        "cargo build --release 2>&1 | grep -E \"^(error|warning:|   Compiling bivvy|   Finished)\"",
+        "cd /tmp && rm -rf bivvy-dry-run-test && mkdir bivvy-dry-run-test && cd bivvy-dry-run-test && mkdir -p .bivvy && cat > .bivvy/config.yml << 'EOF'\napp_name: TestApp\nsteps:\n  install_deps:\n    command: npm install\n    title: Install dependencies\n  build:\n    command: cargo build --release\n    depends_on: [install_deps]\n    title: Build project\n  migrate:\n    command: rails db:migrate\n    depends_on: [build]\n    title: Run migrations\nworkflows:\n  default:\n    steps: [install_deps, build, migrate]\nEOF\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/target/release/bivvy run --dry-run --no-color 2>&1"
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2171751.332626458,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk -type f -name \"*.toml\" -o -name \"*.rs\" | head -20', 'ls -la /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/src -type f -name \"*.rs\" | sort', 'find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/tests -type f -name \"*.rs\" | head -20', 'cargo test --all-features 2>&1 | tail -40', 'cargo test --all-features 2>&1', 'grep -E \"^test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-n-ao34gk/7b559f08-8c91-4cb3-a9ad-ab8d02456164/tool-results/bkar92l0t.txt', 'cargo build --release 2>&1 | grep -E \"^(error|warning:|   Compiling bivvy|   Finished)\"', \"cd /tmp && rm -rf bivvy-dry-run-test && mkdir bivvy-dry-run-test && cd bivvy-dry-run-test && mkdir -p .bivvy && cat > .bivvy/config.yml << 'EOF'\\napp_name: TestApp\\nsteps:\\n  install_deps:\\n    command: npm install\\n    title: Install dependencies\\n  build:\\n    command: cargo build --release\\n    depends_on: [install_deps]\\n    title: Build project\\n  migrate:\\n    command: rails db:migrate\\n    depends_on: [build]\\n    title: Run migrations\\nworkflows:\\n  default:\\n    steps: [install_deps, build, migrate]\\nEOF\\n/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-n_ao34gk/target/release/bivvy run --dry-run --no-color 2>&1\"], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

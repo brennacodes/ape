@@ -1,0 +1,56 @@
+{
+  "check_id": "no_git_add_all",
+  "phase": "commit",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-rays1vro -type f | head -50', 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt', 'grep -c \"passed\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'",
+  "category": "new_features",
+  "metric_value": [
+    "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-rays1vro -type f | head -50",
+    "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+    "cargo test --all-features 2>&1",
+    "tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt",
+    "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt",
+    "grep -c \"passed\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt"
+  ],
+  "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+  "operator": "regex_not_match",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2171810.294193458,
+      "check_id": "no_git_add_all",
+      "phase": "commit",
+      "condition": {
+        "metric": "tool_call.execute_command",
+        "operator": "regex_not_match",
+        "target": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))"
+      }
+    },
+    {
+      "function": "evaluate_condition_with_evidence",
+      "action": "applied_operator",
+      "timestamp": 2171810.294217625,
+      "operator": "regex_not_match",
+      "metric_value": [
+        "find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-rays1vro -type f | head -50",
+        "cargo test --all-features 2>&1 | awk '/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }'",
+        "cargo test --all-features 2>&1",
+        "tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt",
+        "grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt",
+        "grep -c \"passed\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt"
+      ],
+      "target_value": "git\\s+add\\s+(?:\\.(?:\\s|$|&)|-A\\b|--all\\b|\\*(?:\\s|$|&)|:/(?:\\.|\\s|$|&))",
+      "passed": true,
+      "vacuous_reason": null
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2171810.294226208,
+      "passed": true,
+      "detail": "got ['find /private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-rays1vro -type f | head -50', 'cargo test --all-features 2>&1 | awk \\'/test result:/ { for(i=1;i<=NF;i++) if($i==\"failed;\") sum+=$(i-1) } END { print sum+0 }\\'', 'cargo test --all-features 2>&1', 'tail -50 /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt', 'grep \"test result:\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt', 'grep -c \"passed\" /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-rays1vro/37d6e521-3a00-41fa-b69b-6203d8441b72/tool-results/budq9aa9q.txt'], expected regex_not_match 'git\\\\s+add\\\\s+(?:\\\\.(?:\\\\s|$|&)|-A\\\\b|--all\\\\b|\\\\*(?:\\\\s|$|&)|:/(?:\\\\.|\\\\s|$|&))'"
+    }
+  ]
+}

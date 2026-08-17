@@ -1,0 +1,1427 @@
+{
+  "check_id": "test_fail_routes_to_implementation",
+  "phase": "testing",
+  "passed": true,
+  "skip_reason": null,
+  "detail": "After testing failure: routed to 'implementation' (expected 'implementation')",
+  "category": "bugs",
+  "metric_value": "implementation",
+  "target_value": "implementation",
+  "operator": "eq",
+  "eval_trace": [
+    {
+      "function": "evaluate_check",
+      "action": "check_started",
+      "timestamp": 2169503.195009208,
+      "check_id": "test_fail_routes_to_implementation",
+      "phase": "testing",
+      "condition": {
+        "metric": "phase.on_fail_route",
+        "metric_args": "testing",
+        "operator": "eq",
+        "target": "implementation"
+      }
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "phase_routing_started",
+      "timestamp": 2169503.195012583,
+      "phase_name": "testing",
+      "routing_type": "on_fail"
+    },
+    {
+      "function": "_detect_phases",
+      "action": "phase_detection",
+      "timestamp": 2169503.200414625,
+      "specs": {
+        "specification": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "test_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "implementation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "src_edit",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "documentation": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "required_command_ids": [
+            "doc_edit",
+            "cargo_doc",
+            "working_on"
+          ]
+        },
+        "linting": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "cargo_fmt",
+            "cargo_clippy",
+            "working_on"
+          ]
+        },
+        "testing": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_linting",
+          "legal_redirect_targets": [
+            "implementation",
+            "build"
+          ],
+          "required_command_ids": [
+            "cargo_llvm_cov",
+            "cargo_test",
+            "working_on"
+          ]
+        },
+        "build": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_testing",
+          "legal_redirect_targets": [
+            "linting",
+            "commit"
+          ],
+          "required_command_ids": [
+            "cargo_build_dev",
+            "cargo_build_release",
+            "working_on"
+          ]
+        },
+        "commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "git_add",
+            "git_commit",
+            "working_on"
+          ]
+        },
+        "post-commit": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "required_command_ids": [
+            "git_log",
+            "cargo_test",
+            "cargo_build",
+            "working_on"
+          ]
+        },
+        "failure_recovery": {
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "required_command_ids": [
+            "edit",
+            "command"
+          ]
+        }
+      },
+      "per_phase": {
+        "specification": {
+          "phase": "specification",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "before_implementation",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "test_edit",
+              "kind": "required",
+              "unified_pos": 56,
+              "trace_index": 36,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 58,
+              "trace_index": 37,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 37,
+          "first_occurrence_fallback_used": false
+        },
+        "implementation": {
+          "phase": "implementation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "src_edit",
+              "kind": "required",
+              "unified_pos": 64,
+              "trace_index": 41,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 62,
+              "trace_index": 40,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 41,
+          "first_occurrence_fallback_used": false
+        },
+        "linting": {
+          "phase": "linting",
+          "score": 0.0,
+          "reason": "no feasible assignment of required commands",
+          "cap_hit": false
+        },
+        "testing": {
+          "phase": "testing",
+          "score": 0.0,
+          "reason": "missing required command candidates",
+          "missing_required_ids": [
+            "cargo_llvm_cov"
+          ]
+        },
+        "documentation": {
+          "phase": "documentation",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_implementation",
+          "legal_redirect_targets": [
+            "linting"
+          ],
+          "R": 2,
+          "required": [
+            {
+              "id": "doc_edit",
+              "kind": "required",
+              "unified_pos": 68,
+              "trace_index": 43,
+              "proximity": 0.4,
+              "cross_phase": 0.19999999999999996,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.039999999999999994
+            },
+            {
+              "id": "cargo_doc",
+              "kind": "required",
+              "unified_pos": 77,
+              "trace_index": 48,
+              "proximity": 0.4,
+              "cross_phase": 0.19999999999999996,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.039999999999999994
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.07999999999999999,
+          "cap_hit": false,
+          "reason": "score 0.080 below threshold 0.8"
+        },
+        "build": {
+          "phase": "build",
+          "score": 0.0,
+          "reason": "no feasible assignment of required commands",
+          "cap_hit": false
+        },
+        "commit": {
+          "phase": "commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "after_verification",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "git_add",
+              "kind": "required",
+              "unified_pos": 89,
+              "trace_index": 56,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            },
+            {
+              "id": "git_commit",
+              "kind": "required",
+              "unified_pos": 90,
+              "trace_index": 57,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.4666666666666667
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 57,
+          "first_occurrence_fallback_used": false
+        },
+        "post-commit": {
+          "phase": "post-commit",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "last",
+          "legal_redirect_targets": [
+            "implementation"
+          ],
+          "R": 3,
+          "required": [
+            {
+              "id": "git_log",
+              "kind": "required",
+              "unified_pos": 94,
+              "trace_index": 60,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            },
+            {
+              "id": "cargo_test",
+              "kind": "required",
+              "unified_pos": 92,
+              "trace_index": 58,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            },
+            {
+              "id": "cargo_build",
+              "kind": "required",
+              "unified_pos": 93,
+              "trace_index": 59,
+              "proximity": 0.9333333333333333,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.3111111111111111
+            }
+          ],
+          "optional": [
+            {
+              "id": "working_on",
+              "kind": "optional",
+              "matched": false,
+              "contribution": 0.0
+            }
+          ],
+          "score": 0.9333333333333333,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 60,
+          "first_occurrence_fallback_used": false
+        },
+        "failure_recovery": {
+          "phase": "failure_recovery",
+          "threshold": 0.8,
+          "proximity_window": 15,
+          "position": "any",
+          "legal_redirect_targets": [],
+          "R": 2,
+          "required": [
+            {
+              "id": "edit",
+              "kind": "required",
+              "unified_pos": 56,
+              "trace_index": 36,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            },
+            {
+              "id": "command",
+              "kind": "required",
+              "unified_pos": 58,
+              "trace_index": 37,
+              "proximity": 0.8666666666666667,
+              "cross_phase": 1.0,
+              "position": 1.0,
+              "requires_ok": true,
+              "contribution": 0.43333333333333335
+            }
+          ],
+          "optional": [],
+          "score": 0.8666666666666667,
+          "cap_hit": false,
+          "first_occurrence_trace_index": 37,
+          "first_occurrence_fallback_used": false
+        }
+      },
+      "boundaries": {
+        "implementation": 64,
+        "specification": 58,
+        "specification_last": 58,
+        "commit": 90,
+        "post-commit": 94,
+        "failure_recovery": 58
+      },
+      "dedup_actions": []
+    },
+    {
+      "function": "_detect_phases",
+      "action": "execution_order_built",
+      "timestamp": 2169503.200417166,
+      "phase_events": {
+        "specification": [
+          36,
+          37
+        ],
+        "implementation": [
+          40,
+          41,
+          42,
+          43,
+          44
+        ],
+        "commit": [
+          56,
+          57
+        ],
+        "post-commit": [
+          58,
+          59,
+          60
+        ],
+        "failure_recovery": [
+          36,
+          37
+        ]
+      },
+      "floating_phases": [
+        "failure_recovery"
+      ],
+      "execution_order": [
+        "specification",
+        "implementation",
+        "commit",
+        "post-commit"
+      ]
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_failed_commands",
+      "timestamp": 2169503.20229325,
+      "command_pattern": "cargo test",
+      "all_bash_commands": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_0144zZtDQ1G7QJChbhaoaLyH",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016hD12sQiPeRsWmqwa8jKCC",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | tail -50",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 681,
+                  "cache_read_input_tokens": 131214,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 681
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "a5e62dd3-1c65-490d-951b-91a664ac2497"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_016hD12sQiPeRsWmqwa8jKCC"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "9149eceb-bf93-4072-a3f7-08dff9866174",
+              "timestamp": "2026-05-17T01:04:23.437Z",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | tail -50",
+          "exit_code": 1,
+          "event_index": 72
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01W4tUb7pV6aK1dfX8fnzba2",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01RWBXhtjxFonphJcAtQEbBJ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 240000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 203,
+                  "cache_read_input_tokens": 131895,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 203
+                  },
+                  "output_tokens": 70,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "0e36026c-fac2-4eca-9adf-c43b357ea0f0"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.45\n   Compiling unicode-ident v1.0.24\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling memchr v2.8.0\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling shlex v1.3.0\n   Compiling find-msvc-tools v0.1.9\n   Compiling futures-core v0.3.32\n   Compiling autocfg v1.5.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling smallvec v1.15.1\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling aws-lc-rs v1.16.3\n   Compiling litemap v0.8.2\n   Compiling zeroize v1.8.2\n   Compiling slab v0.4.12\n   Compiling writeable v0.6.3\n   Compiling bitflags v2.11.1\n   Compiling equivalent v1.0.2\n   Compiling hashbrown v0.17.0\n   Compiling icu_normalizer_data v2.2.0\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling httparse v1.10.1\n   Compiling syn v2.0.117\n   Compiling indexmap v2.14.0\n   Compiling version_check v0.9.5\n   Compiling core-foundation-sys v0.8.7\n   Compiling jobserver v0.1.34\n   Compiling utf8parse v0.2.2\n   Compiling futures-io v0.3.32\n   Compiling futures-task v0.3.32\n   Compiling zmij v1.0.21\n   Compiling generic-array v0.14.7\n   Compiling cc v1.2.61\n   Compiling errno v0.3.14\n   Compiling mio v1.2.0\n   Compiling socket2 v0.6.3\n   Compiling signal-hook-registry v1.4.8\n   Compiling regex-automata v0.4.14\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling crossbeam-utils v0.8.21\n   Compiling try-lock v0.2.5\n   Compiling anstyle v1.0.14\n   Compiling httpdate v1.0.3\n   Compiling cmake v0.1.58\n   Compiling untrusted v0.9.0\n   Compiling rustls v0.23.40\n   Compiling serde_json v1.0.149\n   Compiling atomic-waker v1.1.2\n   Compiling fnv v1.0.7\n   Compiling percent-encoding v2.3.2\n   Compiling unicode-width v0.2.2\n   Compiling tower-service v0.3.3\n   Compiling want v0.3.1\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling aws-lc-sys v0.40.0\n   Compiling rustix v1.1.4\n   Compiling subtle v2.6.1\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling hybrid-array v0.4.11\n   Compiling anstyle-query v1.1.5\n   Compiling colorchoice v1.0.5\n   Compiling foldhash v0.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling ipnet v2.12.0\n   Compiling hashbrown v0.15.5\n   Compiling anstream v1.0.0\n   Compiling concurrent-queue v2.5.0\n   Compiling synstructure v0.13.2\n   Compiling console v0.16.3\n   Compiling regex v1.12.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling strsim v0.11.1\n   Compiling ref-cast v1.0.25\n   Compiling portable-atomic v1.13.1\n   Compiling parking v2.2.1\n   Compiling clap_lex v1.1.0\n   Compiling heck v0.5.0\n   Compiling ucd-trie v0.1.7\n   Compiling fastrand v2.4.1\n   Compiling tower-layer v0.3.3\n   Compiling doc-comment v0.3.4\n   Compiling thiserror v2.0.18\n   Compiling tempfile v3.27.0\n   Compiling pest v2.8.6\n   Compiling clap_builder v4.6.0\n   Compiling event-listener v5.4.1\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling futures-macro v0.3.32\n   Compiling zerofrom v0.1.7\n   Compiling ref-cast-impl v1.0.25\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling security-framework v3.7.0\n   Compiling hashlink v0.10.0\n   Compiling futures-util v0.3.32\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling serde_derive_internals v0.29.1\n   Compiling crypto-common v0.2.1\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling encoding_rs v0.8.35\n   Compiling anyhow v1.0.102\n   Compiling lazy_static v1.5.0\n   Compiling arraydeque v0.5.1\n   Compiling iri-string v0.7.12\n   Compiling const-oid v0.10.2\n   Compiling digest v0.11.2\n   Compiling sharded-slab v0.1.7\n   Compiling bytes v1.11.1\n   Compiling icu_provider v2.2.0\n   Compiling schemars_derive v1.2.1\n   Compiling icu_normalizer v2.2.0\n   Compiling icu_properties v2.2.0\n   Compiling clap v4.6.1\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling yaml-rust2 v0.10.4\n   Compiling digest v0.10.7\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling idna_adapter v1.2.2\n   Compiling pest_met\n\n... [20014 characters truncated] ...\n\nrecord_serializes_to_json ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::scan_log_dir_skips_logs_without_working_directory ... ok\ntest cli::commands::history::tests::scan_log_files_with_jsonl_data ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::history::tests::scan_log_dir_respects_limit ... ok\ntest cli::commands::history::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::create_config_includes_schema_line_when_path_provided ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_omits_schema_line_when_path_none ... ok\ntest cli::commands::init::tests::create_config_no_steps_omits_steps_and_workflows ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::init::tests::create_config_with_template_check ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::history::tests::clear_cancelled_when_user_declines_prompt ... ok\ntest cli::commands::history::tests::clear_prompts_when_interactive_without_force ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::history::tests::clear_reports_when_no_logs_match ... ok\ntest cli::commands::history::tests::clear_with_force_deletes_only_this_projects_logs ... ok\ntest cli::commands::init::tests::init_interactive_shows_summary ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::schema_path_resolves_under_home ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::last::tests::outcome_status_kind_matches_run_ui ... ok\ntest cli::commands::last::tests::parse_log_preserves_step_order ... ok\ntest cli::commands::last::tests::parse_log_reads_workflow_completed_summary ... ok\ntest cli::commands::last::tests::parse_log_returns_none_without_workflow_completed ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::parse_log_round_trips_blocked ... ok\ntest cli::commands::last::tests::parse_log_round_trips_completed ... ok\ntest cli::commands::init::tests::init_interactive_yes_runs_workflow ... ok\ntest cli::commands::last::tests::parse_log_round_trips_declined ... ok\ntest cli::commands::last::tests::parse_log_round_trips_failed_and_captures_error ... ok\ntest cli::commands::last::tests::parse_log_round_trips_filtered_out ... ok\ntest cli::commands::last::tests::parse_log_round_trips_satisfied ... ok\ntest cli::commands::last::tests::parse_log_skips_unknown_outcome_strings ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::last::tests::scan_log_dir_skips_logs_without_workflow_completed ... ok\ntest cli::commands::last::tests::scan_log_dir_returns_empty_when_no_logs_match_project ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::last::tests::scan_log_dir_with_all_returns_runs_newest_first ... ok\ntest cli::commands::last::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_all_flag_uses_full_merge ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::list::tests::list_all_uses_full_merge ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::com",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01RWBXhtjxFonphJcAtQEbBJ"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "be778469-4203-4a04-9def-38832265db42",
+              "timestamp": "2026-05-17T01:05:17.378Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.45\n   Compiling unicode-ident v1.0.24\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling memchr v2.8.0\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling shlex v1.3.0\n   Compiling find-msvc-tools v0.1.9\n   Compiling futures-core v0.3.32\n   Compiling autocfg v1.5.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling smallvec v1.15.1\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling aws-lc-rs v1.16.3\n   Compiling litemap v0.8.2\n   Compiling zeroize v1.8.2\n   Compiling slab v0.4.12\n   Compiling writeable v0.6.3\n   Compiling bitflags v2.11.1\n   Compiling equivalent v1.0.2\n   Compiling hashbrown v0.17.0\n   Compiling icu_normalizer_data v2.2.0\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling httparse v1.10.1\n   Compiling syn v2.0.117\n   Compiling indexmap v2.14.0\n   Compiling version_check v0.9.5\n   Compiling core-foundation-sys v0.8.7\n   Compiling jobserver v0.1.34\n   Compiling utf8parse v0.2.2\n   Compiling futures-io v0.3.32\n   Compiling futures-task v0.3.32\n   Compiling zmij v1.0.21\n   Compiling generic-array v0.14.7\n   Compiling cc v1.2.61\n   Compiling errno v0.3.14\n   Compiling mio v1.2.0\n   Compiling socket2 v0.6.3\n   Compiling signal-hook-registry v1.4.8\n   Compiling regex-automata v0.4.14\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling crossbeam-utils v0.8.21\n   Compiling try-lock v0.2.5\n   Compiling anstyle v1.0.14\n   Compiling httpdate v1.0.3\n   Compiling cmake v0.1.58\n   Compiling untrusted v0.9.0\n   Compiling rustls v0.23.40\n   Compiling serde_json v1.0.149\n   Compiling atomic-waker v1.1.2\n   Compiling fnv v1.0.7\n   Compiling percent-encoding v2.3.2\n   Compiling unicode-width v0.2.2\n   Compiling tower-service v0.3.3\n   Compiling want v0.3.1\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling aws-lc-sys v0.40.0\n   Compiling rustix v1.1.4\n   Compiling subtle v2.6.1\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling hybrid-array v0.4.11\n   Compiling anstyle-query v1.1.5\n   Compiling colorchoice v1.0.5\n   Compiling foldhash v0.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling ipnet v2.12.0\n   Compiling hashbrown v0.15.5\n   Compiling anstream v1.0.0\n   Compiling concurrent-queue v2.5.0\n   Compiling synstructure v0.13.2\n   Compiling console v0.16.3\n   Compiling regex v1.12.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling strsim v0.11.1\n   Compiling ref-cast v1.0.25\n   Compiling portable-atomic v1.13.1\n   Compiling parking v2.2.1\n   Compiling clap_lex v1.1.0\n   Compiling heck v0.5.0\n   Compiling ucd-trie v0.1.7\n   Compiling fastrand v2.4.1\n   Compiling tower-layer v0.3.3\n   Compiling doc-comment v0.3.4\n   Compiling thiserror v2.0.18\n   Compiling tempfile v3.27.0\n   Compiling pest v2.8.6\n   Compiling clap_builder v4.6.0\n   Compiling event-listener v5.4.1\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling futures-macro v0.3.32\n   Compiling zerofrom v0.1.7\n   Compiling ref-cast-impl v1.0.25\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling security-framework v3.7.0\n   Compiling hashlink v0.10.0\n   Compiling futures-util v0.3.32\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling serde_derive_internals v0.29.1\n   Compiling crypto-common v0.2.1\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling encoding_rs v0.8.35\n   Compiling anyhow v1.0.102\n   Compiling lazy_static v1.5.0\n   Compiling arraydeque v0.5.1\n   Compiling iri-string v0.7.12\n   Compiling const-oid v0.10.2\n   Compiling digest v0.11.2\n   Compiling sharded-slab v0.1.7\n   Compiling bytes v1.11.1\n   Compiling icu_provider v2.2.0\n   Compiling schemars_derive v1.2.1\n   Compiling icu_normalizer v2.2.0\n   Compiling icu_properties v2.2.0\n   Compiling clap v4.6.1\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling yaml-rust2 v0.10.4\n   Compiling digest v0.10.7\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling idna_adapter v1.2.2\n   Compiling pest_met\n\n... [20014 characters truncated] ...\n\nrecord_serializes_to_json ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::scan_log_dir_skips_logs_without_working_directory ... ok\ntest cli::commands::history::tests::scan_log_files_with_jsonl_data ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::history::tests::scan_log_dir_respects_limit ... ok\ntest cli::commands::history::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::create_config_includes_schema_line_when_path_provided ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_omits_schema_line_when_path_none ... ok\ntest cli::commands::init::tests::create_config_no_steps_omits_steps_and_workflows ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::init::tests::create_config_with_template_check ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::history::tests::clear_cancelled_when_user_declines_prompt ... ok\ntest cli::commands::history::tests::clear_prompts_when_interactive_without_force ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::history::tests::clear_reports_when_no_logs_match ... ok\ntest cli::commands::history::tests::clear_with_force_deletes_only_this_projects_logs ... ok\ntest cli::commands::init::tests::init_interactive_shows_summary ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::schema_path_resolves_under_home ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::last::tests::outcome_status_kind_matches_run_ui ... ok\ntest cli::commands::last::tests::parse_log_preserves_step_order ... ok\ntest cli::commands::last::tests::parse_log_reads_workflow_completed_summary ... ok\ntest cli::commands::last::tests::parse_log_returns_none_without_workflow_completed ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::parse_log_round_trips_blocked ... ok\ntest cli::commands::last::tests::parse_log_round_trips_completed ... ok\ntest cli::commands::init::tests::init_interactive_yes_runs_workflow ... ok\ntest cli::commands::last::tests::parse_log_round_trips_declined ... ok\ntest cli::commands::last::tests::parse_log_round_trips_failed_and_captures_error ... ok\ntest cli::commands::last::tests::parse_log_round_trips_filtered_out ... ok\ntest cli::commands::last::tests::parse_log_round_trips_satisfied ... ok\ntest cli::commands::last::tests::parse_log_skips_unknown_outcome_strings ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::last::tests::scan_log_dir_skips_logs_without_workflow_completed ... ok\ntest cli::commands::last::tests::scan_log_dir_returns_empty_when_no_logs_match_project ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::last::tests::scan_log_dir_with_all_returns_runs_newest_first ... ok\ntest cli::commands::last::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_all_flag_uses_full_merge ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::list::tests::list_all_uses_full_merge ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::com"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 74
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01CDvqVgptnyAczRJgW16jEN",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01JYMMGTPmLKQMi6q3U5jq86",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features config::loader::tests::load_config_file_errors_on_empty_file config::loader::tests::load_config_file_errors_on_comment_only_file config::loader::tests::load_config_value_errors_on_empty_file config::loader::tests::load_config_value_errors_on_non_mapping config::loader::tests::load_merged_config_errors_on_empty_project_config config::merger::tests::null_overlay_returns_base_unchanged 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 3819,
+                  "cache_read_input_tokens": 132098,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 3819
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "35040612-3605-47d7-818b-17b075cfb8a8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 1\nerror: unexpected argument 'config::loader::tests::load_config_file_errors_on_comment_only_file' found\n\nUsage: cargo test [OPTIONS] [TESTNAME] [-- [ARGS]...]\n\nFor more information, try '--help'.",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01JYMMGTPmLKQMi6q3U5jq86"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "1d7a7e7b-60fa-46f0-abf2-e56bf2f8e227",
+              "timestamp": "2026-05-17T01:05:23.001Z",
+              "tool_use_result": "Error: Exit code 1\nerror: unexpected argument 'config::loader::tests::load_config_file_errors_on_comment_only_file' found\n\nUsage: cargo test [OPTIONS] [TESTNAME] [-- [ARGS]...]\n\nFor more information, try '--help'."
+            }
+          },
+          "command": "cargo test --all-features config::loader::tests::load_config_file_errors_on_empty_file config::loader::tests::load_config_file_errors_on_comment_only_file config::loader::tests::load_config_value_errors_on_empty_file config::loader::tests::load_config_value_errors_on_non_mapping config::loader::tests::load_merged_config_errors_on_empty_project_config config::merger::tests::null_overlay_returns_base_unchanged 2>&1",
+          "exit_code": 1,
+          "event_index": 76
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01XM5d1QdjjrSm7iBt6t3mq4",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_014TeVsay2cftQF5barkKfb3",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 318,
+                  "cache_read_input_tokens": 135917,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 318
+                  },
+                  "output_tokens": 63,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "ccf34fca-df5c-4bf4-affb-b0c85c6170fe"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::merger::tests::null_overlay_returns_base_unchanged ... FAILED\ntest config::loader::tests::load_config_file_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... FAILED\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... FAILED\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... FAILED\n\nfailures:\n\n---- config::merger::tests::null_overlay_returns_base_unchanged stdout ----\n\nthread 'config::merger::tests::null_overlay_returns_base_unchanged' (79831887) panicked at src/config/merger.rs:247:9:\nassertion `left == right` failed\n  left: Null\n right: \"Test\"\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- config::loader::tests::load_config_file_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_empty_file' (79831883) panicked at src/config/loader.rs:1082:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_empty_file' (79831884) panicked at src/config/loader.rs:1104:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_non_mapping stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_non_mapping' (79831885) panicked at src/config/loader.rs:1114:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_file_errors_on_comment_only_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_comment_only_file' (79831882) panicked at src/config/loader.rs:1094:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_merged_config_errors_on_empty_project_config stdout ----\n\nthread 'config::loader::tests::load_merged_config_errors_on_empty_project_config' (79831886) panicked at src/config/loader.rs:1200:9:\nexpected ConfigParseError for empty/comment-only config, got: Ok(BivvyConfig { app_name: None, settings: Settings { logging: LoggingSettings { logging: true, log_retention_days: 30, log_retention_mb: 500 }, execution: ExecutionSettings { parallel: false, max_parallel: 4, history_retention: 50, diagnostic_funnel: true, auto_update: true, default_rerun_window: None }, env_vars: EnvVarSettings { env: {}, env_file: None, secret_env: [] }, environment_profiles: EnvironmentProfileSettings { default_environment: None, environments: {} }, defaults: DefaultsSettings { output: Verbose, auto_run: true, prompt_on_rerun: false, rerun_window: None } }, template_sources: [], steps: {}, workflows: {}, secrets: {}, extends: None, requirements: {}, vars: {} })\n\n\nfailures:\n    config::loader::tests::load_config_file_errors_on_comment_only_file\n    config::loader::tests::load_config_file_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_non_mapping\n    config::loader::tests::load_merged_config_errors_on_empty_project_config\n    config::merger::tests::null_overlay_returns_base_unchanged\n\ntest result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--lib`",
+                    "is_error": true,
+                    "tool_use_id": "toolu_014TeVsay2cftQF5barkKfb3"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "f87b9805-6bce-4aac-b4f9-2d5f65aadf93",
+              "timestamp": "2026-05-17T01:05:26.790Z",
+              "tool_use_result": "Error: Exit code 101\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::merger::tests::null_overlay_returns_base_unchanged ... FAILED\ntest config::loader::tests::load_config_file_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... FAILED\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... FAILED\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... FAILED\n\nfailures:\n\n---- config::merger::tests::null_overlay_returns_base_unchanged stdout ----\n\nthread 'config::merger::tests::null_overlay_returns_base_unchanged' (79831887) panicked at src/config/merger.rs:247:9:\nassertion `left == right` failed\n  left: Null\n right: \"Test\"\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- config::loader::tests::load_config_file_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_empty_file' (79831883) panicked at src/config/loader.rs:1082:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_empty_file' (79831884) panicked at src/config/loader.rs:1104:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_non_mapping stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_non_mapping' (79831885) panicked at src/config/loader.rs:1114:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_file_errors_on_comment_only_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_comment_only_file' (79831882) panicked at src/config/loader.rs:1094:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_merged_config_errors_on_empty_project_config stdout ----\n\nthread 'config::loader::tests::load_merged_config_errors_on_empty_project_config' (79831886) panicked at src/config/loader.rs:1200:9:\nexpected ConfigParseError for empty/comment-only config, got: Ok(BivvyConfig { app_name: None, settings: Settings { logging: LoggingSettings { logging: true, log_retention_days: 30, log_retention_mb: 500 }, execution: ExecutionSettings { parallel: false, max_parallel: 4, history_retention: 50, diagnostic_funnel: true, auto_update: true, default_rerun_window: None }, env_vars: EnvVarSettings { env: {}, env_file: None, secret_env: [] }, environment_profiles: EnvironmentProfileSettings { default_environment: None, environments: {} }, defaults: DefaultsSettings { output: Verbose, auto_run: true, prompt_on_rerun: false, rerun_window: None } }, template_sources: [], steps: {}, workflows: {}, secrets: {}, extends: None, requirements: {}, vars: {} })\n\n\nfailures:\n    config::loader::tests::load_config_file_errors_on_comment_only_file\n    config::loader::tests::load_config_file_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_non_mapping\n    config::loader::tests::load_merged_config_errors_on_empty_project_config\n    config::merger::tests::null_overlay_returns_base_unchanged\n\ntest result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--lib`"
+            }
+          },
+          "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+          "exit_code": 101,
+          "event_index": 78
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01MLPCB6E9uM4DTY2yZgZuqd",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_015wGxgUfnQRcP9ViLwYmyje",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 659,
+                  "cache_read_input_tokens": 140651,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 659
+                  },
+                  "output_tokens": 4,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "38f5dd94-f1d0-4de0-86a4-2becc2051bb9"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_015wGxgUfnQRcP9ViLwYmyje",
+                    "type": "tool_result",
+                    "content": "   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.44s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::loader::tests::load_config_value_errors_on_empty_file ... ok\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... ok\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... ok\ntest config::loader::tests::load_config_file_errors_on_empty_file ... ok\ntest config::merger::tests::null_overlay_returns_base_unchanged ... ok\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.02s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-1e2cbc0684ffd66a)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/last_outcomes_test.rs (target/debug/deps/last_outcomes_test-4552bfdd4eeb2ed7)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/process_group_test.rs (target/debug/deps/process_group_test-2cbe713aa989984c)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-b799ffe55d19f0be)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/remote_templates_test.rs (target/debug/deps/remote_templates_test-836f653b8b66745c)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s\n\n     Running tests/run_rendering_tests.rs (target/debug/deps/run_rendering_tests-497feff218d554ae)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n   Doc-tests bivvy\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 31 filtered out; finished in 0.00s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "e9ca0fa3-7f4b-48d8-aad5-8eec58937572",
+              "timestamp": "2026-05-17T01:06:28.848Z",
+              "tool_use_result": {
+                "stdout": "   Compiling bivvy v1.10.0 (/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.44s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::loader::tests::load_config_value_errors_on_empty_file ... ok\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... ok\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... ok\ntest config::loader::tests::load_config_file_errors_on_empty_file ... ok\ntest config::merger::tests::null_overlay_returns_base_unchanged ... ok\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.02s\n\n     Running unittests src/main.rs (target/debug/deps/bivvy-1e2cbc0684ffd66a)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/last_outcomes_test.rs (target/debug/deps/last_outcomes_test-4552bfdd4eeb2ed7)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/process_group_test.rs (target/debug/deps/process_group_test-2cbe713aa989984c)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s\n\n     Running tests/release_config.rs (target/debug/deps/release_config-b799ffe55d19f0be)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s\n\n     Running tests/remote_templates_test.rs (target/debug/deps/remote_templates_test-836f653b8b66745c)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s\n\n     Running tests/run_rendering_tests.rs (target/debug/deps/run_rendering_tests-497feff218d554ae)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n   Doc-tests bivvy\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 31 filtered out; finished in 0.00s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+          "exit_code": 0,
+          "event_index": 88
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01F9aiJwaNHYpLLz5hJgA4Ec",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_017xNzpG4L9tqsm7bXHWCMPF",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 300000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 985,
+                  "cache_read_input_tokens": 141310,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 985
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "6699c25e-2372-45b1-9d32-9485d5dfd594"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_017xNzpG4L9tqsm7bXHWCMPF",
+                    "type": "tool_result",
+                    "content": "<persisted-output>\nOutput too large (176.9KB). Full output saved to: /Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-vheg40k4/7e4eb139-1c10-41e0-bbb8-77c9a07f140f/tool-results/brxmdj2iv.txt\n\nPreview (first 2KB):\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2445 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\n...\n</persisted-output>",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "827cd3a1-671a-4a11-aacd-bab1d836a828",
+              "timestamp": "2026-05-17T01:06:52.117Z",
+              "tool_use_result": {
+                "stdout": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 2445 tests\ntest cache::entry::tests::cache_entry_with_size ... ok\ntest cache::entry::tests::expired_entry_has_zero_remaining_ttl ... ok\ntest cache::entry::tests::cache_entry_age ... ok\ntest cache::entry::tests::cache_entry_creation ... ok\ntest cache::entry::tests::cache_entry_expiration ... ok\ntest cache::entry::tests::remaining_ttl_calculation ... ok\ntest cache::entry::tests::cache_entry_with_commit_sha ... ok\ntest cache::entry::tests::cache_entry_with_etag ... ok\ntest cache::entry::tests::cache_key_format ... ok\ntest cache::revalidation::tests::needs_revalidation_check ... ok\ntest cache::revalidation::tests::revalidation_result_variants ... ok\ntest cache::store::tests::cache_store_creation ... ok\ntest cache::store::tests::content_path_is_deterministic ... ok\ntest cache::store::tests::load_nonexistent_returns_none ... ok\ntest cache::store::tests::different_entries_have_different_paths ... ok\ntest cache::store::tests::remove_nonexistent_returns_false ... ok\ntest cache::store::tests::remove_entry ... ok\ntest cache::revalidation::tests::revalidator_creation ... ok\ntest cache::store::tests::read_content ... ok\ntest cache::store::tests::store_and_load ... ok\ntest cache::tests::default_cache_dir_valid ... ok\ntest cache::validation::tests::format_duration_days ... ok\ntest cache::validation::tests::format_duration_hours ... ok\ntest cache::validation::tests::format_duration_seconds ... ok\ntest cache::validation::tests::format_duration_minutes ... ok\ntest cache::store::tests::list_entries ... ok\ntest cache::validation::tests::parse_ttl_hours ... ok\ntest cache::validation::tests::parse_ttl_days ... ok\ntest cache::validation::tests::parse_ttl_minutes ... ok\ntest cache::validation::tests::parse_ttl_no_suffix ... ok\ntest cache::validation::tests::parse_ttl_seconds ... ok\ntest cache::store::tests::total_size_calculation ... ok\ntest cache::store::tests::clear_cache ... ok\ntest cache::validation::tests::validate_not_found ... ok\ntest cache::validation::tests::validate_etag_needs_revalidation ... ok\ntest cache::validation::tests::cleanup_removes_expired ... ok\ntest cache::validation::tests::validate_fresh_entry_ttl ... ok\ntest checks::change::tests::fail_fails_when_changed ... ok\ntest cache::validation::tests::validate_git_needs_revalidation ... ok\ntest cache::validation::tests::validate_expired_entry_ttl ... ok\ntest checks::change::tests::compute_file_hash ... ok\ntest checks::change::tests::fail_passes_when_unchanged ... ok\ntest cache::revalidation::tests::etag_revalidation_unchanged_on_304 ... ok\ntest checks::change::tests::compute_file_hash_exceeds_size_limit ... ok\ntest cache::revalidation::tests::etag_revalidation_updates_cached_content_on_disk ... ok\ntest cache::revalidation::tests::etag_revalidation_updated_on_200 ... ok\ntest checks::change::tests::compute_glob_hash ... ok\ntest checks::change::tests::glob_size_limit_exceeded ... ok\ntest checks::change::tests::glob_size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_file_not_found ... ok\ntest checks::change::tests::hash_file_differs_for_different_content ... ok\ntest checks::change::tests::hash_file_produces_consistent_hash ... ok\ntest checks::change::tests::no_baseline_returns_indeterminate ... ok\ntest checks::change::tests::proceed_fails_when_unchanged ... ok\ntest checks::change::tests::hash_glob_no_matches ... ok\ntest checks::change::tests::proceed_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_changed ... ok\ntest checks::change::tests::require_passes_when_unchanged ... ok\ntest checks::change::tests::hash_glob_changes_when_file_added ... ok\ntest checks::change::tests::hash_glob_is_deterministic ... ok\ntest checks::change::tests::size_limit_none_always_passes ... ok\ntest checks::change::tests::size_limit_exceeded ... ok\ntest checks::change::tests::glob_no_size_limit_allows_any_size ... ok\ntest checks::change::tests::size_limit_not_exceeded ... ok\ntest checks::change::tests::hash_glob_hashes_matching_files ... ok\ntest checks::evaluator::tests::evaluator_all_empty_passes ... ok\ntest checks::evaluator::tests::evaluator_all_fails_when_one_fails ... ok\ntest checks::evaluator::tests::evaluator_any_empty_fails ... ok\ntest checks::evaluator::tests::evaluator_any_fails_when_all_fail ... ok\ntest checks::evaluator::tests::evaluator_any_passes_when_one_passes ... ok\ntest checks::change::tests::compute_command_hash ... ok\ntest checks::change::tests::hash_command_failure ... ok\ntest checks::evaluator::tests::evaluator_all_short_circuits_on_failure ... ok\ntest checks::evaluator::tests::evaluator_all_passes_when_all_pass ... ok\ntest checks::evaluator::tests::evaluate_all_checks_works_for_check_list ... ok\ntest checks::evaluator::tests::evaluator_change_file_not_found ... ok\ntest checks::change::tests::hash_command_success ... ok\ntest checks::evaluator::tests::evaluator_change_named_snapshot_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_no_baseline_returns_indeterminate ... ok\ntest checks::evaluator::tests::evaluator_change_glob_with_baseline ... ok\ntest checks::evaluator::tests::evaluator_change_on_change_fail_changed_fails ... ok\ntest checks::evaluator::tests::evaluator_change_on_change_fail_unchanged_passes ... ok\ntest checks::evaluator::tests::evaluator_change_on_change_require_flags_step ... ok\ntest checks::evaluator::tests::evaluator_change_size_limit_exceeded ... ok\ntest checks::evaluator::tests::evaluator_change_with_different_baseline_proceed_passes ... ok\ntest checks::evaluator::tests::evaluator_change_with_matching_baseline_proceed_fails ... ok\ntest checks::evaluator::tests::evaluator_change_without_step_context_returns_indeterminate ... ok\ntest checks::evaluator::tests::evaluator_change_workflow_scope_isolates_from_project ... ok\ntest checks::evaluator::tests::evaluator_change_workflow_scope_uses_workflow_key ... ok\ntest checks::evaluator::tests::evaluator_change_workflow_scope_without_workflow_name_falls_back ... ok\ntest checks::evaluator::tests::evaluator_nested_all_in_any ... ok\ntest checks::evaluator::tests::evaluator_any_short_circuits_on_pass ... ok\ntest checks::evaluator::tests::evaluator_change_command_with_baseline ... ok\ntest checks::change::tests::hash_command_consistent ... ok\ntest checks::evaluator::tests::evaluator_execution_with_interpolation ... ok\ntest checks::evaluator::tests::evaluator_execution_failure ... ok\ntest checks::evaluator::tests::evaluator_presence_file_exists ... ok\ntest checks::evaluator::tests::evaluator_presence_binary_found ... ok\ntest checks::evaluator::tests::evaluator_presence_binary_missing ... ok\ntest checks::evaluator::tests::evaluator_execution_falsy ... ok\ntest checks::evaluator::tests::evaluator_with_deserialized_any_check ... ok\ntest checks::evaluator::tests::evaluator_presence_file_missing ... ok\ntest checks::evaluator::tests::evaluator_execution_success ... ok\ntest checks::evaluator::tests::evaluator_change_command_first_run_with_correct_baseline ... ok\ntest checks::evaluator::tests::evaluator_execution_truthy ... ok\ntest checks::evaluator::tests::evaluator_presence_custom_success ... ok\ntest checks::evaluator::tests::evaluator_presence_custom_with_interpolation ... ok\ntest checks::evaluator::tests::evaluator_with_deserialized_yaml_check ... ok\ntest checks::execution::tests::success_fails_on_exit_nonzero ... ok\ntest checks::execution::tests::long_command_truncated_in_description ... ok\ntest checks::execution::tests::runs_in_project_root_directory ... ok\ntest checks::execution::tests::falsy_passes_when_command_fails ... ok\ntest checks::presence::tests::binary_check_no_target_returns_error ... ok\ntest checks::execution::tests::falsy_passes_when_stdout_empty ... ok\ntest checks::execution::tests::handles_nonexistent_command ... ok\ntest checks::presence::tests::absolute_path_works ... ok\ntest checks::execution::tests::falsy_fails_when_stdout_nonempty ... ok\ntest checks::presence::tests::custom_check_no_command_returns_error ... ok\ntest checks::presence::tests::directory_exists_returns_passed ... ok\ntest checks::presence::tests::directory_inferred_as_file_when_path_like ... ok\ntest checks::presence::tests::does_not_look_like_path ... ok\ntest checks::presence::tests::explicit_kind_overrides_inference ... ok\ntest checks::presence::tests::file_check_no_target_returns_error ... ok\ntest checks::presence::tests::file_exists_returns_passed ... ok\ntest checks::presence::tests::file_missing_returns_failed ... ok\ntest checks::presence::tests::infer_kind_binary_for_simple_name ... ok\ntest checks::presence::tests::infer_kind_from_command ... ok\ntest checks::presence::tests::infer_kind_from_path_like_target ... ok\ntest checks::presence::tests::looks_like_path_with_dot ... ok\ntest checks::presence::tests::looks_like_path_with_slash ... ok\ntest checks::presence::tests::looks_like_path_with_tilde ... ok\ntest checks::tests::all_combinator_deserializes ... ok\ntest checks::tests::any_combinator_deserializes ... ok\ntest checks::tests::baseline_default_is_each_run ... ok\ntest checks::tests::change_check_default_scope_is_project ... ok\ntest checks::tests::change_check_default_size_limit_is_50mb ... ok\ntest checks::tests::change_check_deserializes_command_kind ... ok\ntest checks::tests::change_check_deserializes_glob_kind ... ok\ntest checks::tests::change_check_deserializes_with_fail ... ok\ntest checks::tests::change_check_deserializes_with_proceed ... ok\ntest checks::tests::change_check_deserializes_workflow_scope ... ok\ntest checks::tests::change_check_with_all_fields ... ok\ntest checks::tests::change_check_with_baseline_git ... ok\ntest checks::tests::check_list_deserializes_as_vec ... ok\ntest checks::tests::check_result_failed ... ok\ntest checks::tests::check_result_indeterminate ... ok\ntest checks::tests::check_result_passed ... ok\ntest checks::tests::check_serializes_roundtrip ... ok\ntest checks::tests::execution_check_deserializes_falsy_validation ... ok\ntest checks::tests::execution_check_deserializes_truthy_validation ... ok\ntest checks::tests::execution_check_deserializes_with_defaults ... ok\ntest checks::tests::full_change_check_yaml_roundtrip ... ok\ntest checks::tests::has_named_checks_false_for_all_unnamed_in_combinator ... ok\ntest checks::tests::has_named_checks_false_for_unnamed_check ... ok\ntest checks::execution::tests::truthy_fails_when_command_fails ... ok\ntest checks::tests::has_named_checks_recurses_into_combinators ... ok\ntest checks::tests::has_named_checks_true_for_named_check ... ok\ntest checks::execution::tests::success_passes_with_real_command ... ok\ntest checks::tests::on_change_fail_deserializes ... ok\ntest checks::tests::nested_combinators_deserialize ... ok\ntest checks::tests::on_change_proceed_deserializes ... ok\ntest checks::tests::on_change_require_deserializes_from_string ... ok\ntest checks::tests::on_change_require_serializes_as_string ... ok\ntest checks::tests::presence_check_deserializes_custom_with_command ... ok\ntest checks::tests::presence_check_deserializes_with_binary_kind ... ok\ntest checks::tests::presence_check_deserializes_with_file_kind ... ok\ntest checks::tests::presence_check_without_kind_deserializes ... ok\ntest checks::tests::presence_check_with_name ... ok\ntest checks::tests::satisfaction_condition_list_deserializes ... ok\ntest checks::execution::tests::success_passes_on_exit_zero ... ok\ntest checks::tests::satisfaction_cross_step_ref_deserializes ... ok\ntest checks::tests::satisfaction_inline_check_deserializes ... ok\ntest checks::tests::satisfaction_ref_deserializes ... ok\ntest checks::tests::size_limit_default_is_50mb ... ok\ntest checks::tests::size_limit_deserializes_from_integer ... ok\ntest checks::tests::size_limit_deserializes_from_null ... ok\ntest checks::tests::size_limit_none_serializes_as_null ... ok\ntest checks::tests::validation_mode_default_is_success ... ok\ntest checks::tests::size_limit_serializes_as_integer ... ok\ntest cli::args::tests::run_args_force_all_flag_sets_field_true ... ok\ntest cli::args::tests::run_args_force_parses_step_list ... ok\ntest cli::args::tests::run_args_force_and_force_all_can_coexist ... ok\ntest cli::args::tests::run_args_force_all_is_false_by_default ... ok\ntest cli::commands::add::tests::add_command_creation ... ok\ntest checks::presence::tests::binary_found_returns_passed ... ok\ntest checks::execution::tests::truthy_passes_when_stdout_nonempty ... ok\ntest checks::presence::tests::binary_missing_returns_failed ... ok\ntest cli::commands::add::tests::add_fails_without_config ... ok\ntest checks::presence::tests::custom_command_success ... ok\ntest checks::presence::tests::custom_command_failure ... ok\ntest checks::execution::tests::truthy_fails_when_stdout_empty ... ok\ntest cli::commands::add::tests::add_to_workflow_updates_default ... ok\ntest cli::commands::add::tests::add_to_workflow_with_after ... ok\ntest cli::commands::add::tests::add_fails_for_unknown_template ... ok\ntest cli::commands::add::tests::add_preserves_existing_comments ... ok\ntest cli::commands::add::tests::add_with_custom_step_name ... ok\ntest cli::commands::add::tests::add_succeeds_with_valid_template ... ok\ntest cli::commands::add::tests::insert_step_at_end_when_no_following_section ... ok\ntest cli::commands::add::tests::add_shows_success_message ... ok\ntest cli::commands::add::tests::add_with_after ... ok\ntest cli::commands::add::tests::insert_step_into_config_appends ... ok\ntest cli::commands::add::tests::insert_step_into_config_no_steps_section ... ok\ntest cli::commands::add::tests::insert_step_name_after ... ok\ntest cli::commands::add::tests::insert_step_name_after_nonexistent_appends ... ok\ntest cli::commands::add::tests::insert_step_name_appends ... ok\ntest cli::commands::add::tests::insert_step_name_empty_list ... ok\ntest cli::commands::cache::tests::list_empty_cache ... ok\ntest cli::commands::cache::tests::show_stats_empty ... ok\ntest cli::commands::add::tests::add_fails_for_duplicate_step ... ok\ntest cli::commands::cache::tests::list_with_entries ... ok\ntest cli::commands::add::tests::add_updates_workflow ... ok\ntest cli::commands::completions::tests::generates_bash_completions ... ok\ntest cli::commands::add::tests::add_resolves_template_from_remote_http_source ... ok\ntest cli::commands::config::tests::config_applies_config_default_output ... ok\ntest cli::commands::config::tests::config_no_config ... ok\ntest cli::commands::config::tests::config_command_creation ... ok\ntest cli::commands::config::tests::config_json_output ... ok\ntest cli::commands::add::tests::add_with_no_workflow ... ok\ntest cli::commands::dispatcher::tests::command_result_failure ... ok\ntest cli::commands::cache::tests::show_stats_with_entries ... ok\ntest cli::commands::dispatcher::tests::command_result_success ... ok\ntest cli::commands::completions::tests::generates_fish_completions ... ok\ntest cli::commands::config::tests::config_shows_config_path ... ok\ntest cli::commands::dispatcher::tests::dispatcher_creation ... ok\ntest cli::commands::display::tests::show_step_status_uses_correct_ui_method ... ok\ntest cli::commands::display::tests::show_step_status_includes_icons ... ok\ntest cli::commands::display::tests::status_kind_conversion ... ok\ntest cli::commands::display::tests::status_symbol_values ... ok\ntest cli::commands::display::tests::status_icon_values ... ok\ntest cli::commands::feedback::tests::capture_interactive_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_with_no_deliver_flag ... ok\ntest cli::commands::feedback::tests::category_from_tags_defaults_to_other ... ok\ntest cli::commands::config::tests::config_yaml_output ... ok\ntest cli::commands::feedback::tests::capture_feedback_with_tags ... ok\ntest cli::commands::feedback::tests::capture_feedback_skips_delivery_when_non_interactive ... ok\ntest cli::commands::feedback::tests::capture_feedback_basic ... ok\ntest cli::commands::feedback::tests::category_from_tags_finds_known_category ... ok\ntest cli::commands::feedback::tests::feedback_args_parsing ... ok\ntest cli::commands::feedback::tests::feedback_category_options_exist ... ok\ntest cli::commands::feedback::tests::feedback_prompt_uses_neutral_framing ... ok\ntest cli::commands::feedback::tests::list_by_different_statuses ... ok\ntest cli::commands::feedback::tests::list_empty_feedback ... ok\ntest cli::commands::feedback::tests::list_by_status ... ok\ntest cli::commands::add::tests::format_step_block_custom_name ... ok\ntest cli::commands::feedback::tests::list_all_feedback ... ok\ntest cli::commands::feedback::tests::list_feedback_with_entries ... ok\ntest cli::commands::feedback::tests::list_feedback_by_tag ... ok\ntest cli::commands::feedback::tests::list_invalid_status ... ok\ntest cli::commands::feedback::tests::no_deliver_flag_parsing ... ok\ntest cli::commands::add::tests::format_step_block_basic ... ok\ntest cli::commands::completions::tests::generates_zsh_completions ... ok\ntest cli::commands::feedback::tests::resolve_nonexistent_feedback ... ok\ntest cli::commands::feedback::tests::session_feedback_no_sessions ... ok\ntest cli::commands::feedback::tests::resolve_feedback_entry ... ok\ntest cli::commands::history::tests::history_args_accessor ... ok\ntest cli::commands::feedback::tests::resolve_with_default_note ... ok\ntest cli::commands::history::tests::history_command_creation ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::delivery_declined_saves_locally_only ... ok\ntest cli::commands::history::tests::log_run_record_serializes_to_json ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::scan_log_files_with_jsonl_data ... ok\ntest cli::commands::history::tests::scan_log_dir_skips_logs_without_working_directory ... ok\ntest cli::commands::history::tests::scan_log_dir_respects_limit ... ok\ntest cli::commands::history::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_includes_schema_line_when_path_provided ... ok\ntest cli::commands::init::tests::create_config_no_steps_omits_steps_and_workflows ... ok\ntest cli::commands::init::tests::create_config_omits_schema_line_when_path_none ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::init::tests::create_config_with_template_check ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::history::tests::clear_reports_when_no_logs_match ... ok\ntest cli::commands::history::tests::clear_with_force_deletes_only_this_projects_logs ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_shows_summary ... ok\ntest cli::commands::history::tests::clear_prompts_when_interactive_without_force ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::init::tests::schema_path_resolves_under_home ... ok\ntest cli::commands::init::tests::init_interactive_yes_runs_workflow ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::last::tests::outcome_status_kind_matches_run_ui ... ok\ntest cli::commands::last::tests::parse_log_preserves_step_order ... ok\ntest cli::commands::last::tests::parse_log_reads_workflow_completed_summary ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::last::tests::parse_log_round_trips_completed ... ok\ntest cli::commands::last::tests::parse_log_returns_none_without_workflow_completed ... ok\ntest cli::commands::last::tests::parse_log_round_trips_declined ... ok\ntest cli::commands::last::tests::parse_log_round_trips_filtered_out ... ok\ntest cli::commands::last::tests::parse_log_round_trips_failed_and_captures_error ... ok\ntest cli::commands::history::tests::clear_cancelled_when_user_declines_prompt ... ok\ntest cli::commands::last::tests::parse_log_round_trips_blocked ... ok\ntest cli::commands::last::tests::parse_log_round_trips_satisfied ... ok\ntest cli::commands::last::tests::parse_log_skips_unknown_outcome_strings ... ok\ntest cli::commands::last::tests::scan_log_dir_returns_empty_when_no_logs_match_project ... ok\ntest cli::commands::last::tests::scan_log_dir_skips_logs_without_workflow_completed ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::last::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::last::tests::scan_log_dir_with_all_returns_runs_newest_first ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_all_flag_uses_full_merge ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_unknown_target_errors_with_available_list ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::commands::list::tests::list_command_creation ... ok\ntest cli::commands::list::tests::list_all_uses_full_merge ... ok\ntest cli::commands::list::tests::list_default_does_not_fail_on_broken_sibling_workflow ... ok\ntest cli::commands::list::tests::list_default_uses_discovery_for_workflow_files ... ok\ntest cli::commands::list::tests::list_json_output ... ok\ntest cli::commands::list::tests::list_json_skipped_step ... ok\ntest cli::commands::list::tests::list_json_steps_only ... ok\ntest cli::commands::list::tests::list_no_config ... ok\ntest cli::commands::list::tests::list_json_workflows_only ... ok\ntest cli::commands::list::tests::list_no_skipped_when_environment_matches ... ok\ntest cli::commands::list::tests::list_shows_dependency_tree ... ok\ntest cli::commands::list::tests::list_shows_environment_from_env_flag ... ok\ntest cli::commands::lint::tests::lint_step_target_loads_step_file ... ok\ntest cli::commands::lint::tests::lint_strict_mode_fails_on_warnings ... ok\ntest cli::commands::list::tests::list_shows_environment_info ... ok\ntest cli::commands::list::tests::list_shows_step_command ... ok\ntest cli::commands::list::tests::list_shows_skipped_steps_for_environment ... ok\ntest cli::commands::list::tests::list_shows_step_description ... ok\ntest cli::commands::list::tests::list_shows_step_title_when_no_description ... ok\ntest cli::commands::list::tests::list_shows_template_instead_of_command ... ok\ntest cli::commands::lint::tests::lint_targeted_workflow_does_not_parse_other_workflow_files ... ok\ntest cli::commands::list::tests::list_shows_workflow_with_arrows ... ok\ntest cli::commands::list::tests::list_shows_workflow_description ... ok\ntest cli::commands::list::tests::list_steps_only ... ok\ntest cli::commands::list::tests::list_unknown_target_errors ... ok\ntest cli::commands::run::tests::build_options_default ... ok\ntest cli::commands::run::tests::build_options_diagnostic_funnel_cli_flag_overrides_config ... ok\ntest cli::commands::run::tests::build_options_diagnostic_funnel_defaults_to_config_value ... ok\ntest cli::commands::list::tests::list_target_loads_single_workflow_file ... ok\ntest cli::commands::run::tests::build_options_with_skip ... ok\ntest cli::commands::lint::tests::lint_without_strict_passes_on_warnings ... ok\ntest cli::commands::run::tests::build_options_has_empty_provided_requirements ... ok\ntest cli::commands::list::tests::list_with_config ... ok\ntest cli::commands::run::tests::build_options_skip_behavior ... ok\ntest cli::commands::run::tests::config_diagnostic_funnel_deserialization ... ok\ntest cli::commands::lint::tests::lint_valid_config ... ok\ntest cli::commands::run::tests::execute_dry_run_success ... ok\n      hello\n      hello\ntest cli::commands::run::tests::execute_applies_config_default_output ... ok\ntest cli::commands::run::tests::execute_cli_verbose_overrides_config_default ... ok\ntest cli::commands::run::tests::execute_ci_flag_shows_deprecation_warning ... ok\ntest cli::commands::run::tests::execute_dry_run_message_is_styled_in_red_with_blank_lines ... ok\n      computed-output\ntest cli::commands::run::tests::computed_vars_available_in_step_commands ... ok\n      hello\ntest cli::commands::run::tests::execute_explicit_workflow_overrides_env_default ... ok\n      hello\ntest cli::commands::run::tests::execute_singular_step_grammar ... ok\ntest cli::commands::run::tests::execute_unknown_workflow_does_not_duplicate_message ... ok\n      hello\n      hello\n      hello\ntest cli::commands::run::tests::execute_shows_environment_in_header ... ok\ntest cli::commands::run::tests::execute_real_workflow ... ok\ntest cli::commands::run::tests::execute_with_no_config_returns_error ... ok\ntest cli::commands::run::tests::execute_with_unknown_workflow ... ok\n      world\ntest cli::commands::run::tests::execute_plural_steps_grammar ... ok\ntest cli::commands::run::tests::merge_force_directives_cli_force_all_overrides_workflow_default ... ok\ntest cli::commands::run::tests::merge_force_directives_no_workflow_uses_cli_only ... ok\ntest cli::commands::run::tests::merge_force_directives_unions_force_lists ... ok\ntest cli::commands::run::tests::merge_force_directives_workflow_force_all_propagates ... ok\ntest cli::commands::run::tests::execute_skipped_step_summary_shows_check_description ... ok\ntest cli::commands::run::tests::resolve_environment_fallback_when_no_config ... ok\ntest cli::commands::run::tests::resolve_environment_flag_overrides_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_config_default ... ok\ntest cli::commands::run::tests::resolve_environment_uses_env_flag ... ok\ntest cli::commands::run::tests::execute_dry_run_with_template_shows_real_command ... ok\ntest cli::commands::run::tests::resolve_steps_errors_on_unknown_template ... ok\ntest cli::commands::run::tests::resolve_steps_inline_step_still_works ... ok\ntest cli::commands::run::tests::resolve_steps_uses_template_for_brew_bundle ... ok\ntest cli::commands::run::tests::run_command_args ... ok\ntest cli::commands::run::tests::run_command_creation ... ok\ntest cli::commands::run::tests::resolve_steps_with_environment_applies_overrides ... ok\n      hello\ntest cli::commands::run::tests::execute_success_does_not_duplicate_message ... ok\n      fast\n      hello\ntest cli::commands::run::tests::execute_with_environment_default_workflow ... ok\ntest cli::commands::run::tests::malformed_sibling_workflow_does_not_break_named_run ... ok\ntest cli::commands::schema::tests::schema_creates_parent_dirs ... ok\ntest cli::commands::schema::tests::schema_output_is_valid_json_schema ... ok\ntest cli::commands::schema::tests::schema_prints_to_stdout ... ok\ntest cli::commands::schema::tests::schema_to_file_path ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_empty_when_no_changes ... ok\ntest cli::commands::snapshot::tests::collect_change_checks_finds_nested ... ok\ntest cli::commands::status::tests::format_requirement_status_missing ... ok\ntest cli::commands::status::tests::format_requirement_status_satisfied ... ok\ntest cli::commands::status::tests::format_requirement_status_unknown ... ok\n      hello\ntest cli::commands::schema::tests::schema_writes_to_file ... ok\ntest cli::commands::status::tests::status_command_creation ... ok\ntest cli::commands::run::tests::execute_without_ci_flag_no_deprecation_warning ... ok\n      hello\ntest cli::commands::run::tests::portable_workflow_file_runs_end_to_end ... ok\ntest cli::commands::run::tests::summary_shows_aborted_hint ... ok\ntest cli::commands::status::tests::status_no_config ... ok\ntest cli::commands::run::tests::summary_shows_recovery_detail ... ok\n      hello-from-vars\ntest cli::commands::run::tests::vars_available_in_step_commands ... ok\ntest cli::commands::status::tests::status_no_requirements_section_when_no_requires ... ok\ntest cli::commands::status::tests::status_applies_config_default_output ... ok\ntest cli::commands::status::tests::status_no_skipped_when_environment_matches ... ok\ntest cli::commands::status::tests::status_requirements_deduplicates ... ok\ntest cli::commands::status::tests::status_shows_environment_from_env_flag ... ok\ntest cli::commands::status::tests::status_shows_environment_info ... ok\ntest cli::commands::status::tests::status_shows_header_with_app_name ... ok\ntest cli::commands::templates::tests::templates_command_creation ... ok\ntest cli::commands::status::tests::status_shows_hint_for_all_pending ... ok\ntest cli::commands::status::tests::status_shows_pending_for_never_run_steps ... ok\ntest cli::commands::templat",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false,
+                "persistedOutputPath": "/Users/brenna/.claude/projects/-private-var-folders--q-qzh8-t6s15388qqf3p6n3d200000gp-T-bench-vheg40k4/7e4eb139-1c10-41e0-bbb8-77c9a07f140f/tool-results/brxmdj2iv.txt",
+                "persistedOutputSize": 181156
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 0,
+          "event_index": 90
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01TXgWy4ybrcZ5mvkJCamhXx",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01MBGoN5p1Q8WQAjbuEDBLr9",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep \"^test result:\"",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 1574,
+                  "cache_read_input_tokens": 147493,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 1574
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "d3577ba6-d002-45a9-8e27-bacd704dbb17"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01MBGoN5p1Q8WQAjbuEDBLr9",
+                    "type": "tool_result",
+                    "content": "test result: ok. 2445 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.22s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.67s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.06s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "f3fc50d9-6177-4874-aa5f-7766e2736fc0",
+              "timestamp": "2026-05-17T01:07:59.780Z",
+              "tool_use_result": {
+                "stdout": "test result: ok. 2445 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.22s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.67s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.06s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep \"^test result:\"",
+          "exit_code": 0,
+          "event_index": 98
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01668wQb1xL13meQQQNNNeVN",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01YcGTTG45B2hYf4DN9V1y2B",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | grep \"^test result:\"",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 343,
+                  "cache_read_input_tokens": 155615,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 343
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "76c8f674-cad3-4a8f-a900-29c1e017264b"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "tool_use_id": "toolu_01YcGTTG45B2hYf4DN9V1y2B",
+                    "type": "tool_result",
+                    "content": "test result: ok. 2445 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.11s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.58s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.49s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.74s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.04s",
+                    "is_error": false
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "efb3caf5-6167-4435-b065-16010c13159b",
+              "timestamp": "2026-05-17T01:10:18.475Z",
+              "tool_use_result": {
+                "stdout": "test result: ok. 2445 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.11s\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.58s\ntest result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.49s\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.74s\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.04s",
+                "stderr": "",
+                "interrupted": false,
+                "isImage": false,
+                "noOutputExpected": false
+              }
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | grep \"^test result:\"",
+          "exit_code": 0,
+          "event_index": 114
+        }
+      ],
+      "failed": [
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_0144zZtDQ1G7QJChbhaoaLyH",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_016hD12sQiPeRsWmqwa8jKCC",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1 | tail -50",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 681,
+                  "cache_read_input_tokens": 131214,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 681
+                  },
+                  "output_tokens": 1,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "a5e62dd3-1c65-490d-951b-91a664ac2497"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n",
+                    "is_error": true,
+                    "tool_use_id": "toolu_016hD12sQiPeRsWmqwa8jKCC"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "9149eceb-bf93-4072-a3f7-08dff9866174",
+              "timestamp": "2026-05-17T01:04:23.437Z",
+              "tool_use_result": "Error: PreToolUse:Bash hook error: [~/.claude-scripts/block_truncated_diagnostics]: BLOCK: Do not truncate diagnostic output. Remove the pipe to head/tail/awk/sed/cut and let the full output through. Truncating test, build, lint, or check output hides failures and context.\n"
+            }
+          },
+          "command": "cargo test --all-features 2>&1 | tail -50",
+          "exit_code": 1,
+          "event_index": 72
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01W4tUb7pV6aK1dfX8fnzba2",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01RWBXhtjxFonphJcAtQEbBJ",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features 2>&1",
+                      "timeout": 240000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 203,
+                  "cache_read_input_tokens": 131895,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 203
+                  },
+                  "output_tokens": 70,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "0e36026c-fac2-4eca-9adf-c43b357ea0f0"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.45\n   Compiling unicode-ident v1.0.24\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling memchr v2.8.0\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling shlex v1.3.0\n   Compiling find-msvc-tools v0.1.9\n   Compiling futures-core v0.3.32\n   Compiling autocfg v1.5.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling smallvec v1.15.1\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling aws-lc-rs v1.16.3\n   Compiling litemap v0.8.2\n   Compiling zeroize v1.8.2\n   Compiling slab v0.4.12\n   Compiling writeable v0.6.3\n   Compiling bitflags v2.11.1\n   Compiling equivalent v1.0.2\n   Compiling hashbrown v0.17.0\n   Compiling icu_normalizer_data v2.2.0\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling httparse v1.10.1\n   Compiling syn v2.0.117\n   Compiling indexmap v2.14.0\n   Compiling version_check v0.9.5\n   Compiling core-foundation-sys v0.8.7\n   Compiling jobserver v0.1.34\n   Compiling utf8parse v0.2.2\n   Compiling futures-io v0.3.32\n   Compiling futures-task v0.3.32\n   Compiling zmij v1.0.21\n   Compiling generic-array v0.14.7\n   Compiling cc v1.2.61\n   Compiling errno v0.3.14\n   Compiling mio v1.2.0\n   Compiling socket2 v0.6.3\n   Compiling signal-hook-registry v1.4.8\n   Compiling regex-automata v0.4.14\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling crossbeam-utils v0.8.21\n   Compiling try-lock v0.2.5\n   Compiling anstyle v1.0.14\n   Compiling httpdate v1.0.3\n   Compiling cmake v0.1.58\n   Compiling untrusted v0.9.0\n   Compiling rustls v0.23.40\n   Compiling serde_json v1.0.149\n   Compiling atomic-waker v1.1.2\n   Compiling fnv v1.0.7\n   Compiling percent-encoding v2.3.2\n   Compiling unicode-width v0.2.2\n   Compiling tower-service v0.3.3\n   Compiling want v0.3.1\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling aws-lc-sys v0.40.0\n   Compiling rustix v1.1.4\n   Compiling subtle v2.6.1\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling hybrid-array v0.4.11\n   Compiling anstyle-query v1.1.5\n   Compiling colorchoice v1.0.5\n   Compiling foldhash v0.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling ipnet v2.12.0\n   Compiling hashbrown v0.15.5\n   Compiling anstream v1.0.0\n   Compiling concurrent-queue v2.5.0\n   Compiling synstructure v0.13.2\n   Compiling console v0.16.3\n   Compiling regex v1.12.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling strsim v0.11.1\n   Compiling ref-cast v1.0.25\n   Compiling portable-atomic v1.13.1\n   Compiling parking v2.2.1\n   Compiling clap_lex v1.1.0\n   Compiling heck v0.5.0\n   Compiling ucd-trie v0.1.7\n   Compiling fastrand v2.4.1\n   Compiling tower-layer v0.3.3\n   Compiling doc-comment v0.3.4\n   Compiling thiserror v2.0.18\n   Compiling tempfile v3.27.0\n   Compiling pest v2.8.6\n   Compiling clap_builder v4.6.0\n   Compiling event-listener v5.4.1\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling futures-macro v0.3.32\n   Compiling zerofrom v0.1.7\n   Compiling ref-cast-impl v1.0.25\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling security-framework v3.7.0\n   Compiling hashlink v0.10.0\n   Compiling futures-util v0.3.32\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling serde_derive_internals v0.29.1\n   Compiling crypto-common v0.2.1\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling encoding_rs v0.8.35\n   Compiling anyhow v1.0.102\n   Compiling lazy_static v1.5.0\n   Compiling arraydeque v0.5.1\n   Compiling iri-string v0.7.12\n   Compiling const-oid v0.10.2\n   Compiling digest v0.11.2\n   Compiling sharded-slab v0.1.7\n   Compiling bytes v1.11.1\n   Compiling icu_provider v2.2.0\n   Compiling schemars_derive v1.2.1\n   Compiling icu_normalizer v2.2.0\n   Compiling icu_properties v2.2.0\n   Compiling clap v4.6.1\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling yaml-rust2 v0.10.4\n   Compiling digest v0.10.7\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling idna_adapter v1.2.2\n   Compiling pest_met\n\n... [20014 characters truncated] ...\n\nrecord_serializes_to_json ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::scan_log_dir_skips_logs_without_working_directory ... ok\ntest cli::commands::history::tests::scan_log_files_with_jsonl_data ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::history::tests::scan_log_dir_respects_limit ... ok\ntest cli::commands::history::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::create_config_includes_schema_line_when_path_provided ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_omits_schema_line_when_path_none ... ok\ntest cli::commands::init::tests::create_config_no_steps_omits_steps_and_workflows ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::init::tests::create_config_with_template_check ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::history::tests::clear_cancelled_when_user_declines_prompt ... ok\ntest cli::commands::history::tests::clear_prompts_when_interactive_without_force ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::history::tests::clear_reports_when_no_logs_match ... ok\ntest cli::commands::history::tests::clear_with_force_deletes_only_this_projects_logs ... ok\ntest cli::commands::init::tests::init_interactive_shows_summary ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::schema_path_resolves_under_home ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::last::tests::outcome_status_kind_matches_run_ui ... ok\ntest cli::commands::last::tests::parse_log_preserves_step_order ... ok\ntest cli::commands::last::tests::parse_log_reads_workflow_completed_summary ... ok\ntest cli::commands::last::tests::parse_log_returns_none_without_workflow_completed ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::parse_log_round_trips_blocked ... ok\ntest cli::commands::last::tests::parse_log_round_trips_completed ... ok\ntest cli::commands::init::tests::init_interactive_yes_runs_workflow ... ok\ntest cli::commands::last::tests::parse_log_round_trips_declined ... ok\ntest cli::commands::last::tests::parse_log_round_trips_failed_and_captures_error ... ok\ntest cli::commands::last::tests::parse_log_round_trips_filtered_out ... ok\ntest cli::commands::last::tests::parse_log_round_trips_satisfied ... ok\ntest cli::commands::last::tests::parse_log_skips_unknown_outcome_strings ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::last::tests::scan_log_dir_skips_logs_without_workflow_completed ... ok\ntest cli::commands::last::tests::scan_log_dir_returns_empty_when_no_logs_match_project ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::last::tests::scan_log_dir_with_all_returns_runs_newest_first ... ok\ntest cli::commands::last::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_all_flag_uses_full_merge ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::list::tests::list_all_uses_full_merge ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::com",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01RWBXhtjxFonphJcAtQEbBJ"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "be778469-4203-4a04-9def-38832265db42",
+              "timestamp": "2026-05-17T01:05:17.378Z",
+              "tool_use_result": "Error: Exit code 101\n   Compiling proc-macro2 v1.0.106\n   Compiling quote v1.0.45\n   Compiling unicode-ident v1.0.24\n   Compiling libc v0.2.186\n   Compiling serde_core v1.0.228\n   Compiling serde v1.0.228\n   Compiling memchr v2.8.0\n   Compiling pin-project-lite v0.2.17\n   Compiling itoa v1.0.18\n   Compiling once_cell v1.21.4\n   Compiling cfg-if v1.0.4\n   Compiling stable_deref_trait v1.2.1\n   Compiling shlex v1.3.0\n   Compiling find-msvc-tools v0.1.9\n   Compiling futures-core v0.3.32\n   Compiling autocfg v1.5.0\n   Compiling fs_extra v1.3.0\n   Compiling dunce v1.0.5\n   Compiling typenum v1.20.0\n   Compiling smallvec v1.15.1\n   Compiling log v0.4.29\n   Compiling futures-sink v0.3.32\n   Compiling aho-corasick v1.1.4\n   Compiling regex-syntax v0.8.10\n   Compiling tracing-core v0.1.36\n   Compiling aws-lc-rs v1.16.3\n   Compiling litemap v0.8.2\n   Compiling zeroize v1.8.2\n   Compiling slab v0.4.12\n   Compiling writeable v0.6.3\n   Compiling bitflags v2.11.1\n   Compiling equivalent v1.0.2\n   Compiling hashbrown v0.17.0\n   Compiling icu_normalizer_data v2.2.0\n   Compiling icu_properties_data v2.2.0\n   Compiling utf8_iter v1.0.4\n   Compiling httparse v1.10.1\n   Compiling syn v2.0.117\n   Compiling indexmap v2.14.0\n   Compiling version_check v0.9.5\n   Compiling core-foundation-sys v0.8.7\n   Compiling jobserver v0.1.34\n   Compiling utf8parse v0.2.2\n   Compiling futures-io v0.3.32\n   Compiling futures-task v0.3.32\n   Compiling zmij v1.0.21\n   Compiling generic-array v0.14.7\n   Compiling cc v1.2.61\n   Compiling errno v0.3.14\n   Compiling mio v1.2.0\n   Compiling socket2 v0.6.3\n   Compiling signal-hook-registry v1.4.8\n   Compiling regex-automata v0.4.14\n   Compiling rustls-pki-types v1.14.1\n   Compiling num-traits v0.2.19\n   Compiling crossbeam-utils v0.8.21\n   Compiling try-lock v0.2.5\n   Compiling anstyle v1.0.14\n   Compiling httpdate v1.0.3\n   Compiling cmake v0.1.58\n   Compiling untrusted v0.9.0\n   Compiling rustls v0.23.40\n   Compiling serde_json v1.0.149\n   Compiling atomic-waker v1.1.2\n   Compiling fnv v1.0.7\n   Compiling percent-encoding v2.3.2\n   Compiling unicode-width v0.2.2\n   Compiling tower-service v0.3.3\n   Compiling want v0.3.1\n   Compiling futures-channel v0.3.32\n   Compiling base64 v0.22.1\n   Compiling aws-lc-sys v0.40.0\n   Compiling rustix v1.1.4\n   Compiling subtle v2.6.1\n   Compiling getrandom v0.4.2\n   Compiling anstyle-parse v1.0.0\n   Compiling hybrid-array v0.4.11\n   Compiling anstyle-query v1.1.5\n   Compiling colorchoice v1.0.5\n   Compiling foldhash v0.1.5\n   Compiling is_terminal_polyfill v1.70.2\n   Compiling ipnet v2.12.0\n   Compiling hashbrown v0.15.5\n   Compiling anstream v1.0.0\n   Compiling concurrent-queue v2.5.0\n   Compiling synstructure v0.13.2\n   Compiling console v0.16.3\n   Compiling regex v1.12.3\n   Compiling form_urlencoded v1.2.2\n   Compiling security-framework-sys v2.17.0\n   Compiling core-foundation v0.10.1\n   Compiling memoffset v0.7.1\n   Compiling sync_wrapper v1.0.2\n   Compiling strsim v0.11.1\n   Compiling ref-cast v1.0.25\n   Compiling portable-atomic v1.13.1\n   Compiling parking v2.2.1\n   Compiling clap_lex v1.1.0\n   Compiling heck v0.5.0\n   Compiling ucd-trie v0.1.7\n   Compiling fastrand v2.4.1\n   Compiling tower-layer v0.3.3\n   Compiling doc-comment v0.3.4\n   Compiling thiserror v2.0.18\n   Compiling tempfile v3.27.0\n   Compiling pest v2.8.6\n   Compiling clap_builder v4.6.0\n   Compiling event-listener v5.4.1\n   Compiling serde_derive v1.0.228\n   Compiling zerofrom-derive v0.1.7\n   Compiling yoke-derive v0.8.2\n   Compiling zerovec-derive v0.11.3\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.7.0\n   Compiling tracing-attributes v0.1.31\n   Compiling futures-macro v0.3.32\n   Compiling zerofrom v0.1.7\n   Compiling ref-cast-impl v1.0.25\n   Compiling clap_derive v4.6.1\n   Compiling thiserror-impl v2.0.18\n   Compiling yoke v0.8.2\n   Compiling security-framework v3.7.0\n   Compiling hashlink v0.10.0\n   Compiling futures-util v0.3.32\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling zerovec v0.11.6\n   Compiling zerotrie v0.2.4\n   Compiling tracing v0.1.44\n   Compiling serde_derive_internals v0.29.1\n   Compiling crypto-common v0.2.1\n   Compiling tinystr v0.8.3\n   Compiling potential_utf v0.1.5\n   Compiling icu_locale_core v2.2.0\n   Compiling icu_collections v2.2.0\n   Compiling block-buffer v0.12.0\n   Compiling encoding_rs v0.8.35\n   Compiling anyhow v1.0.102\n   Compiling lazy_static v1.5.0\n   Compiling arraydeque v0.5.1\n   Compiling iri-string v0.7.12\n   Compiling const-oid v0.10.2\n   Compiling digest v0.11.2\n   Compiling sharded-slab v0.1.7\n   Compiling bytes v1.11.1\n   Compiling icu_provider v2.2.0\n   Compiling schemars_derive v1.2.1\n   Compiling icu_normalizer v2.2.0\n   Compiling icu_properties v2.2.0\n   Compiling clap v4.6.1\n   Compiling http v1.4.0\n   Compiling tokio v1.52.1\n   Compiling yaml-rust2 v0.10.4\n   Compiling digest v0.10.7\n   Compiling http-body v1.0.1\n   Compiling http-body-util v0.1.3\n   Compiling idna_adapter v1.2.2\n   Compiling pest_met\n\n... [20014 characters truncated] ...\n\nrecord_serializes_to_json ... ok\ntest cli::commands::feedback::tests::capture_feedback_offers_delivery_when_interactive ... ok\ntest cli::commands::history::tests::parse_since_days ... ok\ntest cli::commands::history::tests::parse_since_hours ... ok\ntest cli::commands::history::tests::parse_since_invalid ... ok\ntest cli::commands::history::tests::parse_since_minutes ... ok\ntest cli::commands::history::tests::parse_since_weeks ... ok\ntest cli::commands::feedback::tests::offer_delivery_shows_preview ... ok\ntest cli::commands::feedback::tests::quick_capture_with_tag_uses_category ... ok\ntest cli::commands::history::tests::scan_log_dir_skips_logs_without_working_directory ... ok\ntest cli::commands::history::tests::scan_log_files_with_jsonl_data ... ok\ntest cli::commands::init::tests::create_config_basic ... ok\ntest cli::commands::init::tests::config_exists_check ... ok\ntest cli::commands::history::tests::scan_log_dir_respects_limit ... ok\ntest cli::commands::history::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::create_config_includes_schema_line_when_path_provided ... ok\ntest cli::commands::init::tests::create_config_header_and_settings ... ok\ntest cli::commands::init::tests::create_config_omits_schema_line_when_path_none ... ok\ntest cli::commands::init::tests::create_config_no_steps_omits_steps_and_workflows ... ok\ntest cli::commands::init::tests::init_command_creation ... ok\ntest cli::commands::init::tests::init_fails_if_config_exists ... ok\ntest cli::commands::init::tests::create_config_with_templates ... ok\ntest cli::commands::init::tests::create_config_with_template_check ... ok\ntest cli::commands::init::tests::init_does_not_duplicate_gitignore_entry ... ok\ntest cli::commands::history::tests::clear_cancelled_when_user_declines_prompt ... ok\ntest cli::commands::history::tests::clear_prompts_when_interactive_without_force ... ok\ntest cli::commands::init::tests::init_interactive_all_detected_by_default ... ok\ntest cli::commands::history::tests::clear_reports_when_no_logs_match ... ok\ntest cli::commands::history::tests::clear_with_force_deletes_only_this_projects_logs ... ok\ntest cli::commands::init::tests::init_interactive_shows_summary ... ok\ntest cli::commands::init::tests::init_interactive_subset_selection ... ok\ntest cli::commands::init::tests::init_interactive_prompts_run_after_init ... ok\ntest cli::commands::init::tests::schema_path_resolves_under_home ... ok\ntest cli::commands::init::tests::init_minimal_creates_config ... ok\ntest cli::commands::last::tests::last_args_accessor ... ok\ntest cli::commands::last::tests::last_command_creation ... ok\ntest cli::commands::last::tests::outcome_status_kind_matches_run_ui ... ok\ntest cli::commands::last::tests::parse_log_preserves_step_order ... ok\ntest cli::commands::last::tests::parse_log_reads_workflow_completed_summary ... ok\ntest cli::commands::last::tests::parse_log_returns_none_without_workflow_completed ... ok\ntest cli::commands::init::tests::init_updates_gitignore ... ok\ntest cli::commands::init::tests::init_interactive_uses_multiselect ... ok\ntest cli::commands::last::tests::parse_log_round_trips_blocked ... ok\ntest cli::commands::last::tests::parse_log_round_trips_completed ... ok\ntest cli::commands::init::tests::init_interactive_yes_runs_workflow ... ok\ntest cli::commands::last::tests::parse_log_round_trips_declined ... ok\ntest cli::commands::last::tests::parse_log_round_trips_failed_and_captures_error ... ok\ntest cli::commands::last::tests::parse_log_round_trips_filtered_out ... ok\ntest cli::commands::last::tests::parse_log_round_trips_satisfied ... ok\ntest cli::commands::last::tests::parse_log_skips_unknown_outcome_strings ... ok\ntest cli::commands::init::tests::init_non_interactive_skips_run_prompt ... ok\ntest cli::commands::last::tests::scan_log_dir_skips_logs_without_workflow_completed ... ok\ntest cli::commands::last::tests::scan_log_dir_returns_empty_when_no_logs_match_project ... ok\ntest cli::commands::lint::tests::lint_command_creation ... ok\ntest cli::commands::last::tests::scan_log_dir_with_all_returns_runs_newest_first ... ok\ntest cli::commands::last::tests::scan_log_dir_filters_other_projects ... ok\ntest cli::commands::init::tests::init_with_force_overwrites ... ok\ntest cli::commands::init::tests::init_with_ruby_project ... ok\ntest cli::commands::lint::tests::lint_no_config ... ok\ntest cli::commands::lint::tests::lint_applies_config_default_output ... ok\ntest cli::commands::lint::tests::lint_json_format ... ok\ntest cli::commands::lint::tests::lint_detects_undefined_dependency ... ok\ntest cli::commands::lint::tests::lint_invalid_config_circular_dependency ... ok\ntest cli::commands::lint::tests::lint_all_flag_uses_full_merge ... ok\ntest cli::commands::lint::tests::lint_detects_self_dependency ... ok\ntest cli::commands::lint::tests::lint_sarif_format ... ok\ntest cli::commands::list::tests::list_all_uses_full_merge ... ok\ntest cli::commands::list::tests::list_applies_config_default_output ... ok\ntest cli::com"
+            }
+          },
+          "command": "cargo test --all-features 2>&1",
+          "exit_code": 101,
+          "event_index": 74
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01CDvqVgptnyAczRJgW16jEN",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_01JYMMGTPmLKQMi6q3U5jq86",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features config::loader::tests::load_config_file_errors_on_empty_file config::loader::tests::load_config_file_errors_on_comment_only_file config::loader::tests::load_config_value_errors_on_empty_file config::loader::tests::load_config_value_errors_on_non_mapping config::loader::tests::load_merged_config_errors_on_empty_project_config config::merger::tests::null_overlay_returns_base_unchanged 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 3819,
+                  "cache_read_input_tokens": 132098,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 3819
+                  },
+                  "output_tokens": 8,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "35040612-3605-47d7-818b-17b075cfb8a8"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 1\nerror: unexpected argument 'config::loader::tests::load_config_file_errors_on_comment_only_file' found\n\nUsage: cargo test [OPTIONS] [TESTNAME] [-- [ARGS]...]\n\nFor more information, try '--help'.",
+                    "is_error": true,
+                    "tool_use_id": "toolu_01JYMMGTPmLKQMi6q3U5jq86"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "1d7a7e7b-60fa-46f0-abf2-e56bf2f8e227",
+              "timestamp": "2026-05-17T01:05:23.001Z",
+              "tool_use_result": "Error: Exit code 1\nerror: unexpected argument 'config::loader::tests::load_config_file_errors_on_comment_only_file' found\n\nUsage: cargo test [OPTIONS] [TESTNAME] [-- [ARGS]...]\n\nFor more information, try '--help'."
+            }
+          },
+          "command": "cargo test --all-features config::loader::tests::load_config_file_errors_on_empty_file config::loader::tests::load_config_file_errors_on_comment_only_file config::loader::tests::load_config_value_errors_on_empty_file config::loader::tests::load_config_value_errors_on_non_mapping config::loader::tests::load_merged_config_errors_on_empty_project_config config::merger::tests::null_overlay_returns_base_unchanged 2>&1",
+          "exit_code": 1,
+          "event_index": 76
+        },
+        {
+          "raw": {
+            "tool_use_event": {
+              "type": "assistant",
+              "message": {
+                "model": "claude-opus-4-6",
+                "id": "msg_01XM5d1QdjjrSm7iBt6t3mq4",
+                "type": "message",
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_014TeVsay2cftQF5barkKfb3",
+                    "name": "Bash",
+                    "input": {
+                      "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+                      "timeout": 120000
+                    },
+                    "caller": {
+                      "type": "direct"
+                    }
+                  }
+                ],
+                "stop_reason": null,
+                "stop_sequence": null,
+                "stop_details": null,
+                "usage": {
+                  "input_tokens": 1,
+                  "cache_creation_input_tokens": 318,
+                  "cache_read_input_tokens": 135917,
+                  "cache_creation": {
+                    "ephemeral_5m_input_tokens": 0,
+                    "ephemeral_1h_input_tokens": 318
+                  },
+                  "output_tokens": 63,
+                  "service_tier": "standard",
+                  "inference_geo": "not_available"
+                },
+                "diagnostics": null,
+                "context_management": null
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "ccf34fca-df5c-4bf4-affb-b0c85c6170fe"
+            },
+            "tool_result_event": {
+              "type": "user",
+              "message": {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "content": "Exit code 101\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::merger::tests::null_overlay_returns_base_unchanged ... FAILED\ntest config::loader::tests::load_config_file_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... FAILED\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... FAILED\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... FAILED\n\nfailures:\n\n---- config::merger::tests::null_overlay_returns_base_unchanged stdout ----\n\nthread 'config::merger::tests::null_overlay_returns_base_unchanged' (79831887) panicked at src/config/merger.rs:247:9:\nassertion `left == right` failed\n  left: Null\n right: \"Test\"\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- config::loader::tests::load_config_file_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_empty_file' (79831883) panicked at src/config/loader.rs:1082:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_empty_file' (79831884) panicked at src/config/loader.rs:1104:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_non_mapping stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_non_mapping' (79831885) panicked at src/config/loader.rs:1114:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_file_errors_on_comment_only_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_comment_only_file' (79831882) panicked at src/config/loader.rs:1094:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_merged_config_errors_on_empty_project_config stdout ----\n\nthread 'config::loader::tests::load_merged_config_errors_on_empty_project_config' (79831886) panicked at src/config/loader.rs:1200:9:\nexpected ConfigParseError for empty/comment-only config, got: Ok(BivvyConfig { app_name: None, settings: Settings { logging: LoggingSettings { logging: true, log_retention_days: 30, log_retention_mb: 500 }, execution: ExecutionSettings { parallel: false, max_parallel: 4, history_retention: 50, diagnostic_funnel: true, auto_update: true, default_rerun_window: None }, env_vars: EnvVarSettings { env: {}, env_file: None, secret_env: [] }, environment_profiles: EnvironmentProfileSettings { default_environment: None, environments: {} }, defaults: DefaultsSettings { output: Verbose, auto_run: true, prompt_on_rerun: false, rerun_window: None } }, template_sources: [], steps: {}, workflows: {}, secrets: {}, extends: None, requirements: {}, vars: {} })\n\n\nfailures:\n    config::loader::tests::load_config_file_errors_on_comment_only_file\n    config::loader::tests::load_config_file_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_non_mapping\n    config::loader::tests::load_merged_config_errors_on_empty_project_config\n    config::merger::tests::null_overlay_returns_base_unchanged\n\ntest result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--lib`",
+                    "is_error": true,
+                    "tool_use_id": "toolu_014TeVsay2cftQF5barkKfb3"
+                  }
+                ]
+              },
+              "parent_tool_use_id": null,
+              "session_id": "7e4eb139-1c10-41e0-bbb8-77c9a07f140f",
+              "uuid": "f87b9805-6bce-4aac-b4f9-2d5f65aadf93",
+              "timestamp": "2026-05-17T01:05:26.790Z",
+              "tool_use_result": "Error: Exit code 101\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (target/debug/deps/bivvy-fcc8f059b5e828ab)\n\nrunning 6 tests\ntest config::merger::tests::null_overlay_returns_base_unchanged ... FAILED\ntest config::loader::tests::load_config_file_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_empty_file ... FAILED\ntest config::loader::tests::load_config_value_errors_on_non_mapping ... FAILED\ntest config::loader::tests::load_config_file_errors_on_comment_only_file ... FAILED\ntest config::loader::tests::load_merged_config_errors_on_empty_project_config ... FAILED\n\nfailures:\n\n---- config::merger::tests::null_overlay_returns_base_unchanged stdout ----\n\nthread 'config::merger::tests::null_overlay_returns_base_unchanged' (79831887) panicked at src/config/merger.rs:247:9:\nassertion `left == right` failed\n  left: Null\n right: \"Test\"\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- config::loader::tests::load_config_file_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_empty_file' (79831883) panicked at src/config/loader.rs:1082:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_empty_file stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_empty_file' (79831884) panicked at src/config/loader.rs:1104:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_value_errors_on_non_mapping stdout ----\n\nthread 'config::loader::tests::load_config_value_errors_on_non_mapping' (79831885) panicked at src/config/loader.rs:1114:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_config_file_errors_on_comment_only_file stdout ----\n\nthread 'config::loader::tests::load_config_file_errors_on_comment_only_file' (79831882) panicked at src/config/loader.rs:1094:9:\nassertion failed: matches!(result, Err(BivvyError::ConfigParseError { .. }))\n\n---- config::loader::tests::load_merged_config_errors_on_empty_project_config stdout ----\n\nthread 'config::loader::tests::load_merged_config_errors_on_empty_project_config' (79831886) panicked at src/config/loader.rs:1200:9:\nexpected ConfigParseError for empty/comment-only config, got: Ok(BivvyConfig { app_name: None, settings: Settings { logging: LoggingSettings { logging: true, log_retention_days: 30, log_retention_mb: 500 }, execution: ExecutionSettings { parallel: false, max_parallel: 4, history_retention: 50, diagnostic_funnel: true, auto_update: true, default_rerun_window: None }, env_vars: EnvVarSettings { env: {}, env_file: None, secret_env: [] }, environment_profiles: EnvironmentProfileSettings { default_environment: None, environments: {} }, defaults: DefaultsSettings { output: Verbose, auto_run: true, prompt_on_rerun: false, rerun_window: None } }, template_sources: [], steps: {}, workflows: {}, secrets: {}, extends: None, requirements: {}, vars: {} })\n\n\nfailures:\n    config::loader::tests::load_config_file_errors_on_comment_only_file\n    config::loader::tests::load_config_file_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_empty_file\n    config::loader::tests::load_config_value_errors_on_non_mapping\n    config::loader::tests::load_merged_config_errors_on_empty_project_config\n    config::merger::tests::null_overlay_returns_base_unchanged\n\ntest result: FAILED. 0 passed; 6 failed; 0 ignored; 0 measured; 2439 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--lib`"
+            }
+          },
+          "command": "cargo test --all-features -- config::loader::tests::load_config_file_errors config::loader::tests::load_config_value_errors config::loader::tests::load_merged_config_errors_on_empty config::merger::tests::null_overlay 2>&1",
+          "exit_code": 101,
+          "event_index": 78
+        }
+      ],
+      "last_fail_index": 78
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "checked_post_failure_modifications",
+      "timestamp": 2169503.20230475,
+      "after_index": 78,
+      "modifications_found": [
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/merger.rs",
+          "tool": "Edit",
+          "event_index": 80
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 82
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 84
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 86
+        }
+      ],
+      "src_modifications": [
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/merger.rs",
+          "tool": "Edit",
+          "event_index": 80
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 82
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 84
+        },
+        {
+          "path": "/private/var/folders/_q/qzh8_t6s15388qqf3p6n3d200000gp/T/bench-vheg40k4/src/config/loader.rs",
+          "tool": "Edit",
+          "event_index": 86
+        }
+      ],
+      "conclusion": "implementation"
+    },
+    {
+      "function": "_resolve_phase_routing",
+      "action": "routing_concluded",
+      "timestamp": 2169503.202305833,
+      "detected_route": "implementation",
+      "phase_name": "testing"
+    },
+    {
+      "function": "evaluate_check",
+      "action": "check_completed",
+      "timestamp": 2169503.202317791,
+      "passed": true,
+      "detail": "After testing failure: routed to 'implementation' (expected 'implementation')"
+    }
+  ]
+}

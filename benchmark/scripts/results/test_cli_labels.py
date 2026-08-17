@@ -39,6 +39,32 @@ def test_summary_label_uses_all_fields():
     assert _summary_label(summary) == "bivvy/ape/bugs/silent_yaml_failure/3"
 
 
+def test_summary_label_includes_source_when_present():
+    summary = {
+        "fixture_id": "bivvy",
+        "format": "ape",
+        "source": "claude-md",
+        "prompt_id": "bugs/silent_yaml_failure",
+        "run_id": 3,
+    }
+    assert _summary_label(summary) == (
+        "bivvy/ape/claude-md/bugs/silent_yaml_failure/3"
+    )
+
+
+def test_summary_label_omits_empty_source():
+    summary = {
+        "fixture_id": "bivvy",
+        "format": "no-workflow",
+        "source": "",
+        "prompt_id": "bugs/silent_yaml_failure",
+        "run_id": 0,
+    }
+    assert _summary_label(summary) == (
+        "bivvy/no-workflow/bugs/silent_yaml_failure/0"
+    )
+
+
 def test_summary_label_uses_question_marks_for_missing_fields():
     assert _summary_label({}) == "?/?/?/?"
 
