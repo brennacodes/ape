@@ -1,6 +1,6 @@
 # APE
 
-**Applied Primitive Expression** — an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
+**Applied Primitive Expression** - an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
 
 APE files are self-contained. The document declares what tools to use, when to stop and wait, and what to do on success or failure. Hand it to an agent; it runs.
 
@@ -12,6 +12,14 @@ LLM workflows today live in system prompts, scattered markdown files, or code th
 - **Inspectable.** The workflow is the document. No hidden state, no prompt engineering tricks.
 - **Enforceable.** Gates, prerequisites, and failure handlers are structural, not suggestions.
 - **Authorable.** Tags say what they mean. Three categories: things you *do* (`<action>`, `<command>`), things you *know/need* (`<resource>`, `<var>`), and how to *navigate* (`<step>`, `<gate>`). Prose and structure are strictly separated.
+
+If you're curious for more information, check out this blog post I wrote about the ideas that inspired APE and some of its design decisions: [APE Blog Post](https://brenna.dev/blog/2025-10-19-ape-lang/)
+
+## Benchmarks
+
+The benchmark suite tests how workflow instructions in different formats perform against real apps with realistic prompts. Each case runs in an isolated workspace with a scrubbed environment.
+
+See [`BENCHMARKS.md`](BENCHMARKS.md) for the methodology and how APE has performed so far against the alternatives.
 
 ## Project Structure
 
@@ -36,12 +44,6 @@ schema/
 ## Spec Version
 
 **0.3.0** — APE is under active development. The schema namespace is pinned to the major version (`https://ape-lang.dev/schema/0`); minor versions are expected to be broadly compatible.
-
-## Benchmarks
-
-The benchmark suite tests how workflow instructions in different formats perform against real apps with realistic prompts. Each case runs in an isolated workspace with a scrubbed environment.
-
-See [`BENCHMARKS.md`](BENCHMARKS.md) for the methodology and how APE has performed so far against the alternatives.
 
 ### Running
 
