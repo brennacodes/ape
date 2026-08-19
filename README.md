@@ -1,6 +1,6 @@
 # APE - honest to goodness, real, raw robot instructions - the way it should be.
 
-**Applied Primitive Expression** - an XML markup language for defining structured workflows that LLM agents execute directly, without a system prompt.
+**Applied Primitive Expression** - an XML markup language for defining structured workflows that LLM agents execute directly.
 
 APE files are self-contained. The document declares what tools to use, when to stop and wait, and what to do on success or failure. Hand it to an agent; it runs.
 
