@@ -13,7 +13,9 @@ LLM workflows today live in system prompts, scattered markdown files, or code th
 - **Enforceable.** Gates, prerequisites, and failure handlers are structural, not suggestions.
 - **Authorable.** Tags say what they mean. Three categories: things you *do* (`<action>`, `<command>`), things you *know/need* (`<resource>`, `<var>`), and how to *navigate* (`<step>`, `<gate>`). Prose and structure are strictly separated.
 
-If you're curious for more information, check out this blog post I wrote about the ideas that inspired APE and some of its design decisions: [APE Blog Post](https://brenna.dev/blog/2025-10-19-ape-lang/)
+If you're curious for more information, check out some blog posts I wrote about the ideas that inspired APE, its design, as well as how things have turned out so far and what I've learned: 
+- [APE Part 1](https://blog.brennacodes.com/markdown-is-a-display-format-ape-is-an-execution-format)
+- [APE Part 2](https://blog.brennacodes.com/ape-part-two-what-i-learned-from-331-runs)
 
 ## Benchmarks
 
@@ -37,13 +39,16 @@ schema/
 
 **To write a workflow:** Read [`spec/ape-authoring.md`](spec/ape-authoring.md). Start with commands and resources, add steps and gates, then layer in constraints and templates.
 
-**To run a workflow:** Include [`spec/ape-llms.md`](spec/ape-llms.md) alongside the `.ape` file when handing it to an LLM agent. The contract tells the agent how to interpret and execute the document.
+**To run a workflow:** Point your LLM at your `.ape` file.
 
 **To validate a workflow:** Use `schema/ape.xsd` for structural validation. Semantic validation (reference resolution, scope rules, flow-control constraints) requires a validator — see section 23 of the spec.
 
 ## Spec Version
 
 **0.3.0** — APE is under active development. The schema namespace is pinned to the major version (`https://ape-lang.dev/schema/0`); minor versions are expected to be broadly compatible.
+
+## Want to Benchmark it yourself?
+You'll first need to update the suite to with your target fixture app, and then create a set of target test cases that are specific to that repo. Some of the existing ones might be general enough to work - some might not. You'll also want to make sure the benchmark setup is pointed at *your* system folders for the portion that adds/removes things like system `Claude.md` before the test begins. Once you have your fixture and and test cases, you can start running! 
 
 ### Running
 
